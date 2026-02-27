@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.mapper.LeaveRequestMapper">
+
+    <resultMap id="BaseResultMap" type="com.student.entity.LeaveRequest">
+        <id column="id" property="id"/>
+        <result column="student_id" property="studentId"/>
+        <result column="student_no" property="studentNo"/>
+        <result column="student_name" property="studentName"/>
+        <result column="class_name" property="className"/>
+        <result column="course_arrangement_id" property="courseArrangementId"/>
+        <result column="course_name" property="courseName"/>
+        <result column="leave_type" property="leaveType" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="reason" property="reason"/>
+        <result column="attachment" property="attachment"/>
+        <result column="status" property="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="approver_id" property="approverId"/>
+        <result column="approver_name" property="approverName"/>
+        <result column="approve_time" property="approveTime"/>
+        <result column="approve_remark" property="approveRemark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectByIdWithDetail" resultMap="BaseResultMap">
+        SELECT lr.*, 
+               s.student_no, s.name as student_name, c.class_name,
+               co.course_name, t.name as approver_name
+        FROM leave_request lr
+        LEFT JOIN student s ON lr.student_id = s.id
+        LEFT JOIN class c ON s.class_id = c.id
+        LEFT JOIN course_arrangement ca ON lr.course_arrangement_id = ca.id
+        LEFT JOIN course co ON ca.course_id = co.id
+        LEFT JOIN teacher t ON lr.approver_id = t.id
+        WHERE lr.id = #{id}
+    </select>
+
+    <select id="selectPageWithDetail" resultMap="BaseResultMap">
+        SELECT lr.*, 
+               s.student_no, s.name as student_name, c.class_name,
+               co.course_name, t.name as approver_name
+        FROM leave_request lr
+        LEFT JOIN student s ON lr.student_id = s.id
+        LEFT JOIN class c ON s.class_id = c.id
+        LEFT JOIN course_arrangement ca ON lr.course_arrangement_id = ca.id
+        LEFT JOIN course co ON ca.course_id = co.id
+        LEFT JOIN teacher t ON lr.approver_id = t.id
+        <where>
+            <if test="studentId != null">
+                AND lr.student_id = #{studentId}
+            </if>
+            <if test="status != null">
+                AND lr.status = #{status}
+            </if>
+        </where>
+        ORDER BY lr.create_time DESC
+    </select>
+
+    <select id="selectByStudentId" resultMap="BaseResultMap">
+        SELECT lr.*, 
+               s.student_no, s.name as student_name, c.class_name,
+               co.course_name, t.name as approver_name
+        FROM leave_request lr
+        LEFT JOIN student s ON lr.student_id = s.id
+        LEFT JOIN class c ON s.class_id = c.id
+        LEFT JOIN course_arrangement ca ON lr.course_arrangement_id = ca.id
+        LEFT JOIN course co ON ca.course_id = co.id
+        LEFT JOIN teacher t ON lr.approver_id = t.id
+        WHERE lr.student_id = #{studentId}
+        ORDER BY lr.create_time DESC
+    </select>
+
+    <select id="selectPendingByTeacherId" resultMap="BaseResultMap">
+        SELECT lr.*, 
+               s.student_no, s.name as student_name, c.class_name,
+               co.course_name
+        FROM leave_request lr
+        LEFT JOIN student s ON lr.student_id = s.id
+        LEFT JOIN class c ON s.class_id = c.id
+        LEFT JOIN course_arrangement ca ON lr.course_arrangement_id = ca.id
+        LEFT JOIN course co ON ca.course_id = co.id
+        WHERE lr.status = 'PENDING'
+          AND ca.teacher_id = #{teacherId}
+        ORDER BY lr.create_time ASC
+    </select>
+
+</mapper>

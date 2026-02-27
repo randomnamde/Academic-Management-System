@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.mapper.ScoreMapper">
+
+    <resultMap id="BaseResultMap" type="com.student.entity.Score">
+        <id column="id" property="id"/>
+        <result column="student_id" property="studentId"/>
+        <result column="student_no" property="studentNo"/>
+        <result column="student_name" property="studentName"/>
+        <result column="course_arrangement_id" property="courseArrangementId"/>
+        <result column="course_name" property="courseName"/>
+        <result column="teacher_name" property="teacherName"/>
+        <result column="semester" property="semester"/>
+        <result column="usual_score" property="usualScore"/>
+        <result column="midterm_score" property="midtermScore"/>
+        <result column="final_score" property="finalScore"/>
+        <result column="total_score" property="totalScore"/>
+        <result column="gpa" property="gpa"/>
+        <result column="exam_time" property="examTime"/>
+        <result column="status" property="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectByIdWithDetail" resultMap="BaseResultMap">
+        SELECT s.*, 
+               st.student_no, st.name as student_name,
+               c.course_name, t.name as teacher_name, ca.semester
+        FROM score s
+        LEFT JOIN student st ON s.student_id = st.id
+        LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        LEFT JOIN course c ON ca.course_id = c.id
+        LEFT JOIN teacher t ON ca.teacher_id = t.id
+        WHERE s.id = #{id}
+    </select>
+
+    <select id="selectPageWithDetail" resultMap="BaseResultMap">
+        SELECT s.*, 
+               st.student_no, st.name as student_name,
+               c.course_name, t.name as teacher_name, ca.semester
+        FROM score s
+        LEFT JOIN student st ON s.student_id = st.id
+        LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        LEFT JOIN course c ON ca.course_id = c.id
+        LEFT JOIN teacher t ON ca.teacher_id = t.id
+        <where>
+            <if test="studentId != null">
+                AND s.student_id = #{studentId}
+            </if>
+            <if test="courseArrangementId != null">
+                AND s.course_arrangement_id = #{courseArrangementId}
+            </if>
+            <if test="semester != null and semester != ''">
+                AND ca.semester = #{semester}
+            </if>
+        </where>
+        ORDER BY s.create_time DESC
+    </select>
+
+    <select id="selectByStudentId" resultMap="BaseResultMap">
+        SELECT s.*, 
+               st.student_no, st.name as student_name,
+               c.course_name, t.name as teacher_name, ca.semester
+        FROM score s
+        LEFT JOIN student st ON s.student_id = st.id
+        LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        LEFT JOIN course c ON ca.course_id = c.id
+        LEFT JOIN teacher t ON ca.teacher_id = t.id
+        WHERE s.student_id = #{studentId}
+        ORDER BY s.create_time DESC
+    </select>
+
+    <select id="selectByCourseArrangementId" resultMap="BaseResultMap">
+        SELECT s.*, 
+               st.student_no, st.name as student_name,
+               c.course_name, t.name as teacher_name, ca.semester
+        FROM score s
+        LEFT JOIN student st ON s.student_id = st.id
+        LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        LEFT JOIN course c ON ca.course_id = c.id
+        LEFT JOIN teacher t ON ca.teacher_id = t.id
+        WHERE s.course_arrangement_id = #{courseArrangementId}
+        ORDER BY s.total_score DESC
+    </select>
+
+    <select id="selectScoreDistribution" resultType="java.util.HashMap">
+        SELECT 
+            CASE 
+                WHEN total_score >= 90 THEN '90-100'
+                WHEN total_score >= 80 THEN '80-89'
+                WHEN total_score >= 70 THEN '70-79'
+                WHEN total_score >= 60 THEN '60-69'
+                ELSE '0-59'
+            END as score_range,
+            COUNT(*) as count
+        FROM score
+        WHERE course_arrangement_id = #{courseArrangementId}
+        GROUP BY score_range
+        ORDER BY score_range DESC
+    </select>
+
+    <select id="selectClassRank" resultType="java.util.HashMap">
+        SELECT 
+            st.id as student_id,
+            st.student_no,
+            st.name as student_name,
+            AVG(s.total_score) as average_score,
+            SUM(s.total_score * c.credit) / SUM(c.credit) as weighted_average,
+            RANK() OVER (ORDER BY AVG(s.total_score) DESC) as rank
+        FROM score s
+        JOIN student st ON s.student_id = st.id
+        JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        JOIN course c ON ca.course_id = c.id
+        WHERE st.class_id = #{classId}
+          AND ca.semester = #{semester}
+        GROUP BY st.id, st.student_no, st.name
+        ORDER BY average_score DESC
+    </select>
+
+</mapper>

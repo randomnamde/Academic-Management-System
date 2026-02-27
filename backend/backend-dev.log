@@ -1,0 +1,226 @@
+[INFO] Scanning for projects...
+Downloading from central: https://repo.maven.apache.org/maven2/pl/project13/maven/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/springframework/boot/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/johnzon/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/flywaydb/maven-metadata.xml
+Progress (1): 249 BProgress (2): 249 B | 234 BProgress (3): 249 B | 234 B | 249 B                                   Downloaded from central: https://repo.maven.apache.org/maven2/org/springframework/boot/maven-metadata.xml (249 B at 250 B/s)
+Downloaded from central: https://repo.maven.apache.org/maven2/pl/project13/maven/maven-metadata.xml (249 B at 250 B/s)
+Downloaded from central: https://repo.maven.apache.org/maven2/org/flywaydb/maven-metadata.xml (234 B at 234 B/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/jooq/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/liquibase/maven-metadata.xml
+Downloading from central: https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/maven-metadata.xml
+Progress (1): 243 BProgress (2): 243 B | 398 B                           Downloaded from central: https://repo.maven.apache.org/maven2/org/liquibase/maven-metadata.xml (243 B at 867 B/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml
+Progress (2): 398 B | 375 B                           Downloaded from central: https://repo.maven.apache.org/maven2/org/jooq/maven-metadata.xml (398 B at 1.3 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml
+Downloaded from central: https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/maven-metadata.xml (375 B at 1.3 kB/s)
+Progress (1): 4.6 kBProgress (1): 9.7 kBProgress (1): 14 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml (14 kB at 52 kB/s)
+Progress (1): 3.1 kBProgress (1): 7.7 kBProgress (1): 12 kB Progress (1): 17 kBProgress (1): 20 kBProgress (1): 21 kBProgress (2): 21 kB | 237 B                           Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/johnzon/maven-metadata.xml (237 B at 130 B/s)
+Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml (21 kB at 35 kB/s)
+[INFO] 
+[INFO] -------------------< com.student:student-management >-------------------
+[INFO] Building Student Management System 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:2.7.18:run (default-cli) > test-compile @ student-management >>>
+[WARNING] The artifact mysql:mysql-connector-java:jar:8.0.33 has been relocated to com.mysql:mysql-connector-j:jar:8.0.33: MySQL Connector/J artifacts moved to reverse-DNS compliant Maven 2+ coordinates.
+[INFO] 
+[INFO] --- resources:3.2.0:resources (default-resources) @ student-management ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Using 'UTF-8' encoding to copy filtered properties files.
+[INFO] Copying 2 resources
+[INFO] Copying 6 resources
+[INFO] 
+[INFO] --- compiler:3.10.1:compile (default-compile) @ student-management ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.2.0:testResources (default-testResources) @ student-management ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Using 'UTF-8' encoding to copy filtered properties files.
+[INFO] skip non existing resourceDirectory D:\Learn\crm\student-management-system\backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.10.1:testCompile (default-testCompile) @ student-management ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] <<< spring-boot:2.7.18:run (default-cli) < test-compile @ student-management <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:2.7.18:run (default-cli) @ student-management ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::               (v2.7.18)
+
+2026-02-26 22:36:02 [main] INFO  c.s.StudentManagementApplication - Starting StudentManagementApplication using Java 24.0.2 on 红小豆 with PID 29480 (D:\Learn\crm\student-management-system\backend\target\classes started by 94569 in D:\Learn\crm\student-management-system\backend)
+2026-02-26 22:36:02 [main] DEBUG c.s.StudentManagementApplication - Running with Spring Boot v2.7.18, Spring v5.3.31
+2026-02-26 22:36:02 [main] INFO  c.s.StudentManagementApplication - The following 1 profile is active: "h2"
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.apache.tomcat.jni.Library in an unnamed module (file:/C:/Users/94569/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/9.0.83/tomcat-embed-core-9.0.83.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+2026-02-26 22:36:03 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2026-02-26 22:36:03 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-02-26 22:36:03 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.83]
+2026-02-26 22:36:03 [main] INFO  o.a.c.c.C.[.[localhost].[/api] - Initializing Spring embedded WebApplicationContext
+2026-02-26 22:36:03 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 936 ms
+2026-02-26 22:36:03 [main] DEBUG c.s.security.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
+Logging initialized using 'class org.apache.ibatis.logging.stdout.StdOutImpl' adapter.
+Registered plugin: 'com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor@5115f590'
+Parsed mapper file: 'file [D:\Learn\crm\student-management-system\backend\target\classes\mapper\AttendanceMapper.xml]'
+Parsed mapper file: 'file [D:\Learn\crm\student-management-system\backend\target\classes\mapper\CourseMapper.xml]'
+Parsed mapper file: 'file [D:\Learn\crm\student-management-system\backend\target\classes\mapper\LeaveRequestMapper.xml]'
+Parsed mapper file: 'file [D:\Learn\crm\student-management-system\backend\target\classes\mapper\ScoreMapper.xml]'
+ _ _   |_  _ _|_. ___ _ |    _ 
+| | |\/|_)(_| | |_\  |_)||_|_\ 
+     /               |         
+                        3.5.3.1 
+2026-02-26 22:36:04 [main] DEBUG o.s.s.c.a.a.c.AuthenticationConfiguration$DefaultPasswordEncoderAuthenticationManagerBuilder - No authenticationProviders and no parentAuthenticationManager defined. Returning null.
+2026-02-26 22:36:04 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@469a7575, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@4351ed61, org.springframework.security.web.context.SecurityContextPersistenceFilter@1980a3f, org.springframework.security.web.header.HeaderWriterFilter@1ca3d25b, org.springframework.web.filter.CorsFilter@2f20f7ad, org.springframework.security.web.authentication.logout.LogoutFilter@629a9f26, com.student.security.JwtAuthenticationFilter@68b9834c, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@536b71b4, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@67332b1e, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@45e617c4, org.springframework.security.web.session.SessionManagementFilter@62b09715, org.springframework.security.web.access.ExceptionTranslationFilter@3aed69dd, org.springframework.security.web.access.intercept.AuthorizationFilter@75fe1619]
+2026-02-26 22:36:04 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-02-26 22:36:04 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-02-26 22:36:04 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path '/api'
+2026-02-26 22:36:04 [main] INFO  c.s.StudentManagementApplication - Started StudentManagementApplication in 2.391 seconds (JVM running for 2.642)
+2026-02-26 22:36:28 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[.[localhost].[/api] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-26 22:36:28 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-02-26 22:36:28 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+2026-02-26 22:36:28 [http-nio-8080-exec-2] DEBUG o.s.security.web.FilterChainProxy - Securing GET /course?page=1&size=1
+2026-02-26 22:36:28 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Securing GET /student?page=1&size=1
+2026-02-26 22:36:28 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Securing GET /teacher?page=1&size=1
+2026-02-26 22:36:28 [http-nio-8080-exec-2] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Set SecurityContextHolder to empty SecurityContext
+2026-02-26 22:36:28 [http-nio-8080-exec-1] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Set SecurityContextHolder to empty SecurityContext
+2026-02-26 22:36:28 [http-nio-8080-exec-3] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Set SecurityContextHolder to empty SecurityContext
+2026-02-26 22:36:28 [http-nio-8080-exec-1] DEBUG o.s.security.web.FilterChainProxy - Secured GET /student?page=1&size=1
+2026-02-26 22:36:28 [http-nio-8080-exec-3] DEBUG o.s.security.web.FilterChainProxy - Secured GET /teacher?page=1&size=1
+2026-02-26 22:36:28 [http-nio-8080-exec-2] DEBUG o.s.security.web.FilterChainProxy - Secured GET /course?page=1&size=1
+Creating a new SqlSession
+Creating a new SqlSession
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@14bfb64f] was not registered for synchronization because synchronization is not active
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@43204939] was not registered for synchronization because synchronization is not active
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1d1f11e3] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1270148605 wrapping conn0: url=jdbc:h2:mem:student_management user=SA] will not be managed by Spring
+JDBC Connection [HikariProxyConnection@1386415615 wrapping conn2: url=jdbc:h2:mem:student_management user=SA] will not be managed by Spring
+JDBC Connection [HikariProxyConnection@1750789350 wrapping conn1: url=jdbc:h2:mem:student_management user=SA] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM teacher
+==>  Preparing: SELECT COUNT(*) AS total FROM course
+==>  Preparing: SELECT COUNT(*) AS total FROM student
+==> Parameters: 
+==> Parameters: 
+==> Parameters: 
+<==    Columns: total
+<==    Columns: total
+<==    Columns: total
+<==        Row: 1
+<==        Row: 1
+<==        Row: 1
+<==      Total: 1
+<==      Total: 1
+<==      Total: 1
+==>  Preparing: SELECT * FROM course ORDER BY create_time DESC LIMIT ?
+==>  Preparing: SELECT id,user_id,student_no,name,gender,birthday,id_card,phone,email,address,class_id,enrollment_date,graduation_date,status,create_time,update_time FROM student LIMIT ?
+==>  Preparing: SELECT id,user_id,teacher_no,name,gender,birthday,phone,email,title,department,hire_date,status,create_time,update_time FROM teacher LIMIT ?
+==> Parameters: 1(Long)
+==> Parameters: 1(Long)
+==> Parameters: 1(Long)
+<==    Columns: id, user_id, student_no, name, gender, birthday, id_card, phone, email, address, class_id, enrollment_date, graduation_date, status, create_time, update_time
+<==    Columns: id, user_id, teacher_no, name, gender, birthday, phone, email, title, department, hire_date, status, create_time, update_time
+<==    Columns: id, course_name, course_code, credit, hours, category, description, status, create_time, update_time
+<==        Row: 1, 2, T2024001, Teacher One, MALE, null, 13800000002, teacher001@school.com, LECTURER, Computer Science, 2020-09-01, 1, 2026-02-26 22:36:04.687257, 2026-02-26 22:36:04.687257
+<==        Row: 1, 3, 2023010001, Student One, MALE, null, null, 13800000003, student001@school.com, null, 1, 2023-09-01, null, ENROLLED, 2026-02-26 22:36:04.687257, 2026-02-26 22:36:04.687257
+<==        Row: 1, Data Structures, CS002, 4.0, 64, REQUIRED, Core course, 1, 2026-02-26 22:36:04.688257, 2026-02-26 22:36:04.688257
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@14bfb64f]
+<==      Total: 1
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1d1f11e3]
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@43204939]
+2026-02-26 22:36:28 [http-nio-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Securing GET /class?page=1&size=1
+2026-02-26 22:36:28 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Securing GET /announcement?page=1&size=8&status=1
+2026-02-26 22:36:28 [http-nio-8080-exec-9] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Set SecurityContextHolder to empty SecurityContext
+2026-02-26 22:36:28 [http-nio-8080-exec-6] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Set SecurityContextHolder to empty SecurityContext
+2026-02-26 22:36:28 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Securing GET /student/statistics/gender
+2026-02-26 22:36:28 [http-nio-8080-exec-5] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Set SecurityContextHolder to empty SecurityContext
+2026-02-26 22:36:28 [http-nio-8080-exec-5] DEBUG o.s.security.web.FilterChainProxy - Secured GET /student/statistics/gender
+2026-02-26 22:36:28 [http-nio-8080-exec-6] DEBUG o.s.security.web.FilterChainProxy - Secured GET /announcement?page=1&size=8&status=1
+2026-02-26 22:36:28 [http-nio-8080-exec-9] DEBUG o.s.security.web.FilterChainProxy - Secured GET /class?page=1&size=1
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@72c293e2] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@24596073 wrapping conn0: url=jdbc:h2:mem:student_management user=SA] will not be managed by Spring
+==>  Preparing: SELECT gender, COUNT(*) AS count FROM student GROUP BY gender
+==> Parameters: 
+<==    Columns: gender, count
+<==        Row: MALE, 1
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@72c293e2]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6322b277] was not registered for synchronization because synchronization is not active
+2026-02-26 22:36:28 [http-nio-8080-exec-3] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Cleared SecurityContextHolder to complete request
+2026-02-26 22:36:28 [http-nio-8080-exec-1] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Cleared SecurityContextHolder to complete request
+2026-02-26 22:36:28 [http-nio-8080-exec-2] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Cleared SecurityContextHolder to complete request
+2026-02-26 22:36:28 [http-nio-8080-exec-5] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Cleared SecurityContextHolder to complete request
+JDBC Connection [HikariProxyConnection@659004385 wrapping conn0: url=jdbc:h2:mem:student_management user=SA] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM class
+==> Parameters: 
+<==    Columns: total
+<==        Row: 1
+<==      Total: 1
+==>  Preparing: SELECT id,class_name,class_code,grade,major,teacher_id,room,student_count,status,create_time,update_time FROM class LIMIT ?
+==> Parameters: 1(Long)
+<==    Columns: id, class_name, class_code, grade, major, teacher_id, room, student_count, status, create_time, update_time
+<==        Row: 1, SE2301, SE2301, 2023, Software Engineering, 1, B101, 1, 1, 2026-02-26 22:36:04.687257, 2026-02-26 22:36:04.687257
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6322b277]
+2026-02-26 22:36:28 [http-nio-8080-exec-9] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Cleared SecurityContextHolder to complete request
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1eb70e9d] was not registered for synchronization because synchronization is not active
+2026-02-26 22:36:28 [http-nio-8080-exec-6] WARN  c.b.m.c.t.support.ReflectLambdaMeta - Unable to make field private final java.lang.Class java.lang.invoke.SerializedLambda.capturingClass accessible: module java.base does not "opens java.lang.invoke" to unnamed module @73ad2d6
+JDBC Connection [HikariProxyConnection@1790294709 wrapping conn0: url=jdbc:h2:mem:student_management user=SA] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM announcement WHERE (status = ?)
+==> Parameters: 1(Integer)
+<==    Columns: total
+<==        Row: 2
+<==      Total: 1
+==>  Preparing: SELECT id,title,content,type,target_role,target_class_id,priority,author_id,view_count,is_top,start_time,end_time,status,create_time,update_time FROM announcement WHERE (status = ?) ORDER BY is_top DESC,create_time DESC LIMIT ?
+==> Parameters: 1(Integer), 8(Long)
+<==    Columns: id, title, content, type, target_role, target_class_id, priority, author_id, view_count, is_top, start_time, end_time, status, create_time, update_time
+<==        Row: 1, Welcome, <<BLOB>>, NOTICE, ALL, null, 1, 1, 0, 1, null, null, 1, 2026-02-26 22:36:04.68926, 2026-02-26 22:36:04.68926
+<==        Row: 2, Exam Notice, <<BLOB>>, IMPORTANT, STUDENT, null, 2, 1, 0, 0, null, null, 1, 2026-02-26 22:36:04.68926, 2026-02-26 22:36:04.68926
+<==      Total: 2
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1eb70e9d]
+2026-02-26 22:36:28 [http-nio-8080-exec-6] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Cleared SecurityContextHolder to complete request
+2026-02-26 22:36:28 [http-nio-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Securing GET /announcement?page=1&size=5&status=1
+2026-02-26 22:36:28 [http-nio-8080-exec-8] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Set SecurityContextHolder to empty SecurityContext
+2026-02-26 22:36:28 [http-nio-8080-exec-8] DEBUG o.s.security.web.FilterChainProxy - Secured GET /announcement?page=1&size=5&status=1
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@17d35b85] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@5290767 wrapping conn0: url=jdbc:h2:mem:student_management user=SA] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM announcement WHERE (status = ?)
+==> Parameters: 1(Integer)
+<==    Columns: total
+<==        Row: 2
+<==      Total: 1
+==>  Preparing: SELECT id,title,content,type,target_role,target_class_id,priority,author_id,view_count,is_top,start_time,end_time,status,create_time,update_time FROM announcement WHERE (status = ?) ORDER BY is_top DESC,create_time DESC LIMIT ?
+==> Parameters: 1(Integer), 5(Long)
+<==    Columns: id, title, content, type, target_role, target_class_id, priority, author_id, view_count, is_top, start_time, end_time, status, create_time, update_time
+<==        Row: 1, Welcome, <<BLOB>>, NOTICE, ALL, null, 1, 1, 0, 1, null, null, 1, 2026-02-26 22:36:04.68926, 2026-02-26 22:36:04.68926
+<==        Row: 2, Exam Notice, <<BLOB>>, IMPORTANT, STUDENT, null, 2, 1, 0, 0, null, null, 1, 2026-02-26 22:36:04.68926, 2026-02-26 22:36:04.68926
+<==      Total: 2
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@17d35b85]
+2026-02-26 22:36:28 [http-nio-8080-exec-8] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Cleared SecurityContextHolder to complete request
+2026-02-26 22:36:52 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Securing GET /student/statistics/gender
+2026-02-26 22:36:52 [http-nio-8080-exec-7] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Set SecurityContextHolder to empty SecurityContext
+2026-02-26 22:36:52 [http-nio-8080-exec-7] DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
+2026-02-26 22:36:52 [http-nio-8080-exec-7] DEBUG o.s.s.w.a.Http403ForbiddenEntryPoint - Pre-authenticated entry point called. Rejecting access
+2026-02-26 22:36:52 [http-nio-8080-exec-7] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Cleared SecurityContextHolder to complete request
+2026-02-26 22:36:52 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Securing GET /error
+2026-02-26 22:36:52 [http-nio-8080-exec-7] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Set SecurityContextHolder to empty SecurityContext
+2026-02-26 22:36:52 [http-nio-8080-exec-7] DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
+2026-02-26 22:36:52 [http-nio-8080-exec-7] DEBUG o.s.security.web.FilterChainProxy - Secured GET /error
+2026-02-26 22:36:52 [http-nio-8080-exec-7] DEBUG o.s.s.w.c.SecurityContextPersistenceFilter - Cleared SecurityContextHolder to complete request

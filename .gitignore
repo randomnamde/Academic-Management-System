@@ -1,0 +1,15 @@
+# Ignore compiled files
+/backend/target/
+
+# IDE files
+/.idea/
+*.iml
+
+# Node modules
+/frontend/node_modules/
+
+# Logs
+/logs/
+
+# Optional: ignore environment files
+*.env

@@ -1,6 +1,6 @@
 ﻿<template>
   <el-container class="main-layout">
-    <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
+    <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar" :class="{ collapsed: isCollapse }">
       <div class="logo">
         <el-icon :size="30"><School /></el-icon>
         <span v-show="!isCollapse">学生管理</span>
@@ -15,11 +15,19 @@
         text-color="#d8cffd"
         active-text-color="#c7b4ff"
       >
-        <el-menu-item v-for="item in menuItems" :key="item.path" :index="item.path" v-show="hasPermission(item)">
-          <el-icon>
-            <component :is="item.icon" />
-          </el-icon>
-          <template #title>{{ item.title }}</template>
+        <el-menu-item
+          v-for="item in menuItems"
+          :key="item.path"
+          :index="item.path"
+          :title="isCollapse ? item.title : ''"
+          v-show="hasPermission(item)"
+        >
+          <div class="menu-item-content" :class="{ collapsed: isCollapse }">
+            <el-icon class="menu-item-icon">
+              <component :is="item.icon" />
+            </el-icon>
+            <span v-if="!isCollapse" class="menu-item-title">{{ item.title }}</span>
+          </div>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -258,6 +266,14 @@ onMounted(() => {
     }
   }
 
+  &.collapsed {
+    .logo {
+      .el-icon {
+        margin-right: 0;
+      }
+    }
+  }
+
   .main-menu {
     border-right: none;
     padding-top: 8px;
@@ -268,12 +284,51 @@ onMounted(() => {
     border-radius: 12px;
     height: 44px;
     line-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
     transition: all 0.25s ease;
+  }
+
+  :deep(.el-menu--collapse .el-menu-item) {
+    width: 44px;
+    margin: 6px auto;
+    padding: 0 !important;
+    justify-content: center;
+  }
+
+  :deep(.el-menu--collapse .el-menu-item:hover) {
+    transform: none;
+  }
+
+  .menu-item-content {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .menu-item-content.collapsed {
+    gap: 0;
+  }
+
+  .menu-item-icon {
+    width: 18px;
+    min-width: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .menu-item-title {
+    line-height: 1;
+    white-space: nowrap;
   }
 
   :deep(.el-menu-item:hover) {
     background-color: rgba(167, 145, 255, 0.2);
-    transform: translateX(2px);
   }
 
   :deep(.el-menu-item.is-active) {

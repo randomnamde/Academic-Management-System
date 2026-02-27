@@ -1,6 +1,7 @@
 package com.student.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.student.dto.CourseCategoryStatisticsDTO;
 import com.student.dto.CourseDTO;
 import com.student.entity.Course;
 import com.student.service.CourseService;
@@ -56,6 +57,12 @@ public class CourseController {
             @RequestParam(required = false) Course.Category category) {
         Page<Course> result = courseService.getCoursePage(page, size, courseCode, courseName, category);
         return ResultVO.success(result);
+    }
+
+    @GetMapping("/statistics/category")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    public ResultVO<CourseCategoryStatisticsDTO> getCategoryStatistics() {
+        return ResultVO.success(courseService.getCategoryStatistics());
     }
 
     @PutMapping("/{id}/status")

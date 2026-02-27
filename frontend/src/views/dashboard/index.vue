@@ -207,7 +207,7 @@ import { User, UserFilled, Reading, School } from '@element-plus/icons-vue'
 import { getAnnouncementDetail, getAnnouncementList } from '@/api/announcement'
 import { getStudentGenderStatistics, getStudentList } from '@/api/student'
 import { getTeacherList } from '@/api/teacher'
-import { getCourseList } from '@/api/course'
+import { getCourseCategoryStatistics, getCourseList } from '@/api/course'
 import { getClassList } from '@/api/clazz'
 
 const router = useRouter()
@@ -219,6 +219,12 @@ let courseChartInstance = null
 const genderStatistics = ref({
   male: 0,
   female: 0
+})
+
+const courseCategoryStatistics = ref({
+  required: 0,
+  elective: 0,
+  practical: 0
 })
 
 const statistics = ref({
@@ -293,7 +299,11 @@ const renderCourseChart = () => {
     yAxis: { type: 'value' },
     series: [
       {
-        data: [45, 30, 15],
+        data: [
+          courseCategoryStatistics.value.required,
+          courseCategoryStatistics.value.elective,
+          courseCategoryStatistics.value.practical
+        ],
         type: 'bar',
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -359,6 +369,20 @@ const fetchGenderStatistics = async () => {
     renderGenderChart()
   } catch (_e) {
     ElMessage.error('获取性别分布失败')
+  }
+}
+
+const fetchCourseCategoryStatistics = async () => {
+  try {
+    const res = await getCourseCategoryStatistics()
+    courseCategoryStatistics.value = {
+      required: Number(res.data?.required ?? res.data?.REQUIRED ?? 0),
+      elective: Number(res.data?.elective ?? res.data?.ELECTIVE ?? 0),
+      practical: Number(res.data?.practical ?? res.data?.PRACTICAL ?? 0)
+    }
+    renderCourseChart()
+  } catch (_e) {
+    ElMessage.error('获取课程类型分布失败')
   }
 }
 
@@ -455,6 +479,7 @@ const getCourseCategoryText = (category) => {
 onMounted(() => {
   fetchStatistics()
   fetchGenderStatistics()
+  fetchCourseCategoryStatistics()
   fetchLatestAnnouncements()
   initCharts()
 })

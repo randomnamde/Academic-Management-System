@@ -2,6 +2,7 @@ package com.student.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.student.dto.CourseCategoryStatisticsDTO;
 import com.student.dto.CourseDTO;
 import com.student.entity.Course;
 import com.student.exception.BusinessException;
@@ -84,5 +85,14 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
         course.setStatus(status);
         courseMapper.updateById(course);
+    }
+
+    @Override
+    public CourseCategoryStatisticsDTO getCategoryStatistics() {
+        CourseCategoryStatisticsDTO statistics = new CourseCategoryStatisticsDTO();
+        statistics.setRequired(lambdaQuery().eq(Course::getCategory, Course.Category.REQUIRED).count());
+        statistics.setElective(lambdaQuery().eq(Course::getCategory, Course.Category.ELECTIVE).count());
+        statistics.setPractical(lambdaQuery().eq(Course::getCategory, Course.Category.PRACTICAL).count());
+        return statistics;
     }
 }

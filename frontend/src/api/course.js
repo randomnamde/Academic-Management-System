@@ -8,6 +8,13 @@ export function getCourseList(params) {
   })
 }
 
+export function getCourseCategoryStatistics() {
+  return request({
+    url: '/course/statistics/category',
+    method: 'get'
+  })
+}
+
 export function getCourseDetail(id) {
   return request({
     url: `/course/${id}`,

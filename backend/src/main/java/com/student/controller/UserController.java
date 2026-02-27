@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/user")
@@ -81,5 +82,18 @@ public class UserController {
         }
         sysUserService.updateProfile(currentUser.getId(), dto);
         return ResultVO.success();
+    }
+
+    @PostMapping("/avatar")
+    public ResultVO<String> uploadAvatar(@RequestParam("file") MultipartFile file, Authentication authentication) {
+        if (authentication == null) {
+            return ResultVO.error(401, "Unauthorized");
+        }
+        SysUser currentUser = sysUserService.getByUsername(authentication.getName());
+        if (currentUser == null) {
+            return ResultVO.error(404, "User not found");
+        }
+        String avatarUrl = sysUserService.uploadAvatar(currentUser.getId(), file);
+        return ResultVO.success(avatarUrl);
     }
 }

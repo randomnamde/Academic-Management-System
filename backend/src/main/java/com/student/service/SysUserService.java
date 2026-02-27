@@ -6,6 +6,7 @@ import com.student.dto.RegisterDTO;
 import com.student.dto.UpdateProfileDTO;
 import com.student.entity.SysUser;
 import com.student.vo.LoginVO;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface SysUserService extends IService<SysUser> {
     
@@ -20,4 +21,6 @@ public interface SysUserService extends IService<SysUser> {
     void updateStatus(Long userId, Integer status);
 
     void updateProfile(Long userId, UpdateProfileDTO dto);
+
+    String uploadAvatar(Long userId, MultipartFile file);
 }

@@ -38,8 +38,26 @@
                 <el-form-item label="邮箱">
                   <el-input v-model="form.email" />
                 </el-form-item>
+                <el-form-item label="头像">
+                  <div class="avatar-upload-row">
+                    <el-avatar :size="64" :src="form.avatar || defaultAvatar" />
+                    <div class="avatar-upload-actions">
+                      <el-upload
+                        class="avatar-uploader"
+                        :show-file-list="false"
+                        :before-upload="beforeAvatarUpload"
+                        :http-request="handleAvatarUpload"
+                        :disabled="uploadingAvatar"
+                        accept="image/*"
+                      >
+                        <el-button :loading="uploadingAvatar">上传头像</el-button>
+                      </el-upload>
+                      <div class="avatar-tip">支持 jpg/png/gif/webp，大小不超过 5MB</div>
+                    </div>
+                  </div>
+                </el-form-item>
                 <el-form-item label="头像地址">
-                  <el-input v-model="form.avatar" placeholder="https://..." />
+                  <el-input v-model="form.avatar" placeholder="上传后会自动填充，也可手动输入 URL" />
                 </el-form-item>
                 <el-form-item>
                   <el-button type="primary" :loading="saving" @click="submit">保存资料</el-button>
@@ -77,7 +95,7 @@ import { onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
-import { getUserInfo, updatePassword, updateProfile } from '@/api/user'
+import { getUserInfo, updatePassword, updateProfile, uploadAvatar } from '@/api/user'
 
 const route = useRoute()
 const store = useStore()
@@ -86,6 +104,7 @@ const saving = ref(false)
 const activeTab = ref('profile')
 const pwdFormRef = ref()
 const updatingPassword = ref(false)
+const uploadingAvatar = ref(false)
 const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
 
 const user = reactive({
@@ -163,6 +182,35 @@ async function submit() {
   }
 }
 
+function beforeAvatarUpload(file) {
+  const isImage = !!file.type && file.type.startsWith('image/')
+  if (!isImage) {
+    ElMessage.error('只能上传图片文件')
+    return false
+  }
+  const isLt5M = file.size / 1024 / 1024 < 5
+  if (!isLt5M) {
+    ElMessage.error('头像大小不能超过 5MB')
+    return false
+  }
+  return true
+}
+
+async function handleAvatarUpload(option) {
+  uploadingAvatar.value = true
+  try {
+    const res = await uploadAvatar(option.file)
+    form.avatar = res.data || ''
+    await fetchUser()
+    ElMessage.success('头像上传成功')
+    option.onSuccess?.(res)
+  } catch (error) {
+    option.onError?.(error)
+  } finally {
+    uploadingAvatar.value = false
+  }
+}
+
 function resetPasswordForm() {
   pwdForm.oldPassword = ''
   pwdForm.newPassword = ''
@@ -217,6 +265,27 @@ watch(
 
 .user-role {
   margin-top: 4px;
+  color: #909399;
+}
+
+.avatar-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-upload-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.avatar-uploader :deep(.el-upload) {
+  display: inline-flex;
+}
+
+.avatar-tip {
+  font-size: 12px;
   color: #909399;
 }
 </style>

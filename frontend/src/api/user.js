@@ -39,6 +39,16 @@ export function updateProfile(data) {
   })
 }
 
+export function uploadAvatar(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request({
+    url: '/user/avatar',
+    method: 'post',
+    data: formData
+  })
+}
+
 export function getUserList(params) {
   return request({
     url: '/user/list',

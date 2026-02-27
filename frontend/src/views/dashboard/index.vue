@@ -541,9 +541,25 @@ onBeforeUnmount(() => {
   margin-right: 0;
   font-size: 30px;
   color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), 0 10px 24px rgba(116, 92, 199, 0.18);
+  backdrop-filter: blur(2px);
 }
 
-.student-icon { background: linear-gradient(135deg, #9e8aff 0%, #7f68f8 100%); }
+.student-icon {
+  background:
+    radial-gradient(circle at 24% 24%, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0) 56%),
+    radial-gradient(circle at 70% 74%, rgba(126, 104, 248, 0.42) 0%, rgba(126, 104, 248, 0.16) 58%, rgba(126, 104, 248, 0) 100%);
+  border: 1px solid rgba(126, 104, 248, 0.22);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.18), 0 8px 22px rgba(118, 95, 212, 0.16);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.student-icon :deep(svg) {
+  opacity: 0.82;
+  transform: translateY(1px);
+  filter: drop-shadow(0 2px 6px rgba(109, 87, 198, 0.22));
+}
+
 .teacher-icon { background: linear-gradient(135deg, #b89dff 0%, #9377ff 100%); }
 .course-icon { background: linear-gradient(135deg, #c5adff 0%, #9b7dff 100%); }
 .class-icon { background: linear-gradient(135deg, #aa90ff 0%, #856dff 100%); }

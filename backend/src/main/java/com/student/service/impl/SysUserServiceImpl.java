@@ -12,17 +12,38 @@ import com.student.service.SysUserService;
 import com.student.vo.LoginVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
 
+    private static final long MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp");
+
     private final SysUserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${file.upload-dir:uploads}")
+    private String uploadDir;
+
+    @Value("${server.servlet.context-path:}")
+    private String contextPath;
 
     @Override
     public LoginVO login(LoginDTO loginDTO) {
@@ -108,5 +129,62 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setPhone(dto.getPhone());
         user.setEmail(dto.getEmail());
         updateById(user);
+    }
+
+    @Override
+    @Transactional
+    public String uploadAvatar(Long userId, MultipartFile file) {
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("User not found");
+        }
+
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException("Please select an avatar image");
+        }
+
+        if (file.getSize() > MAX_AVATAR_SIZE) {
+            throw new BusinessException("Avatar size cannot exceed 5MB");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.toLowerCase(Locale.ROOT).startsWith("image/")) {
+            throw new BusinessException("Only image files are supported");
+        }
+
+        String extension = resolveFileExtension(file.getOriginalFilename());
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new BusinessException("Unsupported image format");
+        }
+
+        Path avatarDirectory = Paths.get(uploadDir, "avatars").toAbsolutePath().normalize();
+        String fileName = UUID.randomUUID().toString().replace("-", "") + extension;
+        Path targetFile = avatarDirectory.resolve(fileName);
+
+        try {
+            Files.createDirectories(avatarDirectory);
+            try (InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, targetFile, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            throw new BusinessException("Avatar upload failed, please try again later");
+        }
+
+        String normalizedContextPath = (contextPath == null || contextPath.isBlank()) ? "" : contextPath;
+        String avatarUrl = normalizedContextPath + "/public/avatars/" + fileName;
+        user.setAvatar(avatarUrl);
+        updateById(user);
+        return avatarUrl;
+    }
+
+    private String resolveFileExtension(String filename) {
+        if (filename == null) {
+            return "";
+        }
+        int dotIndex = filename.lastIndexOf('.');
+        if (dotIndex < 0 || dotIndex >= filename.length() - 1) {
+            return "";
+        }
+        return filename.substring(dotIndex).toLowerCase(Locale.ROOT);
     }
 }

@@ -10,3 +10,6 @@ spring:
       mode: always
       schema-locations: classpath:h2/schema.sql
       data-locations: classpath:h2/data.sql
+
+file:
+  upload-dir: uploads

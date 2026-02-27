@@ -1,7 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Start All (H2)" type="CompoundRunConfigurationType" factoryName="Compound">
+    <toRun name="Cleanup Ports (3000,8080)" type="ShConfigurationType" />
     <toRun name="Backend H2 (Maven)" type="MavenRunConfiguration" />
-    <toRun name="Frontend Serve (npm)" type="js.build_tools.npm" />
+    <toRun name="Frontend Serve (npm)" type="ShConfigurationType" />
+    <toRun name="Frontend Build Watch (npm)" type="ShConfigurationType" />
     <method v="2" />
   </configuration>
 </component>

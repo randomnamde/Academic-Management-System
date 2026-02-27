@@ -13,15 +13,15 @@
         <div class="intro-data">
           <div class="data-item">
             <span>节点状态</span>
-            <strong>Stable</strong>
+            <strong>{{ runtimeMetrics.nodeStatus }}</strong>
           </div>
           <div class="data-item">
             <span>并发网关</span>
-            <strong>128+</strong>
+            <strong>{{ runtimeMetrics.gatewayConcurrency }}</strong>
           </div>
           <div class="data-item">
             <span>同步延迟</span>
-            <strong>12ms</strong>
+            <strong>{{ runtimeMetrics.syncDelayMs }}</strong>
           </div>
         </div>
       </section>
@@ -147,7 +147,7 @@ import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Lock, UserFilled } from '@element-plus/icons-vue'
-import { register } from '@/api/user'
+import { getRuntimeMetrics, register } from '@/api/user'
 
 const store = useStore()
 const router = useRouter()
@@ -170,6 +170,13 @@ const registerForm = reactive({
 })
 
 let transparentStyleTimer = null
+let runtimeMetricsTimer = null
+
+const runtimeMetrics = reactive({
+  nodeStatus: '--',
+  gatewayConcurrency: '--',
+  syncDelayMs: '--'
+})
 
 const forceTransparentInputs = () => {
   const root = document.querySelector('.login-container')
@@ -272,12 +279,32 @@ const handleRegister = async () => {
   })
 }
 
+const fetchRuntimeMetrics = async () => {
+  try {
+    const res = await getRuntimeMetrics()
+    const data = res.data || {}
+    runtimeMetrics.nodeStatus = data.nodeStatus || '--'
+    runtimeMetrics.gatewayConcurrency = data.gatewayConcurrency ?? '--'
+    runtimeMetrics.syncDelayMs = data.syncDelayMs != null ? `${data.syncDelayMs}ms` : '--'
+  } catch (_e) {
+    runtimeMetrics.nodeStatus = 'Degraded'
+    runtimeMetrics.gatewayConcurrency = '--'
+    runtimeMetrics.syncDelayMs = '--'
+  }
+}
+
 onMounted(() => {
+  fetchRuntimeMetrics()
+  runtimeMetricsTimer = window.setInterval(fetchRuntimeMetrics, 10000)
   forceTransparentInputs()
   transparentStyleTimer = window.setInterval(forceTransparentInputs, 350)
 })
 
 onBeforeUnmount(() => {
+  if (runtimeMetricsTimer) {
+    window.clearInterval(runtimeMetricsTimer)
+    runtimeMetricsTimer = null
+  }
   if (transparentStyleTimer) {
     window.clearInterval(transparentStyleTimer)
     transparentStyleTimer = null

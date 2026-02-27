@@ -16,6 +16,14 @@ export function register(data) {
   })
 }
 
+export function getRuntimeMetrics() {
+  return request({
+    url: '/auth/runtime-metrics',
+    method: 'get',
+    silent: true
+  })
+}
+
 export function getUserInfo() {
   return request({
     url: '/user/info',

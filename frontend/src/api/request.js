@@ -27,7 +27,9 @@ service.interceptors.response.use(
     const res = response.data
 
     if (res.code !== 200) {
-      ElMessage.error(res.message || '操作失败')
+      if (!response.config?.silent) {
+        ElMessage.error(res.message || '操作失败')
+      }
 
       if (res.code === 401) {
         Cookies.remove('token')
@@ -42,7 +44,9 @@ service.interceptors.response.use(
   error => {
     console.error('Response error:', error)
     const message = error.response?.data?.message || '网络错误，请稍后重试'
-    ElMessage.error(message)
+    if (!error.config?.silent) {
+      ElMessage.error(message)
+    }
 
     if (error.response?.status === 401) {
       Cookies.remove('token')

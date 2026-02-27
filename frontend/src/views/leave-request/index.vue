@@ -1,0 +1,414 @@
+<template>
+  <div class="page-container">
+    <el-card>
+      <template #header>
+        <div class="header-row">
+          <span>{{ pageTitle }}</span>
+          <el-button v-if="isStudent" type="primary" @click="openCreate">发起请假</el-button>
+        </div>
+      </template>
+
+      <el-form :inline="true" :model="searchForm" class="search-form">
+        <el-form-item label="状态">
+          <el-select v-model="searchForm.status" clearable style="width: 140px">
+            <el-option label="待审批" value="PENDING" />
+            <el-option label="已通过" value="APPROVED" />
+            <el-option label="已驳回" value="REJECTED" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+
+      <el-tabs v-if="canApprove" v-model="activeTab" @tab-change="handleTabChange">
+        <el-tab-pane label="待审批" name="pending" />
+        <el-tab-pane label="全部记录" name="all" />
+      </el-tabs>
+
+      <el-table :data="currentRows" v-loading="loading" stripe>
+        <el-table-column type="index" label="#" width="60" />
+        <el-table-column v-if="!isStudent" prop="studentName" label="学生" width="120" />
+        <el-table-column v-if="!isStudent" prop="className" label="班级" width="120" />
+        <el-table-column prop="courseName" label="课程" width="150" />
+        <el-table-column prop="courseArrangementId" label="排课ID" width="100" />
+        <el-table-column prop="leaveType" label="请假类型" width="100">
+          <template #default="{ row }">{{ getLeaveTypeText(row.leaveType) }}</template>
+        </el-table-column>
+        <el-table-column label="请假时段" min-width="260">
+          <template #default="{ row }">{{ formatRange(row) }}</template>
+        </el-table-column>
+        <el-table-column prop="reason" label="请假事由" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="status" label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getStatusTagType(row.status)">{{ getStatusText(row.status) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createTime" label="提交时间" width="170">
+          <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="280" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="openDetail(row)">详情</el-button>
+
+            <template v-if="isStudent && row.status === 'PENDING'">
+              <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
+              <el-button link type="danger" @click="handleCancel(row)">撤销</el-button>
+            </template>
+
+            <template v-if="canApprove && row.status === 'PENDING'">
+              <el-button link type="success" @click="handleApprove(row, true)">通过</el-button>
+              <el-button link type="danger" @click="handleApprove(row, false)">驳回</el-button>
+            </template>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <el-pagination
+        v-if="showPagination"
+        class="pagination"
+        v-model:current-page="page"
+        v-model:page-size="size"
+        :total="total"
+        :page-sizes="[10, 20, 50]"
+        layout="total, sizes, prev, pager, next"
+        @size-change="fetchList"
+        @current-change="fetchList"
+      />
+    </el-card>
+
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑请假申请' : '发起请假申请'" width="720px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="排课ID" prop="courseArrangementId">
+              <el-input-number v-model="form.courseArrangementId" :min="1" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="请假类型" prop="leaveType">
+              <el-select v-model="form.leaveType" style="width: 100%">
+                <el-option label="病假" value="SICK" />
+                <el-option label="事假" value="PERSONAL" />
+                <el-option label="公假" value="OFFICIAL" />
+                <el-option label="其他" value="OTHER" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="开始时间" prop="startTime">
+              <el-date-picker
+                v-model="form.startTime"
+                type="datetime"
+                value-format="YYYY-MM-DDTHH:mm:ss"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="结束时间" prop="endTime">
+              <el-date-picker
+                v-model="form.endTime"
+                type="datetime"
+                value-format="YYYY-MM-DDTHH:mm:ss"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-form-item label="请假事由" prop="reason">
+          <el-input v-model="form.reason" type="textarea" :rows="4" maxlength="500" show-word-limit />
+        </el-form-item>
+        <el-form-item label="附件链接">
+          <el-input v-model="form.attachment" placeholder="可选：填写附件URL" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitForm">提交</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="detailVisible" title="请假详情" width="780px">
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="学生">{{ detail.studentName || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="班级">{{ detail.className || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="课程">{{ detail.courseName || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="排课ID">{{ detail.courseArrangementId || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="请假类型">{{ getLeaveTypeText(detail.leaveType) }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getStatusTagType(detail.status)">{{ getStatusText(detail.status) }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="开始时间">{{ formatDateTime(detail.startTime) }}</el-descriptions-item>
+        <el-descriptions-item label="结束时间">{{ formatDateTime(detail.endTime) }}</el-descriptions-item>
+        <el-descriptions-item label="审批人">{{ detail.approverName || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="审批时间">{{ formatDateTime(detail.approveTime) }}</el-descriptions-item>
+        <el-descriptions-item label="审批备注" :span="2">{{ detail.approveRemark || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="请假事由" :span="2">{{ detail.reason || '-' }}</el-descriptions-item>
+      </el-descriptions>
+      <template #footer>
+        <el-button @click="detailVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup>
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useStore } from 'vuex'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  approveLeaveRequest,
+  cancelLeaveRequest,
+  getLeaveRequestDetail,
+  getLeaveRequestList,
+  getPendingLeaveRequests,
+  submitLeaveRequest,
+  updateLeaveRequest
+} from '@/api/leaveRequest'
+
+const store = useStore()
+
+const role = computed(() => store.state.userInfo?.role || '')
+const isStudent = computed(() => role.value === 'STUDENT')
+const canApprove = computed(() => role.value === 'TEACHER' || role.value === 'ADMIN')
+const pageTitle = computed(() => {
+  if (isStudent.value) return '请假申请'
+  if (canApprove.value) return '请假审批'
+  return '请假管理'
+})
+
+const loading = ref(false)
+const page = ref(1)
+const size = ref(10)
+const total = ref(0)
+const tableData = ref([])
+const pendingData = ref([])
+const activeTab = ref('pending')
+
+const searchForm = reactive({
+  status: ''
+})
+
+const dialogVisible = ref(false)
+const detailVisible = ref(false)
+const isEdit = ref(false)
+const formRef = ref(null)
+const detail = ref({})
+const form = reactive({
+  id: null,
+  courseArrangementId: null,
+  leaveType: 'SICK',
+  startTime: '',
+  endTime: '',
+  reason: '',
+  attachment: ''
+})
+
+const rules = {
+  courseArrangementId: [{ required: true, message: '请输入排课ID', trigger: 'change' }],
+  leaveType: [{ required: true, message: '请选择请假类型', trigger: 'change' }],
+  startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
+  endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }],
+  reason: [{ required: true, message: '请输入请假事由', trigger: 'blur' }]
+}
+
+const showPagination = computed(() => !(canApprove.value && activeTab.value === 'pending'))
+const currentRows = computed(() => {
+  if (canApprove.value && activeTab.value === 'pending') return pendingData.value
+  return tableData.value
+})
+
+const getLeaveTypeText = (type) => {
+  const map = {
+    SICK: '病假',
+    PERSONAL: '事假',
+    OFFICIAL: '公假',
+    OTHER: '其他'
+  }
+  return map[type] || type || '-'
+}
+
+const getStatusText = (status) => {
+  const map = {
+    PENDING: '待审批',
+    APPROVED: '已通过',
+    REJECTED: '已驳回'
+  }
+  return map[status] || status || '-'
+}
+
+const getStatusTagType = (status) => {
+  const map = {
+    PENDING: 'warning',
+    APPROVED: 'success',
+    REJECTED: 'danger'
+  }
+  return map[status] || 'info'
+}
+
+const formatDateTime = (value) => {
+  if (!value) return '-'
+  return String(value).replace('T', ' ')
+}
+
+const formatRange = (row) => `${formatDateTime(row.startTime)} ~ ${formatDateTime(row.endTime)}`
+
+const resetForm = () => {
+  Object.assign(form, {
+    id: null,
+    courseArrangementId: null,
+    leaveType: 'SICK',
+    startTime: '',
+    endTime: '',
+    reason: '',
+    attachment: ''
+  })
+}
+
+const fetchList = async () => {
+  loading.value = true
+  try {
+    if (canApprove.value && activeTab.value === 'pending') {
+      const res = await getPendingLeaveRequests()
+      pendingData.value = res.data || []
+      return
+    }
+
+    const res = await getLeaveRequestList({
+      page: page.value,
+      size: size.value,
+      status: searchForm.status || undefined
+    })
+    tableData.value = res.data?.records || []
+    total.value = Number(res.data?.total || 0)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleSearch = () => {
+  page.value = 1
+  fetchList()
+}
+
+const handleReset = () => {
+  searchForm.status = ''
+  handleSearch()
+}
+
+const handleTabChange = () => {
+  page.value = 1
+  fetchList()
+}
+
+const openCreate = () => {
+  isEdit.value = false
+  resetForm()
+  dialogVisible.value = true
+}
+
+const openEdit = (row) => {
+  isEdit.value = true
+  resetForm()
+  Object.assign(form, {
+    id: row.id,
+    courseArrangementId: row.courseArrangementId,
+    leaveType: row.leaveType,
+    startTime: row.startTime,
+    endTime: row.endTime,
+    reason: row.reason,
+    attachment: row.attachment || ''
+  })
+  dialogVisible.value = true
+}
+
+const submitForm = async () => {
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
+  if (new Date(form.startTime).getTime() >= new Date(form.endTime).getTime()) {
+    ElMessage.warning('结束时间必须晚于开始时间')
+    return
+  }
+
+  const payload = {
+    courseArrangementId: form.courseArrangementId,
+    leaveType: form.leaveType,
+    startTime: form.startTime,
+    endTime: form.endTime,
+    reason: form.reason,
+    attachment: form.attachment || ''
+  }
+
+  if (isEdit.value) {
+    await updateLeaveRequest(form.id, payload)
+    ElMessage.success('修改成功')
+  } else {
+    await submitLeaveRequest(payload)
+    ElMessage.success('提交成功')
+  }
+
+  dialogVisible.value = false
+  fetchList()
+}
+
+const handleCancel = async (row) => {
+  await ElMessageBox.confirm('确认撤销该请假申请吗？', '提示', { type: 'warning' })
+  await cancelLeaveRequest(row.id)
+  ElMessage.success('撤销成功')
+  fetchList()
+}
+
+const handleApprove = async (row, approved) => {
+  const actionText = approved ? '通过' : '驳回'
+  const { value } = await ElMessageBox.prompt(`请输入${actionText}备注（可选）`, `${actionText}请假申请`, {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    inputPlaceholder: '请输入备注'
+  }).catch(() => ({ value: null }))
+
+  if (value === null) return
+  await approveLeaveRequest(row.id, approved, value || '')
+  ElMessage.success(`${actionText}成功`)
+  fetchList()
+}
+
+const openDetail = async (row) => {
+  const res = await getLeaveRequestDetail(row.id)
+  detail.value = res.data || {}
+  detailVisible.value = true
+}
+
+onMounted(() => {
+  if (!canApprove.value) {
+    activeTab.value = 'all'
+  }
+  fetchList()
+})
+</script>
+
+<style scoped>
+.page-container {
+  padding: 20px;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-form {
+  margin-bottom: 16px;
+}
+
+.pagination {
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+</style>

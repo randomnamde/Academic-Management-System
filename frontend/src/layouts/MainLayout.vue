@@ -155,6 +155,7 @@ const menuItems = [
   { path: '/course', title: '课程管理', icon: 'Reading', roles: ['ADMIN', 'TEACHER'] },
   { path: '/score', title: '成绩管理', icon: 'TrendCharts', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
   { path: '/attendance', title: '考勤管理', icon: 'Calendar', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
+  { path: '/leave-request', title: '请假审批', icon: 'DocumentChecked', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
   { path: '/announcement', title: '通知公告', icon: 'BellFilled', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
   { path: '/system', title: '系统设置', icon: 'Setting', roles: ['ADMIN'] }
 ]

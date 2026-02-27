@@ -53,7 +53,7 @@
           <template #header>
             <span>学生性别分布</span>
           </template>
-          <div ref="genderChartRef" class="chart"></div>
+          <div ref="genderChartRef" class="chart chart-gender"></div>
         </el-card>
       </el-col>
       <el-col :xs="24" :lg="12" class="chart-col">
@@ -61,7 +61,7 @@
           <template #header>
             <span>课程类型分布</span>
           </template>
-          <div ref="courseChartRef" class="chart"></div>
+          <div ref="courseChartRef" class="chart chart-course"></div>
         </el-card>
       </el-col>
     </el-row>
@@ -95,19 +95,51 @@
           <template #header>
             <div class="card-header">
               <span>待办事项</span>
+              <el-button link type="primary" :loading="todoLoading" @click="refreshTodos">刷新</el-button>
             </div>
           </template>
-          <el-empty v-if="!todos.length" description="暂无待办事项" />
-          <el-timeline v-else>
-            <el-timeline-item
-              v-for="(item, index) in todos"
-              :key="index"
-              :timestamp="item.time"
-              type="warning"
+          <div class="todo-create">
+            <el-input
+              v-model="todoDraft"
+              clearable
+              maxlength="60"
+              show-word-limit
+              placeholder="添加个人待办，例如：准备班会材料"
+              @keyup.enter="addCustomTodo"
             >
-              {{ item.content }}
-            </el-timeline-item>
-          </el-timeline>
+              <template #append>
+                <el-button @click="addCustomTodo">添加</el-button>
+              </template>
+            </el-input>
+          </div>
+          <el-skeleton :loading="todoLoading" animated :rows="4">
+            <template #default>
+              <el-empty v-if="!todoList.length" description="暂无待办事项" />
+              <div v-else class="todo-list">
+                <div
+                  v-for="item in todoList"
+                  :key="item.id"
+                  class="todo-item"
+                  :class="{ completed: item.completed }"
+                >
+                  <div class="todo-main">
+                    <el-checkbox :model-value="item.completed" @change="(val) => toggleTodo(item, val)" />
+                    <div class="todo-content">
+                      <div class="todo-title">{{ item.title }}</div>
+                      <div class="todo-meta">
+                        <el-tag size="small" effect="plain">{{ item.sourceLabel }}</el-tag>
+                        <span class="todo-time">{{ item.timeText }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="todo-actions">
+                    <el-button v-if="item.route" link type="primary" @click="openTodoRoute(item)">前往</el-button>
+                    <el-button v-if="item.type === 'custom'" link type="danger" @click="removeCustomTodo(item.id)">删除</el-button>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </el-skeleton>
         </el-card>
       </el-col>
     </el-row>
@@ -201,16 +233,20 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 import { User, UserFilled, Reading, School } from '@element-plus/icons-vue'
 import { getAnnouncementDetail, getAnnouncementList } from '@/api/announcement'
+import { getAttendanceList } from '@/api/attendance'
+import { getLeaveRequestList, getPendingLeaveRequests } from '@/api/leaveRequest'
 import { getStudentGenderStatistics, getStudentList } from '@/api/student'
 import { getTeacherList } from '@/api/teacher'
 import { getCourseCategoryStatistics, getCourseList } from '@/api/course'
 import { getClassList } from '@/api/clazz'
 
 const router = useRouter()
+const store = useStore()
 const genderChartRef = ref(null)
 const courseChartRef = ref(null)
 let genderChartInstance = null
@@ -263,28 +299,359 @@ const statMeta = {
 }
 
 const currentStatTitle = computed(() => statMeta[statType.value]?.title || '详情')
+const userInfo = computed(() => store.state.userInfo || {})
+const userRole = computed(() => userInfo.value.role || 'STUDENT')
 
-const todos = ref([
-  { content: '审核请假申请', time: '2024-01-20' },
-  { content: '录入期末成绩', time: '2024-01-18' }
-])
+const todoLoading = ref(false)
+const todoDraft = ref('')
+const systemTodos = ref([])
+const customTodos = ref([])
+const completedTodoIds = ref([])
+
+const buildTodoStorageKey = (type) => `dashboard:todo:${type}:${userInfo.value.id || 'guest'}`
+
+const padZero = (value) => String(value).padStart(2, '0')
+
+const formatDate = (date) =>
+  `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(date.getDate())}`
+
+const formatDateTime = (value) => {
+  if (!value) return '刚刚'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value)
+  return `${formatDate(date)} ${padZero(date.getHours())}:${padZero(date.getMinutes())}`
+}
+
+const parseSafe = (value, fallback) => {
+  try {
+    const parsed = JSON.parse(value)
+    return parsed ?? fallback
+  } catch (_e) {
+    return fallback
+  }
+}
+
+const loadTodoState = () => {
+  const cachedCustom = parseSafe(localStorage.getItem(buildTodoStorageKey('custom')), [])
+  const cachedCompleted = parseSafe(localStorage.getItem(buildTodoStorageKey('completed')), [])
+  customTodos.value = Array.isArray(cachedCustom) ? cachedCustom : []
+  completedTodoIds.value = Array.isArray(cachedCompleted) ? cachedCompleted : []
+}
+
+const saveCustomTodos = () => {
+  localStorage.setItem(buildTodoStorageKey('custom'), JSON.stringify(customTodos.value))
+}
+
+const saveCompletedTodoIds = () => {
+  localStorage.setItem(buildTodoStorageKey('completed'), JSON.stringify(completedTodoIds.value))
+}
+
+const createTodoItem = ({ id, title, sourceLabel, route, createdAt, type = 'system' }) => ({
+  id,
+  title,
+  sourceLabel,
+  route,
+  createdAt: createdAt || new Date().toISOString(),
+  type
+})
+
+const todoList = computed(() => {
+  const completedSet = new Set(completedTodoIds.value)
+  return [...systemTodos.value, ...customTodos.value]
+    .map((item) => {
+      const timeText = formatDateTime(item.createdAt)
+      const timestamp = new Date(item.createdAt).getTime()
+      return {
+        ...item,
+        timeText,
+        completed: completedSet.has(item.id),
+        sortTs: Number.isNaN(timestamp) ? 0 : timestamp
+      }
+    })
+    .sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1
+      return b.sortTs - a.sortTs
+    })
+})
+
+const cleanupCompletedTodos = () => {
+  const availableIds = new Set([...systemTodos.value, ...customTodos.value].map((item) => item.id))
+  completedTodoIds.value = completedTodoIds.value.filter((id) => availableIds.has(id))
+  saveCompletedTodoIds()
+}
+
+const addCustomTodo = () => {
+  const title = todoDraft.value.trim()
+  if (!title) {
+    ElMessage.warning('请输入待办内容')
+    return
+  }
+
+  customTodos.value.unshift(
+    createTodoItem({
+      id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      title,
+      sourceLabel: '个人',
+      createdAt: new Date().toISOString(),
+      type: 'custom'
+    })
+  )
+  todoDraft.value = ''
+  saveCustomTodos()
+}
+
+const removeCustomTodo = (id) => {
+  customTodos.value = customTodos.value.filter((item) => item.id !== id)
+  completedTodoIds.value = completedTodoIds.value.filter((todoId) => todoId !== id)
+  saveCustomTodos()
+  saveCompletedTodoIds()
+}
+
+const toggleTodo = (item, checked) => {
+  const idSet = new Set(completedTodoIds.value)
+  if (checked) {
+    idSet.add(item.id)
+  } else {
+    idSet.delete(item.id)
+  }
+  completedTodoIds.value = Array.from(idSet)
+  saveCompletedTodoIds()
+}
+
+const openTodoRoute = (item) => {
+  if (item.route) {
+    router.push(item.route)
+  }
+}
+
+const refreshTodos = async () => {
+  todoLoading.value = true
+  const tasks = []
+  const role = userRole.value
+  const today = formatDate(new Date())
+  try {
+    const announcementRes = await getAnnouncementList({
+      page: 1,
+      size: 6,
+      status: 1
+    })
+    const announcementRecords = announcementRes.data?.records || []
+    const matchedAnnouncements = announcementRecords
+      .filter((item) => !item.targetRole || item.targetRole === 'ALL' || item.targetRole === role)
+      .sort((a, b) => {
+        const priorityDiff = Number(b.priority || 0) - Number(a.priority || 0)
+        if (priorityDiff !== 0) return priorityDiff
+        return Number(b.isTop || 0) - Number(a.isTop || 0)
+      })
+
+    matchedAnnouncements.slice(0, 3).forEach((item) => {
+      tasks.push(
+        createTodoItem({
+          id: `announcement-${item.id}`,
+          title: `阅读公告：${item.title}`,
+          sourceLabel: '公告',
+          route: '/announcement',
+          createdAt: item.createTime
+        })
+      )
+    })
+  } catch (_e) {}
+
+  try {
+    const [absentRes, lateRes] = await Promise.all([
+      getAttendanceList({ page: 1, size: 1, attendanceDate: today, status: 'ABSENT' }),
+      getAttendanceList({ page: 1, size: 1, attendanceDate: today, status: 'LATE' })
+    ])
+
+    const absentTotal = Number(absentRes.data?.total || 0)
+    const lateTotal = Number(lateRes.data?.total || 0)
+
+    if (absentTotal > 0) {
+      tasks.push(
+        createTodoItem({
+          id: `attendance-absent-${today}-${absentTotal}`,
+          title: `处理今日缺勤记录（${absentTotal} 条）`,
+          sourceLabel: '考勤',
+          route: '/attendance',
+          createdAt: new Date().toISOString()
+        })
+      )
+    }
+
+    if (lateTotal > 0) {
+      tasks.push(
+        createTodoItem({
+          id: `attendance-late-${today}-${lateTotal}`,
+          title: `处理今日迟到记录（${lateTotal} 条）`,
+          sourceLabel: '考勤',
+          route: '/attendance',
+          createdAt: new Date().toISOString()
+        })
+      )
+    }
+  } catch (_e) {}
+
+  try {
+    if (role === 'ADMIN' || role === 'TEACHER') {
+      const leaveRes = await getPendingLeaveRequests()
+      const pendingTotal = Array.isArray(leaveRes.data) ? leaveRes.data.length : 0
+      if (pendingTotal > 0) {
+        tasks.push(
+          createTodoItem({
+            id: `leave-pending-${pendingTotal}`,
+            title: `审批请假申请（${pendingTotal} 条待处理）`,
+            sourceLabel: '审批',
+            route: '/leave-request',
+            createdAt: new Date().toISOString()
+          })
+        )
+      }
+    } else if (userInfo.value.id) {
+      const myLeaveRes = await getLeaveRequestList({
+        page: 1,
+        size: 1,
+        studentId: userInfo.value.id,
+        status: 'PENDING'
+      })
+      const myPendingTotal = Number(myLeaveRes.data?.total || 0)
+      if (myPendingTotal > 0) {
+        tasks.push(
+          createTodoItem({
+            id: `my-leave-pending-${myPendingTotal}`,
+            title: `跟进我的请假申请（${myPendingTotal} 条审核中）`,
+            sourceLabel: '请假',
+            route: '/leave-request',
+            createdAt: new Date().toISOString()
+          })
+        )
+      }
+    }
+  } catch (_e) {}
+
+  systemTodos.value = tasks
+  cleanupCompletedTodos()
+  todoLoading.value = false
+}
 
 const renderGenderChart = () => {
   if (!genderChartInstance) return
+  const maleValue = Number(genderStatistics.value.male || 0)
+  const femaleValue = Number(genderStatistics.value.female || 0)
+  const total = maleValue + femaleValue
   genderChartInstance.setOption({
     tooltip: { trigger: 'item' },
-    legend: { bottom: '5%', left: 'center' },
+    legend: { bottom: '4%', left: 'center' },
     series: [
       {
         type: 'pie',
-        radius: ['40%', '70%'],
-        avoidLabelOverlap: false,
-        itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
-        label: { show: false, position: 'center' },
-        emphasis: { label: { show: true, fontSize: 20, fontWeight: 'bold' } },
+        radius: ['74%', '84%'],
+        silent: true,
+        z: 0,
+        label: { show: false },
         data: [
-          { value: genderStatistics.value.male, name: '男生', itemStyle: { color: '#8d79ff' } },
-          { value: genderStatistics.value.female, name: '女生', itemStyle: { color: '#c3a2ff' } }
+          {
+            value: 1,
+            itemStyle: {
+              color: new echarts.graphic.RadialGradient(0.5, 0.45, 1, [
+                { offset: 0, color: 'rgba(229, 218, 255, 0.09)' },
+                { offset: 1, color: 'rgba(154, 128, 245, 0.012)' }
+              ]),
+              shadowBlur: 4,
+              shadowColor: 'rgba(130, 102, 224, 0.035)'
+            }
+          }
+        ]
+      },
+      {
+        type: 'pie',
+        radius: ['42%', '72%'],
+        avoidLabelOverlap: false,
+        startAngle: 210,
+        itemStyle: {
+          borderRadius: 12,
+          borderColor: '#fff',
+          borderWidth: 2,
+          shadowBlur: 8,
+          shadowOffsetY: 4,
+          shadowColor: 'rgba(95, 74, 173, 0.1)'
+        },
+        label: { show: false },
+        labelLine: { show: false },
+        emphasis: {
+          scale: true,
+          scaleSize: 8,
+          label: {
+            show: true,
+            formatter: ({ name, value }) => {
+              const percent = total ? ((value / total) * 100).toFixed(1) : '0.0'
+              return `${name}\n${percent}%`
+            },
+            fontSize: 18,
+            fontWeight: 'bold'
+          }
+        },
+        data: [
+          {
+            value: maleValue,
+            name: '男生',
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#b9a7ff' },
+                { offset: 1, color: '#7d63f3' }
+              ])
+            }
+          },
+          {
+            value: femaleValue,
+            name: '女生',
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#e0c7ff' },
+                { offset: 1, color: '#a683ff' }
+              ])
+            }
+          }
+        ]
+      },
+      {
+        type: 'pie',
+        radius: ['0%', '26%'],
+        silent: true,
+        z: 0,
+        label: { show: false },
+        data: [
+          {
+            value: 1,
+            itemStyle: {
+              color: new echarts.graphic.RadialGradient(0.5, 0.45, 0.9, [
+                { offset: 0, color: 'rgba(255, 255, 255, 0.8)' },
+                { offset: 1, color: 'rgba(187, 166, 255, 0.22)' }
+              ]),
+              shadowBlur: 6,
+              shadowColor: 'rgba(157, 128, 247, 0.08)'
+            }
+          }
+        ]
+      }
+    ],
+    graphic: [
+      {
+        type: 'group',
+        left: 'center',
+        top: 'middle',
+        silent: true,
+        z: 0,
+        children: [
+          {
+            type: 'ellipse',
+            shape: { cx: 0, cy: 98, rx: 124, ry: 22 },
+            style: { fill: 'rgba(120, 97, 214, 0.018)' }
+          },
+          {
+            type: 'ellipse',
+            shape: { cx: 0, cy: 98, rx: 94, ry: 15 },
+            style: { fill: 'rgba(250, 246, 255, 0.06)' }
+          }
         ]
       }
     ]
@@ -293,23 +660,93 @@ const renderGenderChart = () => {
 
 const renderCourseChart = () => {
   if (!courseChartInstance) return
+  const categoryValues = [
+    Number(courseCategoryStatistics.value.required || 0),
+    Number(courseCategoryStatistics.value.elective || 0),
+    Number(courseCategoryStatistics.value.practical || 0)
+  ]
   courseChartInstance.setOption({
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    xAxis: { type: 'category', data: ['必修课', '选修课', '实践课'] },
-    yAxis: { type: 'value' },
+    grid: { top: 26, left: 46, right: 24, bottom: 34 },
+    xAxis: {
+      type: 'category',
+      data: ['必修课', '选修课', '实践课'],
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: 'rgba(136, 118, 198, 0.45)' } }
+    },
+    yAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { color: 'rgba(157, 131, 255, 0.16)' } }
+    },
     series: [
       {
-        data: [
-          courseCategoryStatistics.value.required,
-          courseCategoryStatistics.value.elective,
-          courseCategoryStatistics.value.practical
-        ],
+        type: 'pictorialBar',
+        data: categoryValues,
+        symbol: 'diamond',
+        symbolSize: [42, 14],
+        symbolOffset: [0, 7],
+        z: 1,
+        itemStyle: {
+          color: 'rgba(110, 88, 214, 0.16)'
+        }
+      },
+      {
+        data: categoryValues,
         type: 'bar',
+        barWidth: 42,
+        z: 2,
+        showBackground: true,
+        backgroundStyle: {
+          color: 'rgba(145, 121, 232, 0.04)',
+          borderRadius: [8, 8, 0, 0]
+        },
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#c7b5ff' },
-            { offset: 0.5, color: '#9a80ff' },
-            { offset: 1, color: '#7b63f4' }
+            { offset: 0, color: '#d4c2ff' },
+            { offset: 0.5, color: '#a186ff' },
+            { offset: 1, color: '#7860f2' }
+          ]),
+          borderRadius: [8, 8, 0, 0],
+          shadowBlur: 6,
+          shadowColor: 'rgba(111, 84, 216, 0.1)',
+          shadowOffsetY: 3
+        }
+      },
+      {
+        type: 'pictorialBar',
+        symbolPosition: 'end',
+        data: categoryValues,
+        symbol: 'diamond',
+        symbolSize: [42, 14],
+        symbolOffset: [0, -7],
+        z: 3,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#efe5ff' },
+            { offset: 1, color: '#ad90ff' }
+          ])
+        }
+      }
+    ],
+    graphic: [
+      {
+        type: 'polygon',
+        left: 'center',
+        top: '72%',
+        silent: true,
+        z: 0,
+        shape: {
+          points: [
+            [-148, 56],
+            [148, 56],
+            [108, 92],
+            [-108, 92]
+          ]
+        },
+        style: {
+          fill: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(187, 166, 255, 0.03)' },
+            { offset: 1, color: 'rgba(121, 97, 223, 0.008)' }
           ])
         }
       }
@@ -477,10 +914,12 @@ const getCourseCategoryText = (category) => {
 }
 
 onMounted(() => {
+  loadTodoState()
   fetchStatistics()
   fetchGenderStatistics()
   fetchCourseCategoryStatistics()
   fetchLatestAnnouncements()
+  refreshTodos()
   initCharts()
 })
 
@@ -585,9 +1024,40 @@ onBeforeUnmount(() => {
   filter: drop-shadow(0 2px 6px rgba(109, 87, 198, 0.22));
 }
 
-.teacher-icon { background: linear-gradient(135deg, #b89dff 0%, #9377ff 100%); }
-.course-icon { background: linear-gradient(135deg, #c5adff 0%, #9b7dff 100%); }
-.class-icon { background: linear-gradient(135deg, #aa90ff 0%, #856dff 100%); }
+.teacher-icon {
+  background:
+    radial-gradient(circle at 24% 24%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0) 56%),
+    radial-gradient(circle at 70% 74%, rgba(166, 126, 255, 0.42) 0%, rgba(166, 126, 255, 0.16) 58%, rgba(166, 126, 255, 0) 100%);
+  border: 1px solid rgba(166, 126, 255, 0.24);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.2), 0 8px 22px rgba(130, 96, 226, 0.16);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.course-icon {
+  background:
+    radial-gradient(circle at 24% 24%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0) 56%),
+    radial-gradient(circle at 70% 74%, rgba(133, 171, 255, 0.42) 0%, rgba(133, 171, 255, 0.16) 58%, rgba(133, 171, 255, 0) 100%);
+  border: 1px solid rgba(133, 171, 255, 0.24);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.2), 0 8px 22px rgba(92, 133, 219, 0.16);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.class-icon {
+  background:
+    radial-gradient(circle at 24% 24%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0) 56%),
+    radial-gradient(circle at 70% 74%, rgba(112, 201, 255, 0.42) 0%, rgba(112, 201, 255, 0.16) 58%, rgba(112, 201, 255, 0) 100%);
+  border: 1px solid rgba(112, 201, 255, 0.24);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.2), 0 8px 22px rgba(86, 159, 209, 0.16);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.teacher-icon :deep(svg),
+.course-icon :deep(svg),
+.class-icon :deep(svg) {
+  opacity: 0.84;
+  transform: translateY(1px);
+  filter: drop-shadow(0 2px 6px rgba(80, 110, 188, 0.2));
+}
 
 .stat-info {
   width: 100%;
@@ -614,7 +1084,28 @@ onBeforeUnmount(() => {
 
 .chart {
   height: 300px;
-  animation: chartGlow 5.4s ease-in-out infinite;
+  border-radius: 16px;
+  border: 1px solid rgba(182, 162, 255, 0.08);
+  background:
+    radial-gradient(circle at 24% 22%, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.014) 34%, transparent 68%),
+    linear-gradient(165deg, rgba(246, 241, 255, 0.22) 0%, rgba(231, 223, 252, 0.07) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -8px 16px rgba(126, 99, 225, 0.025),
+    0 4px 8px rgba(98, 73, 187, 0.028);
+  animation: chartGlow 8s ease-in-out infinite;
+}
+
+.chart-gender {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(248, 241, 255, 0.14) 0%, rgba(222, 207, 255, 0.05) 40%, transparent 72%),
+    linear-gradient(165deg, rgba(244, 238, 255, 0.24) 0%, rgba(226, 217, 250, 0.07) 100%);
+}
+
+.chart-course {
+  background:
+    radial-gradient(circle at 82% 20%, rgba(238, 246, 255, 0.12) 0%, rgba(200, 224, 255, 0.04) 38%, transparent 70%),
+    linear-gradient(165deg, rgba(243, 239, 255, 0.22) 0%, rgba(220, 231, 253, 0.07) 100%);
 }
 
 :deep(.panel-card .el-card__header) {
@@ -630,6 +1121,77 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.todo-create {
+  margin-bottom: 12px;
+}
+
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(177, 159, 255, 0.2);
+  background: linear-gradient(160deg, rgba(250, 246, 255, 0.8) 0%, rgba(241, 234, 255, 0.56) 100%);
+}
+
+.todo-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.todo-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.todo-title {
+  color: #3b2f64;
+  font-size: 14px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.todo-meta {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.todo-time {
+  font-size: 12px;
+  color: #8a7aa7;
+}
+
+.todo-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.todo-item.completed {
+  opacity: 0.72;
+}
+
+.todo-item.completed .todo-title {
+  text-decoration: line-through;
 }
 
 .detail-content {
@@ -663,7 +1225,7 @@ onBeforeUnmount(() => {
     filter: drop-shadow(0 0 0 rgba(154, 128, 245, 0));
   }
   50% {
-    filter: drop-shadow(0 0 14px rgba(154, 128, 245, 0.24));
+    filter: drop-shadow(0 0 3px rgba(154, 128, 245, 0.05));
   }
 }
 

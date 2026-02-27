@@ -59,6 +59,12 @@ const routes = [
         meta: { title: '考勤管理', icon: 'Calendar', roles: ['ADMIN', 'TEACHER', 'STUDENT'] }
       },
       {
+        path: 'leave-request',
+        name: 'LeaveRequest',
+        component: () => import('@/views/leave-request/index.vue'),
+        meta: { title: '请假审批', icon: 'DocumentChecked', roles: ['ADMIN', 'TEACHER', 'STUDENT'] }
+      },
+      {
         path: 'announcement',
         name: 'Announcement',
         component: () => import('@/views/announcement/index.vue'),

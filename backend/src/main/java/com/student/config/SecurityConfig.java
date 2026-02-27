@@ -34,8 +34,8 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeHttpRequests()
-            .antMatchers("/auth/**").permitAll()
-            .antMatchers("/public/**").permitAll()
+            .requestMatchers("/auth/**").permitAll()
+            .requestMatchers("/public/**").permitAll()
             .anyRequest().authenticated()
             .and()
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

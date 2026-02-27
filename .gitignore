@@ -12,6 +12,7 @@
 /logs/
 /backend/logs/
 /backend/*.log
+/backend/uploads/
 /frontend/*.log
 /uploads/
 

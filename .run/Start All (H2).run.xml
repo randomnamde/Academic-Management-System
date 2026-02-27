@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Start All (H2)" type="CompoundRunConfigurationType" factoryName="Compound">
+    <toRun name="Backend H2 (Maven)" type="MavenRunConfiguration" />
+    <toRun name="Frontend Serve (npm)" type="js.build_tools.npm" />
+    <method v="2" />
+  </configuration>
+</component>

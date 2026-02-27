@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Frontend Serve (npm)" type="js.build_tools.npm">
+  <configuration default="false" name="Frontend Serve (npm)" type="js.build_tools.npm" factoryName="npm">
     <package-json value="$PROJECT_DIR$/frontend/package.json" />
     <package-manager value="npm" />
-    <command value="run" />
+    <command value="run-script" />
     <scripts>
       <script value="serve" />
     </scripts>
-    <node-interpreter value="project" />
+    <node-interpreter value="D:\nodejs\node.exe" />
     <envs />
     <method v="2" />
   </configuration>

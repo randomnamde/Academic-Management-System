@@ -10,6 +10,9 @@
 
 # Logs
 /logs/
+/backend/logs/
+/backend/*.log
+/frontend/*.log
 
 # Optional: ignore environment files
 *.env

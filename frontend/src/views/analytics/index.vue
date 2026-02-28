@@ -39,13 +39,13 @@
       </el-form>
     </el-card>
 
-    <section class="kpi-grid">
-      <el-card class="kpi-card">
+    <section class="kpi-grid" :class="{ 'kpi-grid-student': isStudent }">
+      <el-card v-if="!isStudent" class="kpi-card">
         <span class="kpi-label">学生规模</span>
         <strong class="kpi-value">{{ overview.studentCount }}</strong>
       </el-card>
       <el-card class="kpi-card">
-        <span class="kpi-label">待处理审批</span>
+        <span class="kpi-label">{{ pendingKpiLabel }}</span>
         <strong class="kpi-value">{{ overview.pendingApprovalCount }}</strong>
       </el-card>
       <el-card class="kpi-card">
@@ -63,7 +63,7 @@
         </span>
       </el-card>
       <el-card class="kpi-card">
-        <span class="kpi-label">低分风险人数</span>
+        <span class="kpi-label">{{ lowScoreKpiLabel }}</span>
         <strong class="kpi-value">{{ overview.lowScoreRiskCount }}</strong>
         <span class="kpi-trend" :class="trendClass(-overview.lowScoreRiskChange)">
           {{ formatDelta(overview.lowScoreRiskChange) }}
@@ -145,6 +145,10 @@ const loading = ref(false)
 const riskLoading = ref(false)
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const userRole = userInfo?.role || 'STUDENT'
+const isAdmin = userRole === 'ADMIN'
+const isStudent = userRole === 'STUDENT'
+const pendingKpiLabel = isStudent ? '我的待办审批' : '待处理审批'
+const lowScoreKpiLabel = isStudent ? '低分课程统计数' : '低分风险人数'
 
 const today = new Date()
 const thirtyDaysAgo = new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000)
@@ -186,13 +190,18 @@ function formatDate(date) {
 }
 
 function buildParams() {
-  return {
+  const params = {
     startDate: dateRange.value?.[0],
     endDate: dateRange.value?.[1],
-    semester: filters.semester || undefined,
-    classId: filters.classId || undefined,
-    teacherId: filters.teacherId || undefined
+    semester: filters.semester || undefined
   }
+  if (!isStudent) {
+    params.classId = filters.classId || undefined
+  }
+  if (isAdmin) {
+    params.teacherId = filters.teacherId || undefined
+  }
+  return params
 }
 
 function formatNumber(value) {
@@ -416,11 +425,15 @@ function applyRoutePreset() {
       riskType.value = value
     }
   }
-  if (query.classId) {
+  if (!isStudent && query.classId) {
     filters.classId = Number(query.classId)
+  } else if (isStudent) {
+    filters.classId = null
   }
-  if (query.teacherId) {
+  if (isAdmin && query.teacherId) {
     filters.teacherId = Number(query.teacherId)
+  } else if (!isAdmin) {
+    filters.teacherId = null
   }
 }
 
@@ -490,6 +503,10 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
+}
+
+.kpi-grid-student {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .kpi-card {

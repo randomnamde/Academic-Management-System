@@ -11,6 +11,18 @@ public class DashboardOverviewDTO {
 
     private String role;
 
+    private Long studentCount;
+
+    private Long teacherCount;
+
+    private Long courseCount;
+
+    private Long classCount;
+
+    private GenderStatistics genderStatistics = new GenderStatistics();
+
+    private CourseCategoryStatistics courseCategoryStatistics = new CourseCategoryStatistics();
+
     private Long pendingApprovalCount;
 
     private Long abnormalTodayCount;
@@ -28,5 +40,18 @@ public class DashboardOverviewDTO {
             this.date = date;
             this.count = count;
         }
+    }
+
+    @Data
+    public static class GenderStatistics {
+        private Long male = 0L;
+        private Long female = 0L;
+    }
+
+    @Data
+    public static class CourseCategoryStatistics {
+        private Long required = 0L;
+        private Long elective = 0L;
+        private Long practical = 0L;
     }
 }

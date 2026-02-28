@@ -287,6 +287,10 @@ const menuGroups = computed(() => {
   layoutChildren.value
     .filter((item) => item?.meta?.title && item.path !== 'profile')
     .forEach((item) => {
+      const hiddenRoles = Array.isArray(item.meta?.hideInMenuForRoles) ? item.meta.hideInMenuForRoles : []
+      if (hiddenRoles.includes(role.value)) {
+        return
+      }
       const key = item.meta?.menuGroup || 'process'
       if (!buckets.has(key)) {
         const groupMeta = menuGroupMeta[key] || { title: '其他', order: 99 }

@@ -7,17 +7,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,6 +34,9 @@ class SecurityScopeIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void studentCannotCreateScore() throws Exception {
@@ -101,8 +109,154 @@ class SecurityScopeIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.role").value("STUDENT"))
+                .andExpect(jsonPath("$.data.studentCount").exists())
+                .andExpect(jsonPath("$.data.teacherCount").exists())
+                .andExpect(jsonPath("$.data.courseCount").exists())
+                .andExpect(jsonPath("$.data.classCount").exists())
+                .andExpect(jsonPath("$.data.genderStatistics").exists())
+                .andExpect(jsonPath("$.data.courseCategoryStatistics").exists())
                 .andExpect(jsonPath("$.data.pendingApprovalCount").exists())
                 .andExpect(jsonPath("$.data.abnormalTrend").isArray());
+    }
+
+    @Test
+    void studentTeacherListIsScopedToOwnArrangements() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        Set<Long> teacherIds = resolveStudentScopeIds(token, "teacherId");
+
+        MvcResult result = mockMvc.perform(get("/teacher")
+                        .param("page", "1")
+                        .param("size", "100")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode records = objectMapper.readTree(result.getResponse().getContentAsString())
+                .path("data")
+                .path("records");
+        for (JsonNode node : records) {
+            assertTrue(teacherIds.contains(node.path("id").asLong()));
+        }
+    }
+
+    @Test
+    void studentCannotAccessTeacherOutsideOwnScope() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        Set<Long> teacherIds = resolveStudentScopeIds(token, "teacherId");
+        Long outOfScopeId = teacherIds.stream().findFirst().orElse(1L) + 100000L;
+
+        mockMvc.perform(get("/teacher/" + outOfScopeId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(403));
+    }
+
+    @Test
+    void studentCourseListIsScopedToOwnArrangements() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        Set<Long> courseIds = resolveStudentScopeIds(token, "courseId");
+
+        MvcResult result = mockMvc.perform(get("/course")
+                        .param("page", "1")
+                        .param("size", "100")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode records = objectMapper.readTree(result.getResponse().getContentAsString())
+                .path("data")
+                .path("records");
+        for (JsonNode node : records) {
+            assertTrue(courseIds.contains(node.path("id").asLong()));
+        }
+    }
+
+    @Test
+    void studentCannotAccessCourseOutsideOwnScope() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        Set<Long> courseIds = resolveStudentScopeIds(token, "courseId");
+        Long outOfScopeId = courseIds.stream().findFirst().orElse(1L) + 100000L;
+
+        mockMvc.perform(get("/course/" + outOfScopeId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(403));
+    }
+
+    @Test
+    void studentClassListIsScopedToOwnArrangements() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        Set<Long> classIds = resolveStudentScopeIds(token, "classId");
+
+        MvcResult result = mockMvc.perform(get("/class")
+                        .param("page", "1")
+                        .param("size", "100")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode records = objectMapper.readTree(result.getResponse().getContentAsString())
+                .path("data")
+                .path("records");
+        for (JsonNode node : records) {
+            assertTrue(classIds.contains(node.path("id").asLong()));
+        }
+    }
+
+    @Test
+    void studentCannotAccessClassOutsideOwnScope() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        Set<Long> classIds = resolveStudentScopeIds(token, "classId");
+        Long outOfScopeId = classIds.stream().findFirst().orElse(1L) + 100000L;
+
+        mockMvc.perform(get("/class/" + outOfScopeId)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(403));
+    }
+
+    @Test
+    void studentDashboardClassCountIsZeroWhenClassMissing() throws Exception {
+        jdbcTemplate.update("UPDATE student SET class_id = NULL WHERE id = 1");
+        try {
+            String token = loginAndGetToken("student001", "123456");
+            mockMvc.perform(get("/dashboard/overview")
+                            .header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andExpect(jsonPath("$.data.classCount").value(0));
+        } finally {
+            jdbcTemplate.update("UPDATE student SET class_id = 1 WHERE id = 1");
+        }
+    }
+
+    @Test
+    void teacherDashboardOverviewUsesTeachingScope() throws Exception {
+        jdbcTemplate.update("INSERT INTO teacher (name, status) VALUES ('Scope Teacher', 1)");
+
+        String teacherToken = loginAndGetToken("teacher001", "123456");
+        String adminToken = loginAndGetToken("demo_admin", "123456");
+
+        MvcResult teacherResult = mockMvc.perform(get("/dashboard/overview")
+                        .header("Authorization", "Bearer " + teacherToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        MvcResult adminResult = mockMvc.perform(get("/dashboard/overview")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode teacherData = objectMapper.readTree(teacherResult.getResponse().getContentAsString()).path("data");
+        JsonNode adminData = objectMapper.readTree(adminResult.getResponse().getContentAsString()).path("data");
+
+        assertEquals(1L, teacherData.path("teacherCount").asLong());
+        assertTrue(adminData.path("teacherCount").asLong() >= 2L);
     }
 
     @Test
@@ -154,6 +308,162 @@ class SecurityScopeIntegrationTest {
         for (JsonNode node : records) {
             assertEquals(1L, node.path("studentId").asLong());
         }
+    }
+
+    @Test
+    void studentOverviewPendingIncludesRejectedExcludesApproved() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String semester = "scope-pending-" + suffix;
+        String schedule = "Wed 10:00-11:40-" + suffix;
+
+        jdbcTemplate.update("""
+                INSERT INTO course_arrangement
+                (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                1L, 1L, 1L, semester, schedule, "A211", 60, 1, 1
+        );
+        Long arrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
+        assertTrue(arrangementId != null && arrangementId > 0);
+
+        String baseReason = "pending-scope-" + suffix;
+        jdbcTemplate.update("""
+                INSERT INTO leave_request
+                (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?)
+                """,
+                1L, arrangementId, "SICK", baseReason + "-pending", "PENDING", 1L
+        );
+        jdbcTemplate.update("""
+                INSERT INTO leave_request
+                (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?)
+                """,
+                1L, arrangementId, "SICK", baseReason + "-rejected", "REJECTED", 1L
+        );
+        jdbcTemplate.update("""
+                INSERT INTO leave_request
+                (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?)
+                """,
+                1L, arrangementId, "SICK", baseReason + "-approved", "APPROVED", 1L
+        );
+
+        MvcResult result = mockMvc.perform(get("/analytics/overview")
+                        .param("semester", semester)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode data = objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
+        assertEquals(2L, data.path("pendingApprovalCount").asLong());
+    }
+
+    @Test
+    void studentOverviewLowScoreCountsDistinctCourses() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String semester = "scope-lowscore-" + suffix;
+
+        String courseCode = "SC" + suffix.substring(Math.max(0, suffix.length() - 8));
+        jdbcTemplate.update("""
+                INSERT INTO course
+                (course_name, course_code, credit, hours, category, description, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                "Scope Course " + suffix, courseCode, 2.0, 32, "ELECTIVE", "scope test", 1
+        );
+        Long secondCourseId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course", Long.class);
+        assertTrue(secondCourseId != null && secondCourseId > 0);
+
+        jdbcTemplate.update("""
+                INSERT INTO course_arrangement
+                (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                1L, 1L, 1L, semester, "Thu 08:00-09:40-" + suffix, "A301", 60, 1, 1
+        );
+        Long firstArrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
+        assertTrue(firstArrangementId != null && firstArrangementId > 0);
+
+        jdbcTemplate.update("""
+                INSERT INTO course_arrangement
+                (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                secondCourseId, 1L, 1L, semester, "Fri 14:00-15:40-" + suffix, "A302", 60, 1, 1
+        );
+        Long secondArrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
+        assertTrue(secondArrangementId != null && secondArrangementId > 0);
+
+        jdbcTemplate.update("""
+                INSERT INTO score
+                (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                1L, firstArrangementId, 55.0, 54.0, 53.0, 54.0, 0.0, "NORMAL"
+        );
+        jdbcTemplate.update("""
+                INSERT INTO score
+                (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                1L, firstArrangementId, 58.0, 57.0, 56.0, 57.0, 1.0, "NORMAL"
+        );
+        jdbcTemplate.update("""
+                INSERT INTO score
+                (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                1L, secondArrangementId, 50.0, 49.0, 48.0, 49.0, 0.0, "NORMAL"
+        );
+
+        MvcResult result = mockMvc.perform(get("/analytics/overview")
+                        .param("semester", semester)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode data = objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
+        assertEquals(2L, data.path("lowScoreRiskCount").asLong());
+    }
+
+    @Test
+    void teacherAnalyticsClassFilterIsApplied() throws Exception {
+        String teacherToken = loginAndGetToken("teacher001", "123456");
+
+        MvcResult normalResult = mockMvc.perform(get("/analytics/overview")
+                        .header("Authorization", "Bearer " + teacherToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        MvcResult filteredResult = mockMvc.perform(get("/analytics/overview")
+                        .param("classId", "999")
+                        .header("Authorization", "Bearer " + teacherToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode normalData = objectMapper.readTree(normalResult.getResponse().getContentAsString()).path("data");
+        JsonNode filteredData = objectMapper.readTree(filteredResult.getResponse().getContentAsString()).path("data");
+
+        assertTrue(normalData.path("studentCount").asLong() >= 1L);
+        assertEquals(0L, filteredData.path("studentCount").asLong());
+    }
+
+    @Test
+    void studentCannotAccessHiddenAnnouncementDetail() throws Exception {
+        String studentToken = loginAndGetToken("student001", "123456");
+        Long announcementId = createAdminOnlyAnnouncement();
+
+        mockMvc.perform(get("/announcement/" + announcementId)
+                        .header("Authorization", "Bearer " + studentToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(403));
     }
 
     @Test
@@ -366,5 +676,42 @@ class SecurityScopeIntegrationTest {
             }
         }
         throw new AssertionError("Expected leave request not found");
+    }
+
+    private Long createAdminOnlyAnnouncement() {
+        jdbcTemplate.update("""
+                INSERT INTO announcement
+                (title, content, type, target_role, target_class_id, priority, author_id, view_count, is_top, status, start_time, end_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, DATEADD('DAY', 1, CURRENT_TIMESTAMP))
+                """,
+                "Admin Internal",
+                "Scope test content",
+                "NOTICE",
+                "ADMIN",
+                null,
+                1,
+                1L,
+                0,
+                0,
+                1
+        );
+        return jdbcTemplate.queryForObject("SELECT MAX(id) FROM announcement", Long.class);
+    }
+
+    private Set<Long> resolveStudentScopeIds(String token, String fieldName) throws Exception {
+        MvcResult result = mockMvc.perform(get("/course-arrangement/options")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode records = objectMapper.readTree(result.getResponse().getContentAsString()).path("data");
+        Set<Long> ids = new HashSet<>();
+        for (JsonNode node : records) {
+            if (node.hasNonNull(fieldName)) {
+                ids.add(node.path(fieldName).asLong());
+            }
+        }
+        return ids;
     }
 }

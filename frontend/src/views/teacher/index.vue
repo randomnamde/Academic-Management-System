@@ -4,7 +4,7 @@
       <template #header>
         <div class="header-row">
           <span>教师管理</span>
-          <el-button type="primary" @click="openCreate">新增教师</el-button>
+          <el-button v-if="!isStudent" type="primary" @click="openCreate">新增教师</el-button>
         </div>
       </template>
 
@@ -34,12 +34,16 @@
         <el-table-column label="状态" width="110">
           <template #default="{ row }">
             <el-switch
+              v-if="!isStudent"
               :model-value="row.status === 1"
               @change="(val) => handleStatusChange(row, val)"
             />
+            <el-tag v-else :type="row.status === 1 ? 'success' : 'info'">
+              {{ row.status === 1 ? '启用' : '停用' }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column v-if="!isStudent" label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="openEdit(row)">编辑</el-button>
             <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
@@ -124,7 +128,8 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   createTeacher,
@@ -133,6 +138,10 @@ import {
   updateTeacher,
   updateTeacherStatus
 } from '@/api/teacher'
+
+const store = useStore()
+const role = computed(() => store.state.userInfo?.role || '')
+const isStudent = computed(() => role.value === 'STUDENT')
 
 const loading = ref(false)
 const page = ref(1)
@@ -207,12 +216,14 @@ function handleReset() {
 }
 
 function openCreate() {
+  if (isStudent.value) return
   isEdit.value = false
   resetForm()
   dialogVisible.value = true
 }
 
 function openEdit(row) {
+  if (isStudent.value) return
   isEdit.value = true
   resetForm()
   Object.assign(form, row, { password: '' })
@@ -220,6 +231,7 @@ function openEdit(row) {
 }
 
 async function submit() {
+  if (isStudent.value) return
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
 
@@ -245,6 +257,7 @@ async function submit() {
 }
 
 async function handleDelete(row) {
+  if (isStudent.value) return
   await ElMessageBox.confirm('确认删除该教师吗？', '提示', { type: 'warning' })
   await deleteTeacher(row.id)
   ElMessage.success('删除成功')
@@ -252,6 +265,7 @@ async function handleDelete(row) {
 }
 
 async function handleStatusChange(row, enabled) {
+  if (isStudent.value) return
   await updateTeacherStatus(row.id, enabled ? 1 : 0)
   ElMessage.success('状态已更新')
   fetchList()

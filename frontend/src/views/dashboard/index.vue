@@ -2,10 +2,10 @@
   <div class="dashboard">
     <section class="hero-panel">
       <div class="hero-content">
-        <p class="hero-kicker">Campus Operations</p>
-        <h2 class="hero-title">教学运营总览</h2>
+        <p class="hero-kicker">{{ dashboardCopy.heroKicker }}</p>
+        <h2 class="hero-title">{{ dashboardCopy.heroTitle }}</h2>
         <p class="hero-description">
-          在同一视图追踪学生、课程、考勤与审批数据，快速定位今日重点任务。
+          {{ dashboardCopy.heroDescription }}
         </p>
         <div class="hero-chip-list">
           <div class="hero-chip">
@@ -24,17 +24,17 @@
       </div>
 
       <div class="hero-metric-grid">
-        <el-card class="metric-card" :class="{ disabled: isStudent }" @click="openStatDetail('student')">
+        <el-card class="metric-card" :class="{ disabled: isMetricDisabled('student') }" @click="handleMetricClick('student')">
           <div class="metric-icon student-icon">
             <el-icon><User /></el-icon>
           </div>
           <div class="metric-content">
             <span class="metric-label">{{ metricLabels.student }}</span>
-            <strong class="metric-value">{{ statistics.studentCount }}</strong>
+            <strong v-if="!isStudent" class="metric-value">{{ statistics.studentCount }}</strong>
           </div>
         </el-card>
 
-        <el-card class="metric-card" :class="{ disabled: isStudent }" @click="openStatDetail('teacher')">
+        <el-card class="metric-card" :class="{ disabled: isMetricDisabled('teacher') }" @click="handleMetricClick('teacher')">
           <div class="metric-icon teacher-icon">
             <el-icon><UserFilled /></el-icon>
           </div>
@@ -44,7 +44,7 @@
           </div>
         </el-card>
 
-        <el-card class="metric-card" :class="{ disabled: isStudent }" @click="openStatDetail('course')">
+        <el-card class="metric-card" :class="{ disabled: isMetricDisabled('course') }" @click="handleMetricClick('course')">
           <div class="metric-icon course-icon">
             <el-icon><Reading /></el-icon>
           </div>
@@ -54,7 +54,7 @@
           </div>
         </el-card>
 
-        <el-card class="metric-card" :class="{ disabled: isStudent }" @click="openStatDetail('class')">
+        <el-card class="metric-card" :class="{ disabled: isMetricDisabled('class') }" @click="handleMetricClick('class')">
           <div class="metric-icon class-icon">
             <el-icon><School /></el-icon>
           </div>
@@ -83,7 +83,7 @@
 
       <el-card v-else class="panel-card panel-personal">
         <template #header>
-          <span>我的学习概览</span>
+          <span>{{ dashboardCopy.personalPanelTitle }}</span>
         </template>
         <div class="personal-grid">
           <div class="personal-item">
@@ -108,7 +108,7 @@
       <el-card class="panel-card panel-ops">
         <template #header>
           <div class="card-header">
-            <span>{{ isStudent ? '我的运营概览' : '运营概览' }}</span>
+            <span>{{ dashboardCopy.opsPanelTitle }}</span>
             <el-link type="primary" @click="goAnalytics()">进入分析中心</el-link>
           </div>
         </template>
@@ -227,72 +227,20 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="statDialogVisible" :title="currentStatTitle" width="900px">
-      <el-table :data="statRecords" v-loading="statLoading" stripe>
-        <template v-if="statType === 'student'">
-          <el-table-column prop="studentNo" label="学号" width="140" />
-          <el-table-column prop="name" label="姓名" width="120" />
-          <el-table-column label="性别" width="90">
-            <template #default="{ row }">{{ getGenderText(row.gender) }}</template>
-          </el-table-column>
-          <el-table-column prop="className" label="班级" min-width="140" />
-          <el-table-column label="状态" width="100">
-            <template #default="{ row }">{{ getStudentStatusText(row.status) }}</template>
-          </el-table-column>
-        </template>
-
-        <template v-if="statType === 'teacher'">
-          <el-table-column prop="teacherNo" label="教师编号" width="150" />
-          <el-table-column prop="name" label="姓名" width="120" />
-          <el-table-column label="性别" width="90">
-            <template #default="{ row }">{{ getGenderText(row.gender) }}</template>
-          </el-table-column>
-          <el-table-column prop="title" label="职称" width="170" />
-          <el-table-column prop="department" label="院系" min-width="150" />
-          <el-table-column label="状态" width="100">
-            <template #default="{ row }">{{ row.status === 1 ? '在职' : '停用' }}</template>
-          </el-table-column>
-        </template>
-
-        <template v-if="statType === 'course'">
-          <el-table-column prop="courseCode" label="课程代码" width="140" />
-          <el-table-column prop="courseName" label="课程名称" min-width="180" />
-          <el-table-column prop="credit" label="学分" width="90" />
-          <el-table-column prop="hours" label="学时" width="90" />
-          <el-table-column label="类型" width="110">
-            <template #default="{ row }">{{ getCourseCategoryText(row.category) }}</template>
-          </el-table-column>
-          <el-table-column label="状态" width="100">
-            <template #default="{ row }">{{ row.status === 1 ? '启用' : '禁用' }}</template>
-          </el-table-column>
-        </template>
-
-        <template v-if="statType === 'class'">
-          <el-table-column prop="classCode" label="班级代码" width="140" />
-          <el-table-column prop="className" label="班级名称" min-width="180" />
-          <el-table-column prop="grade" label="年级" width="100" />
-          <el-table-column prop="major" label="专业" min-width="160" />
-          <el-table-column prop="studentCount" label="人数" width="90" />
-          <el-table-column label="状态" width="100">
-            <template #default="{ row }">{{ row.status === 1 ? '在读' : '停用' }}</template>
-          </el-table-column>
-        </template>
-      </el-table>
-
-      <el-pagination
-        class="pagination"
-        v-model:current-page="statPage"
-        v-model:page-size="statSize"
-        :total="statTotal"
-        :page-sizes="[10, 20, 50]"
-        layout="total, sizes, prev, pager, next"
-        @size-change="handleStatSizeChange"
-        @current-change="handleStatPageChange"
+    <el-dialog v-model="statDialogVisible" :title="currentStatTitle" width="520px">
+      <el-descriptions :column="1" border>
+        <el-descriptions-item label="当前统计值">{{ currentStatValue }}</el-descriptions-item>
+        <el-descriptions-item label="可见范围">{{ statScopeText }}</el-descriptions-item>
+      </el-descriptions>
+      <el-alert
+        style="margin-top: 14px"
+        type="info"
+        :closable="false"
+        title="详细记录请在对应业务模块中查看。"
       />
-
       <template #footer>
         <el-button @click="statDialogVisible = false">关闭</el-button>
-        <el-button type="primary" @click="goToModule">进入对应模块</el-button>
+        <el-button v-if="canOpenStatRoute" type="primary" @click="goToModule">进入对应模块</el-button>
       </template>
     </el-dialog>
   </div>
@@ -311,12 +259,9 @@ import { User, UserFilled, Reading, School } from '@element-plus/icons-vue'
 import { getAnnouncementDetail, getAnnouncementList } from '@/api/announcement'
 import { getAttendanceList } from '@/api/attendance'
 import { getLeaveRequestList, getPendingLeaveRequests } from '@/api/leaveRequest'
-import { getStudentGenderStatistics, getStudentList } from '@/api/student'
-import { getTeacherList } from '@/api/teacher'
-import { getCourseCategoryStatistics, getCourseList } from '@/api/course'
-import { getClassList } from '@/api/clazz'
-import { getCourseArrangementList } from '@/api/courseArrangement'
 import { getDashboardOverview } from '@/api/dashboard'
+import { getCourseArrangementOptions } from '@/api/courseArrangement'
+import { canRoute } from '@/permission/ability'
 
 use([PieChart, BarChart, PictorialBarChart, LineChart, TooltipComponent, LegendComponent, GridComponent, GraphicComponent, CanvasRenderer])
 
@@ -369,23 +314,68 @@ const detail = ref({
 
 const statDialogVisible = ref(false)
 const statType = ref('student')
-const statLoading = ref(false)
-const statRecords = ref([])
-const statTotal = ref(0)
-const statPage = ref(1)
-const statSize = ref(10)
 
 const statMeta = {
-  student: { title: '学生详情', route: '/student', fetch: getStudentList },
-  teacher: { title: '教师详情', route: '/teacher', fetch: getTeacherList },
-  course: { title: '课程详情', route: '/course', fetch: getCourseList },
-  class: { title: '班级详情', route: '/class', fetch: getClassList }
+  student: { title: '学生详情', route: '/student', routeName: 'Student', metricKey: 'studentCount' },
+  teacher: { title: '教师详情', route: '/teacher', routeName: 'Teacher', metricKey: 'teacherCount' },
+  course: { title: '课程详情', route: '/course', routeName: 'Course', metricKey: 'courseCount' },
+  class: { title: '班级详情', route: '/class', routeName: 'Class', metricKey: 'classCount' }
 }
 
 const currentStatTitle = computed(() => statMeta[statType.value]?.title || '详情')
 const userInfo = computed(() => store.state.userInfo || {})
 const userRole = computed(() => userInfo.value.role || 'STUDENT')
 const isStudent = computed(() => userRole.value === 'STUDENT')
+const isTeacher = computed(() => userRole.value === 'TEACHER')
+const userPermissions = computed(() => userInfo.value?.permissions || [])
+
+const studentDashboardCopy = {
+  heroKicker: 'Personal Snapshot',
+  heroTitle: '个人情况总览',
+  heroDescription: '在同一视图查看我的课程、考勤、请假与成绩预警，快速掌握近期学习状态。',
+  personalPanelTitle: '个人学习情况',
+  opsPanelTitle: '个人情况概览',
+  studentMetricWarning: '学生仅可查看个人情况总览数据'
+}
+
+const defaultDashboardCopy = {
+  heroKicker: 'Campus Operations',
+  heroTitle: '教学运营总览',
+  heroDescription: '在同一视图追踪学生、课程、考勤与审批数据，快速定位今日重点任务。',
+  personalPanelTitle: '我的学习概览',
+  opsPanelTitle: '运营概览',
+  studentMetricWarning: '学生仅可查看个人总览数据'
+}
+
+const dashboardCopy = computed(() => (isStudent.value ? studentDashboardCopy : defaultDashboardCopy))
+
+const currentStatValue = computed(() => {
+  const metricKey = statMeta[statType.value]?.metricKey
+  if (!metricKey) return 0
+  return Number(statistics.value?.[metricKey] || 0)
+})
+
+const statScopeText = computed(() => {
+  if (userRole.value === 'ADMIN') return '全校数据'
+  if (userRole.value === 'TEACHER') return '仅本人授课范围'
+  return '仅个人范围'
+})
+
+const canOpenStatRoute = computed(() => {
+  const routeName = statMeta[statType.value]?.routeName
+  if (!routeName) return false
+  return canRoute(userRole.value, routeName, userPermissions.value)
+})
+
+const isMetricDisabled = (type) => isTeacher.value && type === 'teacher'
+
+const studentMetricRouteMap = {
+  student: '/profile',
+  teacher: '/teacher',
+  course: '/course',
+  class: '/class'
+}
+
 const metricLabels = computed(() => {
   if (isStudent.value) {
     return {
@@ -924,89 +914,51 @@ const initCharts = () => {
   })
 }
 
-const fetchStatistics = async () => {
+const fetchDashboardOverview = async () => {
   try {
+    const [overviewRes, arrangementRes] = await Promise.all(
+      isStudent.value
+        ? [getDashboardOverview(), getCourseArrangementOptions({ status: 1 })]
+        : [getDashboardOverview()]
+    )
+    const data = overviewRes.data || {}
+    const nextStatistics = {
+      studentCount: Number(data.studentCount || 0),
+      teacherCount: Number(data.teacherCount || 0),
+      courseCount: Number(data.courseCount || 0),
+      classCount: Number(data.classCount || 0)
+    }
     if (isStudent.value) {
-      const [studentRes, arrangementRes] = await Promise.all([
-        getStudentList({ page: 1, size: 1 }),
-        getCourseArrangementList({ page: 1, size: 500, status: 1 })
-      ])
-
-      const studentRecords = studentRes.data?.records || []
-      const arrangements = arrangementRes.data?.records || []
-      const teacherIds = new Set(arrangements.map((item) => item.teacherId).filter(Boolean))
-      const courseIds = new Set(arrangements.map((item) => item.courseId).filter(Boolean))
-      const classIds = new Set(arrangements.map((item) => item.classId).filter(Boolean))
-      if (!classIds.size && studentRecords[0]?.classId) {
-        classIds.add(studentRecords[0].classId)
-      }
-
-      statistics.value = {
-        studentCount: Number(studentRes.data?.total || 1),
-        teacherCount: teacherIds.size,
-        courseCount: courseIds.size,
-        classCount: classIds.size || 1
-      }
-      return
+      const arrangementList = Array.isArray(arrangementRes?.data) ? arrangementRes.data : []
+      const teacherIds = new Set(arrangementList.map((item) => item.teacherId).filter(Boolean))
+      const courseIds = new Set(arrangementList.map((item) => item.courseId).filter(Boolean))
+      const classIds = new Set(arrangementList.map((item) => item.classId).filter(Boolean))
+      nextStatistics.studentCount = 1
+      nextStatistics.teacherCount = teacherIds.size || nextStatistics.teacherCount
+      nextStatistics.courseCount = courseIds.size || nextStatistics.courseCount
+      nextStatistics.classCount = classIds.size || nextStatistics.classCount
     }
-
-    const [studentRes, teacherRes, courseRes, classRes] = await Promise.all([
-      getStudentList({ page: 1, size: 1 }),
-      getTeacherList({ page: 1, size: 1 }),
-      getCourseList({ page: 1, size: 1 }),
-      getClassList({ page: 1, size: 1 })
-    ])
-
-    statistics.value = {
-      studentCount: Number(studentRes.data?.total || 0),
-      teacherCount: Number(teacherRes.data?.total || 0),
-      courseCount: Number(courseRes.data?.total || 0),
-      classCount: Number(classRes.data?.total || 0)
-    }
-  } catch (_e) {
-    ElMessage.error('获取统计数据失败')
-  }
-}
-
-const fetchGenderStatistics = async () => {
-  try {
-    const res = await getStudentGenderStatistics()
+    statistics.value = nextStatistics
     genderStatistics.value = {
-      male: Number(res.data?.male ?? res.data?.MALE ?? 0),
-      female: Number(res.data?.female ?? res.data?.FEMALE ?? 0)
+      male: Number(data.genderStatistics?.male ?? data.genderStatistics?.MALE ?? 0),
+      female: Number(data.genderStatistics?.female ?? data.genderStatistics?.FEMALE ?? 0)
+    }
+    courseCategoryStatistics.value = {
+      required: Number(data.courseCategoryStatistics?.required ?? data.courseCategoryStatistics?.REQUIRED ?? 0),
+      elective: Number(data.courseCategoryStatistics?.elective ?? data.courseCategoryStatistics?.ELECTIVE ?? 0),
+      practical: Number(data.courseCategoryStatistics?.practical ?? data.courseCategoryStatistics?.PRACTICAL ?? 0)
+    }
+    operationOverview.value = {
+      pendingApprovalCount: Number(data.pendingApprovalCount || 0),
+      abnormalTodayCount: Number(data.abnormalTodayCount || 0),
+      lowScoreWarningCount: Number(data.lowScoreWarningCount || 0),
+      abnormalTrend: Array.isArray(data.abnormalTrend) ? data.abnormalTrend : []
     }
     renderGenderChart()
-  } catch (_e) {
-    ElMessage.error('获取性别分布失败')
-  }
-}
-
-const fetchCourseCategoryStatistics = async () => {
-  try {
-    const res = await getCourseCategoryStatistics()
-    courseCategoryStatistics.value = {
-      required: Number(res.data?.required ?? res.data?.REQUIRED ?? 0),
-      elective: Number(res.data?.elective ?? res.data?.ELECTIVE ?? 0),
-      practical: Number(res.data?.practical ?? res.data?.PRACTICAL ?? 0)
-    }
     renderCourseChart()
-  } catch (_e) {
-    ElMessage.error('获取课程类型分布失败')
-  }
-}
-
-const fetchDashboardOperationOverview = async () => {
-  try {
-    const res = await getDashboardOverview()
-    operationOverview.value = {
-      pendingApprovalCount: Number(res.data?.pendingApprovalCount || 0),
-      abnormalTodayCount: Number(res.data?.abnormalTodayCount || 0),
-      lowScoreWarningCount: Number(res.data?.lowScoreWarningCount || 0),
-      abnormalTrend: Array.isArray(res.data?.abnormalTrend) ? res.data.abnormalTrend : []
-    }
     renderTrendChart()
   } catch (_e) {
-    ElMessage.error('获取运营概览失败')
+    ElMessage.error('获取首页数据失败')
   }
 }
 
@@ -1034,45 +986,22 @@ const openAnnouncementDetail = async (item) => {
   }
 }
 
-const fetchStatDetail = async () => {
-  const meta = statMeta[statType.value]
-  if (!meta) return
-
-  statLoading.value = true
-  try {
-    const res = await meta.fetch({
-      page: statPage.value,
-      size: statSize.value
-    })
-    statRecords.value = res.data?.records || []
-    statTotal.value = Number(res.data?.total || 0)
-  } catch (_e) {
-    ElMessage.error('获取详情数据失败')
-  } finally {
-    statLoading.value = false
-  }
-}
-
-const openStatDetail = async (type) => {
+const handleMetricClick = (type) => {
   if (isStudent.value) {
-    ElMessage.warning('学生仅可查看个人总览数据')
+    const route = studentMetricRouteMap[type]
+    if (route) {
+      router.push(route)
+      return
+    }
+    ElMessage.warning(dashboardCopy.value.studentMetricWarning)
+    return
+  }
+  if (isTeacher.value && type === 'teacher') {
+    ElMessage.warning('教师仅可查看本人授课范围数据')
     return
   }
   statType.value = type
-  statPage.value = 1
-  statSize.value = 10
   statDialogVisible.value = true
-  await fetchStatDetail()
-}
-
-const handleStatSizeChange = (val) => {
-  statSize.value = val
-  fetchStatDetail()
-}
-
-const handleStatPageChange = (val) => {
-  statPage.value = val
-  fetchStatDetail()
 }
 
 const goToModule = () => {
@@ -1087,35 +1016,9 @@ const goAnalytics = (query = {}) => {
   router.push({ path: '/analytics', query })
 }
 
-const getGenderText = (gender) => (gender === 'MALE' ? '男' : '女')
-
-const getStudentStatusText = (status) => {
-  const map = {
-    ENROLLED: '在读',
-    SUSPENDED: '休学',
-    GRADUATED: '毕业',
-    DROPPED: '退学'
-  }
-  return map[status] || status || '-'
-}
-
-const getCourseCategoryText = (category) => {
-  const map = {
-    REQUIRED: '必修',
-    ELECTIVE: '选修',
-    PRACTICAL: '实践'
-  }
-  return map[category] || category || '-'
-}
-
 onMounted(() => {
   loadTodoState()
-  fetchStatistics()
-  if (!isStudent.value) {
-    fetchGenderStatistics()
-    fetchCourseCategoryStatistics()
-  }
-  fetchDashboardOperationOverview()
+  fetchDashboardOverview()
   fetchLatestAnnouncements()
   refreshTodos()
   initCharts()

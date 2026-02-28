@@ -3,15 +3,21 @@ package com.student.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.student.dto.DashboardOverviewDTO;
 import com.student.entity.Attendance;
+import com.student.entity.Course;
 import com.student.entity.CourseArrangement;
 import com.student.entity.LeaveRequest;
 import com.student.entity.Score;
+import com.student.entity.Student;
 import com.student.entity.SysUser;
 import com.student.mapper.CourseArrangementMapper;
 import com.student.security.CurrentUserService;
 import com.student.service.AttendanceService;
+import com.student.service.ClassService;
+import com.student.service.CourseService;
 import com.student.service.LeaveRequestService;
 import com.student.service.ScoreService;
+import com.student.service.StudentService;
+import com.student.service.TeacherService;
 import com.student.vo.ResultVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,8 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/dashboard")
@@ -38,44 +47,176 @@ public class DashboardController {
     private final LeaveRequestService leaveRequestService;
     private final ScoreService scoreService;
     private final CourseArrangementMapper courseArrangementMapper;
+    private final StudentService studentService;
+    private final TeacherService teacherService;
+    private final CourseService courseService;
+    private final ClassService classService;
 
     @GetMapping("/overview")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResultVO<DashboardOverviewDTO> getOverview(Authentication authentication) {
         SysUser currentUser = currentUserService.getCurrentUser(authentication);
-        String role = currentUser.getRole().name();
+        SysUser.Role role = currentUser.getRole();
 
         Long studentId = null;
         Long teacherId = null;
-        List<Long> teacherArrangementIds = new ArrayList<>();
-        if (currentUserService.isStudent(authentication)) {
-            studentId = currentUserService.getCurrentStudentId(authentication);
-        } else if (currentUserService.isTeacher(authentication)) {
+        Set<Long> arrangementIds = new HashSet<>();
+        Set<Long> classIds = new HashSet<>();
+        Set<Long> courseIds = new HashSet<>();
+        Set<Long> teacherIds = new HashSet<>();
+
+        if (role == SysUser.Role.STUDENT) {
+            Student currentStudent = currentUserService.getCurrentStudent(authentication);
+            studentId = currentStudent.getId();
+            if (currentStudent.getClassId() != null) {
+                classIds.add(currentStudent.getClassId());
+                List<CourseArrangement> studentArrangements = courseArrangementMapper.selectList(
+                        new LambdaQueryWrapper<CourseArrangement>()
+                                .eq(CourseArrangement::getClassId, currentStudent.getClassId())
+                                .eq(CourseArrangement::getStatus, 1));
+                for (CourseArrangement arrangement : studentArrangements) {
+                    if (arrangement.getId() != null) {
+                        arrangementIds.add(arrangement.getId());
+                    }
+                    if (arrangement.getCourseId() != null) {
+                        courseIds.add(arrangement.getCourseId());
+                    }
+                    if (arrangement.getTeacherId() != null) {
+                        teacherIds.add(arrangement.getTeacherId());
+                    }
+                    if (arrangement.getClassId() != null) {
+                        classIds.add(arrangement.getClassId());
+                    }
+                }
+            }
+        } else if (role == SysUser.Role.TEACHER) {
             teacherId = currentUserService.getCurrentTeacherId(authentication);
-            teacherArrangementIds = courseArrangementMapper.selectList(
+            teacherIds.add(teacherId);
+            List<CourseArrangement> teacherArrangements = courseArrangementMapper.selectList(
                             new LambdaQueryWrapper<CourseArrangement>().eq(CourseArrangement::getTeacherId, teacherId))
-                    .stream()
-                    .map(CourseArrangement::getId)
-                    .collect(Collectors.toList());
+                    .stream().toList();
+            for (CourseArrangement arrangement : teacherArrangements) {
+                if (arrangement.getId() != null) {
+                    arrangementIds.add(arrangement.getId());
+                }
+                if (arrangement.getClassId() != null) {
+                    classIds.add(arrangement.getClassId());
+                }
+                if (arrangement.getCourseId() != null) {
+                    courseIds.add(arrangement.getCourseId());
+                }
+            }
         }
 
         DashboardOverviewDTO overview = new DashboardOverviewDTO();
-        overview.setRole(role);
+        overview.setRole(role.name());
+        fillScopeStatistics(overview, role, studentId, classIds, courseIds, teacherIds);
+
+        List<Long> arrangementIdList = arrangementIds.isEmpty()
+                ? Collections.emptyList()
+                : new ArrayList<>(arrangementIds);
         overview.setPendingApprovalCount(countPending(role, studentId, teacherId));
-        overview.setAbnormalTodayCount(countAbnormalByDate(LocalDate.now(), role, studentId, teacherArrangementIds));
-        overview.setLowScoreWarningCount(countLowScore(role, studentId, teacherArrangementIds));
-        overview.setAbnormalTrend(buildTrend(role, studentId, teacherArrangementIds));
+        overview.setAbnormalTodayCount(countAbnormalByDate(LocalDate.now(), role, studentId, arrangementIdList));
+        overview.setLowScoreWarningCount(countLowScore(role, studentId, arrangementIdList));
+        overview.setAbnormalTrend(buildTrend(role, studentId, arrangementIdList));
         return ResultVO.success(overview);
     }
 
-    private Long countPending(String role, Long studentId, Long teacherId) {
-        if ("STUDENT".equals(role)) {
+    private void fillScopeStatistics(DashboardOverviewDTO overview,
+                                     SysUser.Role role,
+                                     Long studentId,
+                                     Set<Long> classIds,
+                                     Set<Long> courseIds,
+                                     Set<Long> teacherIds) {
+        if (role == SysUser.Role.ADMIN) {
+            overview.setStudentCount(studentService.lambdaQuery().count());
+            overview.setTeacherCount(teacherService.lambdaQuery().count());
+            overview.setCourseCount(courseService.lambdaQuery().count());
+            overview.setClassCount(classService.lambdaQuery().count());
+
+            Map<String, Long> genderMap = studentService.getGenderStatistics();
+            DashboardOverviewDTO.GenderStatistics genderStatistics = new DashboardOverviewDTO.GenderStatistics();
+            genderStatistics.setMale(genderMap.getOrDefault("male", genderMap.getOrDefault("MALE", 0L)));
+            genderStatistics.setFemale(genderMap.getOrDefault("female", genderMap.getOrDefault("FEMALE", 0L)));
+            overview.setGenderStatistics(genderStatistics);
+
+            var categoryStatistics = courseService.getCategoryStatistics();
+            DashboardOverviewDTO.CourseCategoryStatistics courseCategoryStatistics = new DashboardOverviewDTO.CourseCategoryStatistics();
+            courseCategoryStatistics.setRequired(categoryStatistics.getRequired() == null ? 0L : categoryStatistics.getRequired());
+            courseCategoryStatistics.setElective(categoryStatistics.getElective() == null ? 0L : categoryStatistics.getElective());
+            courseCategoryStatistics.setPractical(categoryStatistics.getPractical() == null ? 0L : categoryStatistics.getPractical());
+            overview.setCourseCategoryStatistics(courseCategoryStatistics);
+            return;
+        }
+
+        if (role == SysUser.Role.STUDENT) {
+            overview.setStudentCount(1L);
+            overview.setTeacherCount((long) teacherIds.size());
+            overview.setCourseCount((long) courseIds.size());
+            overview.setClassCount((long) classIds.size());
+
+            DashboardOverviewDTO.GenderStatistics genderStatistics = new DashboardOverviewDTO.GenderStatistics();
+            genderStatistics.setMale(studentService.lambdaQuery()
+                    .eq(Student::getId, studentId)
+                    .eq(Student::getGender, Student.Gender.MALE)
+                    .count());
+            genderStatistics.setFemale(studentService.lambdaQuery()
+                    .eq(Student::getId, studentId)
+                    .eq(Student::getGender, Student.Gender.FEMALE)
+                    .count());
+            overview.setGenderStatistics(genderStatistics);
+
+            overview.setCourseCategoryStatistics(buildCourseCategoryStatistics(courseIds));
+            return;
+        }
+
+        if (classIds.isEmpty()) {
+            overview.setStudentCount(0L);
+        } else {
+            overview.setStudentCount(studentService.lambdaQuery().in(Student::getClassId, classIds).count());
+        }
+        overview.setTeacherCount(teacherIds.isEmpty() ? 1L : (long) teacherIds.size());
+        overview.setCourseCount((long) courseIds.size());
+        overview.setClassCount((long) classIds.size());
+
+        DashboardOverviewDTO.GenderStatistics genderStatistics = new DashboardOverviewDTO.GenderStatistics();
+        if (!classIds.isEmpty()) {
+            genderStatistics.setMale(studentService.lambdaQuery()
+                    .in(Student::getClassId, classIds)
+                    .eq(Student::getGender, Student.Gender.MALE)
+                    .count());
+            genderStatistics.setFemale(studentService.lambdaQuery()
+                    .in(Student::getClassId, classIds)
+                    .eq(Student::getGender, Student.Gender.FEMALE)
+                    .count());
+        }
+        overview.setGenderStatistics(genderStatistics);
+        overview.setCourseCategoryStatistics(buildCourseCategoryStatistics(courseIds));
+    }
+
+    private DashboardOverviewDTO.CourseCategoryStatistics buildCourseCategoryStatistics(Set<Long> courseIds) {
+        DashboardOverviewDTO.CourseCategoryStatistics courseCategoryStatistics = new DashboardOverviewDTO.CourseCategoryStatistics();
+        if (courseIds.isEmpty()) {
+            return courseCategoryStatistics;
+        }
+        List<Course> courses = courseService.lambdaQuery().in(Course::getId, courseIds).list();
+        long required = courses.stream().filter(item -> item.getCategory() == Course.Category.REQUIRED).count();
+        long elective = courses.stream().filter(item -> item.getCategory() == Course.Category.ELECTIVE).count();
+        long practical = courses.stream().filter(item -> item.getCategory() == Course.Category.PRACTICAL).count();
+        courseCategoryStatistics.setRequired(required);
+        courseCategoryStatistics.setElective(elective);
+        courseCategoryStatistics.setPractical(practical);
+        return courseCategoryStatistics;
+    }
+
+    private Long countPending(SysUser.Role role, Long studentId, Long teacherId) {
+        if (role == SysUser.Role.STUDENT) {
             return leaveRequestService.lambdaQuery()
                     .eq(LeaveRequest::getStudentId, studentId)
                     .eq(LeaveRequest::getStatus, LeaveRequest.Status.PENDING)
                     .count();
         }
-        if ("TEACHER".equals(role)) {
+        if (role == SysUser.Role.TEACHER) {
             return (long) leaveRequestService.getPendingRequestsForTeacher(teacherId).size();
         }
         return leaveRequestService.lambdaQuery()
@@ -84,15 +225,15 @@ public class DashboardController {
     }
 
     private Long countAbnormalByDate(LocalDate date,
-                                     String role,
+                                     SysUser.Role role,
                                      Long studentId,
                                      List<Long> teacherArrangementIds) {
         var query = attendanceService.lambdaQuery()
                 .eq(Attendance::getAttendanceDate, date)
                 .in(Attendance::getStatus, Attendance.Status.ABSENT, Attendance.Status.LATE);
-        if ("STUDENT".equals(role)) {
+        if (role == SysUser.Role.STUDENT) {
             query.eq(Attendance::getStudentId, studentId);
-        } else if ("TEACHER".equals(role)) {
+        } else if (role == SysUser.Role.TEACHER) {
             if (teacherArrangementIds.isEmpty()) {
                 return 0L;
             }
@@ -101,11 +242,11 @@ public class DashboardController {
         return query.count();
     }
 
-    private Long countLowScore(String role, Long studentId, List<Long> teacherArrangementIds) {
+    private Long countLowScore(SysUser.Role role, Long studentId, List<Long> teacherArrangementIds) {
         var query = scoreService.lambdaQuery().lt(Score::getTotalScore, LOW_SCORE_THRESHOLD);
-        if ("STUDENT".equals(role)) {
+        if (role == SysUser.Role.STUDENT) {
             query.eq(Score::getStudentId, studentId);
-        } else if ("TEACHER".equals(role)) {
+        } else if (role == SysUser.Role.TEACHER) {
             if (teacherArrangementIds.isEmpty()) {
                 return 0L;
             }
@@ -114,7 +255,7 @@ public class DashboardController {
         return query.count();
     }
 
-    private List<DashboardOverviewDTO.TrendPoint> buildTrend(String role,
+    private List<DashboardOverviewDTO.TrendPoint> buildTrend(SysUser.Role role,
                                                              Long studentId,
                                                              List<Long> teacherArrangementIds) {
         List<DashboardOverviewDTO.TrendPoint> trendPoints = new ArrayList<>();

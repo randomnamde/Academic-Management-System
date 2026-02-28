@@ -12,6 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/announcement")
 @RequiredArgsConstructor
@@ -41,8 +43,20 @@ public class AnnouncementController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    public ResultVO<Announcement> getById(@PathVariable Long id) {
-        return ResultVO.success(announcementService.getById(id));
+    public ResultVO<Announcement> getById(@PathVariable Long id, Authentication authentication) {
+        Announcement announcement = announcementService.getById(id);
+        if (announcement == null) {
+            return ResultVO.error(404, "Announcement not found");
+        }
+
+        SysUser currentUser = currentUserService.getCurrentUser(authentication);
+        if (currentUser.getRole() == SysUser.Role.STUDENT) {
+            Student student = currentUserService.getCurrentStudent(authentication);
+            if (!isVisibleForStudent(announcement, student)) {
+                return ResultVO.error(403, "Forbidden");
+            }
+        }
+        return ResultVO.success(announcement);
     }
 
     @PostMapping
@@ -74,5 +88,27 @@ public class AnnouncementController {
     public ResultVO<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status) {
         announcementService.updateAnnouncementStatus(id, status);
         return ResultVO.success();
+    }
+
+    private boolean isVisibleForStudent(Announcement announcement, Student student) {
+        if (announcement.getStatus() == null || announcement.getStatus() != 1) {
+            return false;
+        }
+
+        if (!(announcement.getTargetRole() == Announcement.TargetRole.ALL
+                || announcement.getTargetRole() == Announcement.TargetRole.STUDENT)) {
+            return false;
+        }
+
+        if (announcement.getTargetClassId() != null
+                && (student.getClassId() == null || !announcement.getTargetClassId().equals(student.getClassId()))) {
+            return false;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (announcement.getStartTime() != null && announcement.getStartTime().isAfter(now)) {
+            return false;
+        }
+        return announcement.getEndTime() == null || !announcement.getEndTime().isBefore(now);
     }
 }

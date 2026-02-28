@@ -225,7 +225,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private Long countPendingApprovals(UserScope scope, ArrangementScope arrangementScope) {
-        var query = leaveRequestService.lambdaQuery().eq(LeaveRequest::getStatus, LeaveRequest.Status.PENDING);
+        var query = leaveRequestService.lambdaQuery();
+        if (scope.role() == SysUser.Role.STUDENT) {
+            query.in(LeaveRequest::getStatus, LeaveRequest.Status.PENDING, LeaveRequest.Status.REJECTED);
+        } else {
+            query.eq(LeaveRequest::getStatus, LeaveRequest.Status.PENDING);
+        }
         applyLeaveUserScope(query, scope);
         if (arrangementScope.enabled()) {
             if (arrangementScope.arrangementIds().isEmpty()) {
@@ -245,7 +250,33 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .between(Score::getCreateTime, range.startDate().atStartOfDay(), range.endDate().plusDays(1).atStartOfDay().minusNanos(1));
         applyScoreUserScope(query, scope);
         applyArrangementScope(query, arrangementScope, Score::getCourseArrangementId);
-        return query.count();
+        if (scope.role() != SysUser.Role.STUDENT) {
+            return query.count();
+        }
+
+        List<Score> lowScores = query.list();
+        if (lowScores.isEmpty()) {
+            return 0L;
+        }
+        Set<Long> arrangementIds = new HashSet<>();
+        for (Score score : lowScores) {
+            if (score.getCourseArrangementId() != null) {
+                arrangementIds.add(score.getCourseArrangementId());
+            }
+        }
+        if (arrangementIds.isEmpty()) {
+            return 0L;
+        }
+
+        List<CourseArrangement> arrangements = courseArrangementMapper.selectList(
+                new LambdaQueryWrapper<CourseArrangement>().in(CourseArrangement::getId, arrangementIds));
+        Set<Long> courseIds = new HashSet<>();
+        for (CourseArrangement arrangement : arrangements) {
+            if (arrangement.getCourseId() != null) {
+                courseIds.add(arrangement.getCourseId());
+            }
+        }
+        return (long) courseIds.size();
     }
 
     private Double calculateAttendanceRate(DateRange range, UserScope scope, ArrangementScope arrangementScope) {
@@ -422,6 +453,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         Long classId = null;
         if (scope.role() == SysUser.Role.TEACHER) {
             teacherId = scope.teacherId();
+            classId = filter.getClassId();
         } else if (scope.role() == SysUser.Role.ADMIN) {
             teacherId = filter.getTeacherId();
             classId = filter.getClassId();

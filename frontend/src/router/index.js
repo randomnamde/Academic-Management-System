@@ -39,19 +39,37 @@ const routes = [
         path: 'teacher',
         name: 'Teacher',
         component: () => import('@/views/teacher/index.vue'),
-        meta: { title: '教师管理', icon: 'User', roles: ['ADMIN'], menuGroup: 'teaching' }
+        meta: {
+          title: '教师管理',
+          icon: 'User',
+          roles: ['ADMIN', 'STUDENT'],
+          menuGroup: 'teaching',
+          hideInMenuForRoles: ['STUDENT']
+        }
       },
       {
         path: 'class',
         name: 'Class',
         component: () => import('@/views/class/index.vue'),
-        meta: { title: '班级管理', icon: 'School', roles: ['ADMIN', 'TEACHER'], menuGroup: 'teaching' }
+        meta: {
+          title: '班级管理',
+          icon: 'School',
+          roles: ['ADMIN', 'TEACHER', 'STUDENT'],
+          menuGroup: 'teaching',
+          hideInMenuForRoles: ['STUDENT']
+        }
       },
       {
         path: 'course',
         name: 'Course',
         component: () => import('@/views/course/index.vue'),
-        meta: { title: '课程管理', icon: 'Reading', roles: ['ADMIN', 'TEACHER'], menuGroup: 'teaching' }
+        meta: {
+          title: '课程管理',
+          icon: 'Reading',
+          roles: ['ADMIN', 'TEACHER', 'STUDENT'],
+          menuGroup: 'teaching',
+          hideInMenuForRoles: ['STUDENT']
+        }
       },
       {
         path: 'course-arrangement',

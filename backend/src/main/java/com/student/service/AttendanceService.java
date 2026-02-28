@@ -20,7 +20,7 @@ public interface AttendanceService extends IService<Attendance> {
     Attendance getAttendanceById(Long id);
 
     Page<Attendance> getAttendancePage(Integer page, Integer size, Long studentId, 
-                                        Long courseArrangementId, LocalDate attendanceDate, 
+                                        Long teacherId, Long courseArrangementId, LocalDate attendanceDate,
                                         Attendance.Status status);
 
     List<Attendance> getStudentAttendance(Long studentId, LocalDate startDate, LocalDate endDate);

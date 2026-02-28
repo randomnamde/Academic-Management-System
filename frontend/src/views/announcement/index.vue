@@ -4,7 +4,7 @@
       <template #header>
         <div class="header-row">
           <span>通知公告</span>
-          <el-button type="primary" @click="openCreate">发布公告</el-button>
+          <el-button v-if="canManageAnnouncement" type="primary" @click="openCreate">发布公告</el-button>
         </div>
       </template>
 
@@ -42,7 +42,7 @@
           <template #default="{ row }">{{ row.isTop === 1 ? '是' : '否' }}</template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="发布" width="90">
+        <el-table-column v-if="canManageAnnouncement" label="发布" width="90">
           <template #default="{ row }">
             <el-switch
               :model-value="row.status === 1"
@@ -50,7 +50,7 @@
             />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="170" fixed="right">
+        <el-table-column v-if="canManageAnnouncement" label="操作" width="170" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
@@ -160,6 +160,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   createAnnouncement,
@@ -168,6 +169,15 @@ import {
   updateAnnouncement,
   updateAnnouncementStatus
 } from '@/api/announcement'
+import { canAction } from '@/permission/ability'
+
+const store = useStore()
+const role = computed(() => store.state.userInfo?.role || '')
+const permissions = computed(() => store.state.userInfo?.permissions || [])
+const canManageAnnouncement = computed(() =>
+  canAction(role.value, 'announcement:create', permissions.value) ||
+  canAction(role.value, 'announcement:publish', permissions.value)
+)
 
 const loading = ref(false)
 const page = ref(1)

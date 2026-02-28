@@ -5,7 +5,7 @@ import com.student.dto.ScoreQueryDTO;
 import com.student.entity.Attendance;
 import com.student.entity.LeaveRequest;
 import com.student.entity.Score;
-import com.student.security.CurrentUserService;
+import com.student.security.DataScopeService;
 import com.student.service.AttendanceService;
 import com.student.service.LeaveRequestService;
 import com.student.service.ScoreService;
@@ -41,7 +41,7 @@ public class ReportController {
     private final ScoreService scoreService;
     private final AttendanceService attendanceService;
     private final LeaveRequestService leaveRequestService;
-    private final CurrentUserService currentUserService;
+    private final DataScopeService dataScopeService;
 
     @GetMapping("/score")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
@@ -51,11 +51,12 @@ public class ReportController {
                             @RequestParam(required = false) String format,
                             Authentication authentication,
                             HttpServletResponse response) {
-        if (currentUserService.isStudent(authentication)) {
-            studentId = currentUserService.getCurrentStudentId(authentication);
-        }
+        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         ScoreQueryDTO queryDTO = new ScoreQueryDTO();
-        queryDTO.setStudentId(studentId);
+        queryDTO.setStudentId(scopedStudentId);
+        queryDTO.setTeacherId(scopedTeacherId);
         queryDTO.setCourseArrangementId(courseArrangementId);
         queryDTO.setSemester(semester);
         Page<Score> result = scoreService.getScorePage(1, EXPORT_LIMIT, queryDTO);
@@ -90,10 +91,11 @@ public class ReportController {
                                  @RequestParam(required = false) String format,
                                  Authentication authentication,
                                  HttpServletResponse response) {
-        if (currentUserService.isStudent(authentication)) {
-            studentId = currentUserService.getCurrentStudentId(authentication);
-        }
-        Page<Attendance> result = attendanceService.getAttendancePage(1, EXPORT_LIMIT, studentId, courseArrangementId, attendanceDate, status);
+        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
+        Page<Attendance> result = attendanceService.getAttendancePage(
+                1, EXPORT_LIMIT, scopedStudentId, scopedTeacherId, courseArrangementId, attendanceDate, status);
 
         List<String> headers = List.of("学号", "姓名", "班级", "课程", "考勤日期", "状态", "签到时间", "签退时间", "备注");
         List<List<String>> rows = new ArrayList<>();
@@ -120,10 +122,10 @@ public class ReportController {
                                    @RequestParam(required = false) String format,
                                    Authentication authentication,
                                    HttpServletResponse response) {
-        if (currentUserService.isStudent(authentication)) {
-            studentId = currentUserService.getCurrentStudentId(authentication);
-        }
-        Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(1, EXPORT_LIMIT, studentId, status);
+        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(
+                1, EXPORT_LIMIT, scopedStudentId, scopedTeacherId, status);
 
         List<String> headers = List.of("学号", "姓名", "班级", "课程", "请假类型", "开始时间", "结束时间", "状态", "审批人", "审批备注", "提交时间");
         List<List<String>> rows = new ArrayList<>();

@@ -43,6 +43,9 @@
             <if test="studentId != null">
                 AND a.student_id = #{studentId}
             </if>
+            <if test="teacherId != null">
+                AND ca.teacher_id = #{teacherId}
+            </if>
             <if test="courseArrangementId != null">
                 AND a.course_arrangement_id = #{courseArrangementId}
             </if>

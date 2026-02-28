@@ -51,6 +51,9 @@
             <if test="studentId != null">
                 AND lr.student_id = #{studentId}
             </if>
+            <if test="teacherId != null">
+                AND ca.teacher_id = #{teacherId}
+            </if>
             <if test="status != null">
                 AND lr.status = #{status}
             </if>

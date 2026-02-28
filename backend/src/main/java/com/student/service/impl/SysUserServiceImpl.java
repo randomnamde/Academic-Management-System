@@ -8,6 +8,7 @@ import com.student.entity.SysUser;
 import com.student.exception.BusinessException;
 import com.student.mapper.SysUserMapper;
 import com.student.security.JwtTokenProvider;
+import com.student.security.PermissionService;
 import com.student.service.SysUserService;
 import com.student.vo.LoginVO;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PermissionService permissionService;
 
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
@@ -65,6 +67,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         LoginVO loginVO = new LoginVO();
         BeanUtils.copyProperties(user, loginVO);
         loginVO.setToken(token);
+        loginVO.setPermissions(permissionService.resolvePermissions(user.getRole()));
         return loginVO;
     }
 

@@ -8,6 +8,7 @@ import com.student.entity.SysUser;
 import com.student.entity.Teacher;
 import com.student.exception.BusinessException;
 import com.student.mapper.TeacherMapper;
+import com.student.security.DataScopeService;
 import com.student.service.LeaveRequestService;
 import com.student.service.StudentService;
 import com.student.service.SysUserService;
@@ -29,6 +30,7 @@ public class LeaveRequestController {
     private final SysUserService sysUserService;
     private final StudentService studentService;
     private final TeacherMapper teacherMapper;
+    private final DataScopeService dataScopeService;
 
     @PostMapping
     @PreAuthorize("hasRole('STUDENT')")
@@ -63,6 +65,11 @@ public class LeaveRequestController {
                                   @RequestParam boolean approved,
                                   @RequestParam(required = false) String remark,
                                   Authentication authentication) {
+        LeaveRequest leaveRequest = leaveRequestService.getById(id);
+        if (leaveRequest == null) {
+            throw new BusinessException("Leave request not found");
+        }
+        dataScopeService.assertTeacherOwnsArrangement(authentication, leaveRequest.getCourseArrangementId());
         Long approverId = getApproverId(authentication);
         leaveRequestService.approveLeaveRequest(id, approved, remark, approverId);
         return ResultVO.success();
@@ -79,6 +86,7 @@ public class LeaveRequestController {
         if (currentUser.getRole() == SysUser.Role.STUDENT && !getCurrentStudentId(authentication).equals(leaveRequest.getStudentId())) {
             throw new BusinessException("No permission to view this leave request");
         }
+        dataScopeService.assertTeacherOwnsArrangement(authentication, leaveRequest.getCourseArrangementId());
         return ResultVO.success(leaveRequest);
     }
 
@@ -90,10 +98,12 @@ public class LeaveRequestController {
                                              @RequestParam(required = false) LeaveRequest.Status status,
                                              Authentication authentication) {
         SysUser currentUser = getCurrentUser(authentication);
+        Long scopedStudentId = studentId;
         if (currentUser.getRole() == SysUser.Role.STUDENT) {
-            studentId = getCurrentStudentId(authentication);
+            scopedStudentId = getCurrentStudentId(authentication);
         }
-        Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(page, size, studentId, status);
+        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(page, size, scopedStudentId, scopedTeacherId, status);
         return ResultVO.success(result);
     }
 
@@ -104,6 +114,11 @@ public class LeaveRequestController {
         if (currentUser.getRole() == SysUser.Role.STUDENT && !getCurrentStudentId(authentication).equals(studentId)) {
             throw new BusinessException("No permission to view other students leave requests");
         }
+        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        if (scopedTeacherId != null) {
+            Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(1, 10000, studentId, scopedTeacherId, null);
+            return ResultVO.success(result.getRecords());
+        }
         List<LeaveRequest> leaveRequests = leaveRequestService.getStudentLeaveRequests(studentId);
         return ResultVO.success(leaveRequests);
     }
@@ -113,7 +128,7 @@ public class LeaveRequestController {
     public ResultVO<List<LeaveRequest>> getPending(Authentication authentication) {
         SysUser currentUser = getCurrentUser(authentication);
         if (currentUser.getRole() == SysUser.Role.ADMIN) {
-            Page<LeaveRequest> page = leaveRequestService.getLeaveRequestPage(1, 200, null, LeaveRequest.Status.PENDING);
+            Page<LeaveRequest> page = leaveRequestService.getLeaveRequestPage(1, 200, null, null, LeaveRequest.Status.PENDING);
             return ResultVO.success(page.getRecords());
         }
 

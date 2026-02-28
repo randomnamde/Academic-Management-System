@@ -209,6 +209,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getCourseArrangementOptions } from '@/api/courseArrangement'
+import { canAction } from '@/permission/ability'
 import {
   approveLeaveRequest,
   cancelLeaveRequest,
@@ -223,8 +224,9 @@ import {
 const store = useStore()
 
 const role = computed(() => store.state.userInfo?.role || '')
+const permissions = computed(() => store.state.userInfo?.permissions || [])
 const isStudent = computed(() => role.value === 'STUDENT')
-const canApprove = computed(() => role.value === 'TEACHER' || role.value === 'ADMIN')
+const canApprove = computed(() => canAction(role.value, 'leave:approve', permissions.value))
 const pageTitle = computed(() => {
   if (isStudent.value) return '请假申请'
   if (canApprove.value) return '请假审批'

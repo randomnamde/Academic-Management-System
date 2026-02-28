@@ -14,13 +14,13 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-            <el-button type="primary" @click="openCreate">新增成绩</el-button>
+            <el-button v-if="canEditScore" type="primary" @click="openCreate">新增成绩</el-button>
           </div>
         </div>
       </template>
 
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="学生ID">
+        <el-form-item v-if="canFilterStudent" label="学生ID">
           <el-input-number v-model="searchForm.studentId" :min="1" style="width: 140px" />
         </el-form-item>
         <el-form-item label="排课ID">
@@ -60,7 +60,7 @@
         <el-table-column prop="totalScore" label="总评" width="80" />
         <el-table-column prop="gpa" label="GPA" width="80" />
         <el-table-column prop="status" label="状态" width="100" />
-        <el-table-column label="操作" width="170" fixed="right">
+        <el-table-column v-if="canEditScore" label="操作" width="170" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
@@ -164,10 +164,20 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { createScore, deleteScore, exportScoreReport, getScoreList, updateScore } from '@/api/score'
 import { getCourseArrangementOptions } from '@/api/courseArrangement'
+import { canAction } from '@/permission/ability'
+
+const store = useStore()
+const role = computed(() => store.state.userInfo?.role || '')
+const permissions = computed(() => store.state.userInfo?.permissions || [])
+const canEditScore = computed(() =>
+  canAction(role.value, 'score:create', permissions.value)
+)
+const canFilterStudent = computed(() => role.value !== 'STUDENT')
 
 const loading = ref(false)
 const page = ref(1)
@@ -257,7 +267,9 @@ function handleSearch() {
 }
 
 function handleReset() {
-  searchForm.studentId = null
+  if (canFilterStudent.value) {
+    searchForm.studentId = null
+  }
   searchForm.courseArrangementId = null
   searchForm.semester = ''
   handleSearch()

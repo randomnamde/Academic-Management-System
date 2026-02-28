@@ -16,6 +16,7 @@ public interface AttendanceMapper extends BaseMapper<Attendance> {
 
     Page<Attendance> selectPageWithDetail(Page<Attendance> page,
                                            @Param("studentId") Long studentId,
+                                           @Param("teacherId") Long teacherId,
                                            @Param("courseArrangementId") Long courseArrangementId,
                                            @Param("attendanceDate") LocalDate attendanceDate,
                                            @Param("status") Attendance.Status status);

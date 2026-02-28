@@ -17,6 +17,7 @@ public interface ScoreMapper extends BaseMapper<Score> {
     
     Page<Score> selectPageWithDetail(Page<Score> page,
                                      @Param("studentId") Long studentId,
+                                     @Param("teacherId") Long teacherId,
                                      @Param("courseArrangementId") Long courseArrangementId,
                                      @Param("semester") String semester);
     

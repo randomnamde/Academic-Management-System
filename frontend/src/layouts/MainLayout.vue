@@ -241,6 +241,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { getAnnouncementDetail, getAnnouncementList } from '@/api/announcement'
+import { canRoute } from '@/permission/ability'
 
 const store = useStore()
 const route = useRoute()
@@ -266,64 +267,67 @@ const userInfo = computed(() => store.state.userInfo || {})
 const sidebarOpened = computed(() => store.state.sidebar?.opened !== false)
 const isCollapse = computed(() => !sidebarOpened.value)
 const readAnnouncementStorageKey = computed(() => `announcement:read:${userInfo.value?.id || 'guest'}`)
+const role = computed(() => userInfo.value?.role || '')
+const permissions = computed(() => userInfo.value?.permissions || [])
 
-const menuGroups = [
-  {
-    key: 'ops',
-    title: '运营分析',
-    items: [
-      { path: '/dashboard', title: '首页总览', icon: 'HomeFilled', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
-      { path: '/analytics', title: '分析中心', icon: 'DataAnalysis', roles: ['ADMIN', 'TEACHER', 'STUDENT'] }
-    ]
-  },
-  {
-    key: 'teaching',
-    title: '教学管理',
-    items: [
-      { path: '/student', title: '学生管理', icon: 'UserFilled', roles: ['ADMIN', 'TEACHER'] },
-      { path: '/teacher', title: '教师管理', icon: 'User', roles: ['ADMIN'] },
-      { path: '/class', title: '班级管理', icon: 'School', roles: ['ADMIN', 'TEACHER'] },
-      { path: '/course', title: '课程管理', icon: 'Reading', roles: ['ADMIN', 'TEACHER'] },
-      { path: '/course-arrangement', title: '排课管理', icon: 'Tickets', roles: ['ADMIN', 'TEACHER'] }
-    ]
-  },
-  {
-    key: 'process',
-    title: '过程管理',
-    items: [
-      { path: '/score', title: '成绩管理', icon: 'TrendCharts', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
-      { path: '/attendance', title: '考勤管理', icon: 'Calendar', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
-      { path: '/leave-request', title: '请假审批', icon: 'DocumentChecked', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
-      { path: '/announcement', title: '通知公告', icon: 'BellFilled', roles: ['ADMIN', 'TEACHER', 'STUDENT'] }
-    ]
-  },
-  {
-    key: 'system',
-    title: '系统管理',
-    items: [
-      { path: '/system', title: '系统设置', icon: 'Setting', roles: ['ADMIN'] }
-    ]
-  }
-]
+const menuGroupMeta = {
+  ops: { title: '运营分析', order: 1 },
+  teaching: { title: '教学管理', order: 2 },
+  process: { title: '过程管理', order: 3 },
+  system: { title: '系统管理', order: 4 }
+}
+
+const layoutChildren = computed(() => {
+  const layoutRoute = router.options.routes.find((item) => item.name === 'Layout')
+  return Array.isArray(layoutRoute?.children) ? layoutRoute.children : []
+})
+
+const menuGroups = computed(() => {
+  const buckets = new Map()
+  layoutChildren.value
+    .filter((item) => item?.meta?.title && item.path !== 'profile')
+    .forEach((item) => {
+      const key = item.meta?.menuGroup || 'process'
+      if (!buckets.has(key)) {
+        const groupMeta = menuGroupMeta[key] || { title: '其他', order: 99 }
+        buckets.set(key, {
+          key,
+          title: groupMeta.title,
+          order: groupMeta.order,
+          items: []
+        })
+      }
+      buckets.get(key).items.push({
+        path: item.path.startsWith('/') ? item.path : `/${item.path}`,
+        title: item.meta?.title || item.name,
+        icon: item.meta?.icon || 'Menu',
+        routeName: String(item.name)
+      })
+    })
+
+  return Array.from(buckets.values()).sort((a, b) => a.order - b.order)
+})
 
 const bottomActions = [
-  { key: 'profile', label: '个人中心', icon: 'User', type: 'route', path: '/profile', roles: ['ADMIN', 'TEACHER', 'STUDENT'] },
-  { key: 'settings', label: '系统设置', icon: 'Setting', type: 'route', path: '/system', roles: ['ADMIN'] },
-  { key: 'logout', label: '退出登录', icon: 'SwitchButton', type: 'command', command: 'logout', roles: ['ADMIN', 'TEACHER', 'STUDENT'] }
+  { key: 'profile', label: '个人中心', icon: 'User', type: 'route', path: '/profile', routeName: 'Profile' },
+  { key: 'settings', label: '系统设置', icon: 'Setting', type: 'route', path: '/system', routeName: 'System' },
+  { key: 'logout', label: '退出登录', icon: 'SwitchButton', type: 'command', command: 'logout' }
 ]
 
-const hasPermission = (item) => (item.roles || []).includes(userInfo.value.role)
+const hasRoutePermission = (routeName) => canRoute(role.value, routeName, permissions.value)
 
 const visibleMenuGroups = computed(() =>
-  menuGroups
+  menuGroups.value
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => hasPermission(item))
+      items: group.items.filter((item) => hasRoutePermission(item.routeName))
     }))
     .filter((group) => group.items.length > 0)
 )
 
-const visibleBottomActions = computed(() => bottomActions.filter((item) => hasPermission(item)))
+const visibleBottomActions = computed(() =>
+  bottomActions.filter((item) => item.type !== 'route' || hasRoutePermission(item.routeName))
+)
 
 const handleResize = () => {
   const mobile = window.innerWidth < 992

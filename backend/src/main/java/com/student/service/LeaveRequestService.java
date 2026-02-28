@@ -19,7 +19,7 @@ public interface LeaveRequestService extends IService<LeaveRequest> {
 
     LeaveRequest getLeaveRequestById(Long id);
 
-    Page<LeaveRequest> getLeaveRequestPage(Integer page, Integer size, Long studentId, 
+    Page<LeaveRequest> getLeaveRequestPage(Integer page, Integer size, Long studentId, Long teacherId,
                                           LeaveRequest.Status status);
 
     List<LeaveRequest> getStudentLeaveRequests(Long studentId);

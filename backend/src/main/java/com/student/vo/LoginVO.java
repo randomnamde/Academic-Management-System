@@ -3,6 +3,8 @@ package com.student.vo;
 import com.student.entity.SysUser;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class LoginVO {
     
@@ -21,4 +23,6 @@ public class LoginVO {
     private SysUser.Role role;
     
     private String token;
+
+    private List<String> permissions;
 }

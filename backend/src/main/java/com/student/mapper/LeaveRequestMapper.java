@@ -15,6 +15,7 @@ public interface LeaveRequestMapper extends BaseMapper<LeaveRequest> {
 
     Page<LeaveRequest> selectPageWithDetail(Page<LeaveRequest> page,
                                               @Param("studentId") Long studentId,
+                                              @Param("teacherId") Long teacherId,
                                               @Param("status") LeaveRequest.Status status);
 
     List<LeaveRequest> selectByStudentId(@Param("studentId") Long studentId);

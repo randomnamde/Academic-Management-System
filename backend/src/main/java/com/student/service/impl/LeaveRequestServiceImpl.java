@@ -109,9 +109,9 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
     }
 
     @Override
-    public Page<LeaveRequest> getLeaveRequestPage(Integer page, Integer size, Long studentId, LeaveRequest.Status status) {
+    public Page<LeaveRequest> getLeaveRequestPage(Integer page, Integer size, Long studentId, Long teacherId, LeaveRequest.Status status) {
         Page<LeaveRequest> pageParam = new Page<>(page, size);
-        return leaveRequestMapper.selectPageWithDetail(pageParam, studentId, status);
+        return leaveRequestMapper.selectPageWithDetail(pageParam, studentId, teacherId, status);
     }
 
     @Override

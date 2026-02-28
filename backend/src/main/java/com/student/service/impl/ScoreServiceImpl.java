@@ -82,7 +82,12 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
     @Override
     public Page<Score> getScorePage(Integer page, Integer size, ScoreQueryDTO queryDTO) {
         Page<Score> pageParam = new Page<>(page, size);
-        return scoreMapper.selectPageWithDetail(pageParam, queryDTO.getStudentId(), queryDTO.getCourseArrangementId(), queryDTO.getSemester());
+        return scoreMapper.selectPageWithDetail(
+                pageParam,
+                queryDTO.getStudentId(),
+                queryDTO.getTeacherId(),
+                queryDTO.getCourseArrangementId(),
+                queryDTO.getSemester());
     }
 
     @Override

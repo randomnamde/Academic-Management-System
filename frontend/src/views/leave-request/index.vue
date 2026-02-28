@@ -1,10 +1,21 @@
-<template>
+﻿<template>
   <div class="page-container">
     <el-card>
       <template #header>
         <div class="header-row">
           <span>{{ pageTitle }}</span>
-          <el-button v-if="isStudent" type="primary" @click="openCreate">发起请假</el-button>
+          <div class="header-actions">
+            <el-dropdown @command="handleExport">
+              <el-button>导出报表</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="csv">导出 CSV</el-dropdown-item>
+                  <el-dropdown-item command="xlsx">导出 Excel</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            <el-button v-if="isStudent" type="primary" @click="openCreate">发起请假</el-button>
+          </div>
         </div>
       </template>
 
@@ -201,6 +212,7 @@ import { getCourseArrangementOptions } from '@/api/courseArrangement'
 import {
   approveLeaveRequest,
   cancelLeaveRequest,
+  exportLeaveRequestReport,
   getLeaveRequestDetail,
   getLeaveRequestList,
   getPendingLeaveRequests,
@@ -321,6 +333,14 @@ const resetForm = () => {
 const fetchArrangementOptions = async () => {
   const res = await getCourseArrangementOptions({ status: 1 })
   arrangementOptions.value = Array.isArray(res.data) ? res.data : []
+}
+
+const handleExport = async (format) => {
+  await exportLeaveRequestReport({
+    status: searchForm.status || undefined,
+    format
+  })
+  ElMessage.success('导出任务已开始')
 }
 
 const fetchList = async () => {
@@ -464,6 +484,12 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .search-form {

@@ -1,4 +1,5 @@
 import request from './request'
+import { downloadWithAuth } from '@/utils/download'
 
 export function getAttendanceList(params) {
   return request({
@@ -76,4 +77,8 @@ export function checkOut(courseArrangementId) {
     method: 'post',
     params: { courseArrangementId }
   })
+}
+
+export function exportAttendanceReport(params) {
+  return downloadWithAuth('/report/attendance', params, 'attendance.csv')
 }

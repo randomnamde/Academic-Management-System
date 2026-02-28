@@ -4,7 +4,18 @@
       <template #header>
         <div class="header-row">
           <span>成绩管理</span>
-          <el-button type="primary" @click="openCreate">新增成绩</el-button>
+          <div class="header-actions">
+            <el-dropdown @command="handleExport">
+              <el-button>导出报表</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="csv">导出 CSV</el-dropdown-item>
+                  <el-dropdown-item command="xlsx">导出 Excel</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            <el-button type="primary" @click="openCreate">新增成绩</el-button>
+          </div>
         </div>
       </template>
 
@@ -134,7 +145,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { createScore, deleteScore, getScoreList, updateScore } from '@/api/score'
+import { createScore, deleteScore, exportScoreReport, getScoreList, updateScore } from '@/api/score'
 import { getCourseArrangementOptions } from '@/api/courseArrangement'
 
 const loading = ref(false)
@@ -209,6 +220,16 @@ async function fetchArrangementOptions() {
   arrangementOptions.value = Array.isArray(res.data) ? res.data : []
 }
 
+async function handleExport(format) {
+  await exportScoreReport({
+    studentId: searchForm.studentId || undefined,
+    courseArrangementId: searchForm.courseArrangementId || undefined,
+    semester: searchForm.semester || undefined,
+    format
+  })
+  ElMessage.success('导出任务已开始')
+}
+
 function handleSearch() {
   page.value = 1
   fetchList()
@@ -270,6 +291,11 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .search-form {
   margin-bottom: 16px;

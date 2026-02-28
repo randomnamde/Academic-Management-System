@@ -92,6 +92,18 @@ class SecurityScopeIntegrationTest {
                 .andExpect(jsonPath("$.code").value(403));
     }
 
+    @Test
+    void studentCanGetDashboardOverview() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        mockMvc.perform(get("/dashboard/overview")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.role").value("STUDENT"))
+                .andExpect(jsonPath("$.data.pendingApprovalCount").exists())
+                .andExpect(jsonPath("$.data.abnormalTrend").isArray());
+    }
+
     private String loginAndGetToken(String username, String password) throws Exception {
         String body = """
                 {

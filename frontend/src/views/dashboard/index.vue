@@ -66,6 +66,38 @@
       </el-col>
     </el-row>
 
+    <el-row :gutter="20" class="ops-row">
+      <el-col :xs="24" :lg="8" class="info-col">
+        <el-card class="panel-card glow-card">
+          <template #header>
+            <span>运营概览</span>
+          </template>
+          <div class="ops-list">
+            <div class="ops-item">
+              <span class="ops-label">待处理审批</span>
+              <strong class="ops-value">{{ operationOverview.pendingApprovalCount }}</strong>
+            </div>
+            <div class="ops-item">
+              <span class="ops-label">今日异常考勤</span>
+              <strong class="ops-value">{{ operationOverview.abnormalTodayCount }}</strong>
+            </div>
+            <div class="ops-item">
+              <span class="ops-label">低分预警人数</span>
+              <strong class="ops-value">{{ operationOverview.lowScoreWarningCount }}</strong>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :lg="16" class="info-col">
+        <el-card class="panel-card glow-card">
+          <template #header>
+            <span>近7日异常考勤趋势</span>
+          </template>
+          <div ref="trendChartRef" class="chart chart-trend"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <el-row :gutter="20" class="info-row">
       <el-col :xs="24" :lg="12" class="info-col">
         <el-card class="panel-card glow-card">
@@ -235,7 +267,10 @@ import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
-import * as echarts from 'echarts'
+import { use, init, graphic } from 'echarts/core'
+import { PieChart, BarChart, PictorialBarChart, LineChart } from 'echarts/charts'
+import { TooltipComponent, LegendComponent, GridComponent, GraphicComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 import { User, UserFilled, Reading, School } from '@element-plus/icons-vue'
 import { getAnnouncementDetail, getAnnouncementList } from '@/api/announcement'
 import { getAttendanceList } from '@/api/attendance'
@@ -244,13 +279,18 @@ import { getStudentGenderStatistics, getStudentList } from '@/api/student'
 import { getTeacherList } from '@/api/teacher'
 import { getCourseCategoryStatistics, getCourseList } from '@/api/course'
 import { getClassList } from '@/api/clazz'
+import { getDashboardOverview } from '@/api/dashboard'
+
+use([PieChart, BarChart, PictorialBarChart, LineChart, TooltipComponent, LegendComponent, GridComponent, GraphicComponent, CanvasRenderer])
 
 const router = useRouter()
 const store = useStore()
 const genderChartRef = ref(null)
 const courseChartRef = ref(null)
+const trendChartRef = ref(null)
 let genderChartInstance = null
 let courseChartInstance = null
+let trendChartInstance = null
 
 const genderStatistics = ref({
   male: 0,
@@ -268,6 +308,13 @@ const statistics = ref({
   teacherCount: 0,
   courseCount: 0,
   classCount: 0
+})
+
+const operationOverview = ref({
+  pendingApprovalCount: 0,
+  abnormalTodayCount: 0,
+  lowScoreWarningCount: 0,
+  abnormalTrend: []
 })
 
 const announcements = ref([])
@@ -552,7 +599,7 @@ const renderGenderChart = () => {
           {
             value: 1,
             itemStyle: {
-              color: new echarts.graphic.RadialGradient(0.5, 0.45, 1, [
+              color: new graphic.RadialGradient(0.5, 0.45, 1, [
                 { offset: 0, color: 'rgba(229, 218, 255, 0.09)' },
                 { offset: 1, color: 'rgba(154, 128, 245, 0.012)' }
               ]),
@@ -595,7 +642,7 @@ const renderGenderChart = () => {
             value: maleValue,
             name: '男生',
             itemStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              color: new graphic.LinearGradient(0, 0, 0, 1, [
                 { offset: 0, color: '#b9a7ff' },
                 { offset: 1, color: '#7d63f3' }
               ])
@@ -605,7 +652,7 @@ const renderGenderChart = () => {
             value: femaleValue,
             name: '女生',
             itemStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              color: new graphic.LinearGradient(0, 0, 0, 1, [
                 { offset: 0, color: '#e0c7ff' },
                 { offset: 1, color: '#a683ff' }
               ])
@@ -623,7 +670,7 @@ const renderGenderChart = () => {
           {
             value: 1,
             itemStyle: {
-              color: new echarts.graphic.RadialGradient(0.5, 0.45, 0.9, [
+              color: new graphic.RadialGradient(0.5, 0.45, 0.9, [
                 { offset: 0, color: 'rgba(255, 255, 255, 0.8)' },
                 { offset: 1, color: 'rgba(187, 166, 255, 0.22)' }
               ]),
@@ -701,7 +748,7 @@ const renderCourseChart = () => {
           borderRadius: [8, 8, 0, 0]
         },
         itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          color: new graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: '#d4c2ff' },
             { offset: 0.5, color: '#a186ff' },
             { offset: 1, color: '#7860f2' }
@@ -721,7 +768,7 @@ const renderCourseChart = () => {
         symbolOffset: [0, -7],
         z: 3,
         itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          color: new graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: '#efe5ff' },
             { offset: 1, color: '#ad90ff' }
           ])
@@ -744,9 +791,51 @@ const renderCourseChart = () => {
           ]
         },
         style: {
-          fill: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          fill: new graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: 'rgba(187, 166, 255, 0.03)' },
             { offset: 1, color: 'rgba(121, 97, 223, 0.008)' }
+          ])
+        }
+      }
+    ]
+  })
+}
+
+const renderTrendChart = () => {
+  if (!trendChartInstance) return
+  const trend = Array.isArray(operationOverview.value.abnormalTrend)
+    ? operationOverview.value.abnormalTrend
+    : []
+  const xData = trend.map((item) => item.date || '')
+  const yData = trend.map((item) => Number(item.count || 0))
+
+  trendChartInstance.setOption({
+    tooltip: { trigger: 'axis' },
+    grid: { top: 26, left: 46, right: 24, bottom: 34 },
+    xAxis: {
+      type: 'category',
+      data: xData,
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: 'rgba(136, 118, 198, 0.45)' } }
+    },
+    yAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { color: 'rgba(157, 131, 255, 0.16)' } },
+      minInterval: 1
+    },
+    series: [
+      {
+        name: '异常考勤',
+        type: 'line',
+        smooth: true,
+        showSymbol: true,
+        data: yData,
+        lineStyle: { width: 3, color: '#7e67f6' },
+        itemStyle: { color: '#7e67f6' },
+        areaStyle: {
+          color: new graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(126, 103, 246, 0.25)' },
+            { offset: 1, color: 'rgba(126, 103, 246, 0.02)' }
           ])
         }
       }
@@ -757,19 +846,24 @@ const renderCourseChart = () => {
 const handleChartResize = () => {
   genderChartInstance?.resize()
   courseChartInstance?.resize()
+  trendChartInstance?.resize()
 }
 
 const initCharts = () => {
   nextTick(() => {
     if (genderChartRef.value && !genderChartInstance) {
-      genderChartInstance = echarts.init(genderChartRef.value)
+      genderChartInstance = init(genderChartRef.value)
     }
     if (courseChartRef.value && !courseChartInstance) {
-      courseChartInstance = echarts.init(courseChartRef.value)
+      courseChartInstance = init(courseChartRef.value)
+    }
+    if (trendChartRef.value && !trendChartInstance) {
+      trendChartInstance = init(trendChartRef.value)
     }
 
     renderGenderChart()
     renderCourseChart()
+    renderTrendChart()
 
     window.removeEventListener('resize', handleChartResize)
     window.addEventListener('resize', handleChartResize)
@@ -820,6 +914,21 @@ const fetchCourseCategoryStatistics = async () => {
     renderCourseChart()
   } catch (_e) {
     ElMessage.error('获取课程类型分布失败')
+  }
+}
+
+const fetchDashboardOperationOverview = async () => {
+  try {
+    const res = await getDashboardOverview()
+    operationOverview.value = {
+      pendingApprovalCount: Number(res.data?.pendingApprovalCount || 0),
+      abnormalTodayCount: Number(res.data?.abnormalTodayCount || 0),
+      lowScoreWarningCount: Number(res.data?.lowScoreWarningCount || 0),
+      abnormalTrend: Array.isArray(res.data?.abnormalTrend) ? res.data.abnormalTrend : []
+    }
+    renderTrendChart()
+  } catch (_e) {
+    ElMessage.error('获取运营概览失败')
   }
 }
 
@@ -918,6 +1027,7 @@ onMounted(() => {
   fetchStatistics()
   fetchGenderStatistics()
   fetchCourseCategoryStatistics()
+  fetchDashboardOperationOverview()
   fetchLatestAnnouncements()
   refreshTodos()
   initCharts()
@@ -927,8 +1037,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', handleChartResize)
   genderChartInstance?.dispose()
   courseChartInstance?.dispose()
+  trendChartInstance?.dispose()
   genderChartInstance = null
   courseChartInstance = null
+  trendChartInstance = null
 })
 </script>
 
@@ -1082,6 +1194,10 @@ onBeforeUnmount(() => {
   margin-bottom: 20px;
 }
 
+.ops-row {
+  margin-bottom: 20px;
+}
+
 .chart {
   height: 300px;
   border-radius: 16px;
@@ -1106,6 +1222,39 @@ onBeforeUnmount(() => {
   background:
     radial-gradient(circle at 82% 20%, rgba(238, 246, 255, 0.12) 0%, rgba(200, 224, 255, 0.04) 38%, transparent 70%),
     linear-gradient(165deg, rgba(243, 239, 255, 0.22) 0%, rgba(220, 231, 253, 0.07) 100%);
+}
+
+.chart-trend {
+  height: 260px;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(248, 241, 255, 0.14) 0%, rgba(222, 207, 255, 0.05) 40%, transparent 72%),
+    linear-gradient(165deg, rgba(244, 238, 255, 0.24) 0%, rgba(226, 217, 250, 0.07) 100%);
+}
+
+.ops-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ops-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid rgba(177, 159, 255, 0.2);
+  border-radius: 10px;
+  padding: 12px;
+  background: linear-gradient(160deg, rgba(250, 246, 255, 0.8) 0%, rgba(241, 234, 255, 0.56) 100%);
+}
+
+.ops-label {
+  color: #5d4d8f;
+  font-size: 14px;
+}
+
+.ops-value {
+  font-size: 24px;
+  color: #2f2458;
 }
 
 :deep(.panel-card .el-card__header) {
@@ -1257,3 +1406,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+

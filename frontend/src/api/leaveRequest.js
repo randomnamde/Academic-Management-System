@@ -1,4 +1,5 @@
 import request from './request'
+import { downloadWithAuth } from '@/utils/download'
 
 export function getLeaveRequestList(params) {
   return request({
@@ -58,4 +59,8 @@ export function getPendingLeaveRequests() {
     url: '/leave-request/pending',
     method: 'get'
   })
+}
+
+export function exportLeaveRequestReport(params) {
+  return downloadWithAuth('/report/leave-request', params, 'leave-request.csv')
 }

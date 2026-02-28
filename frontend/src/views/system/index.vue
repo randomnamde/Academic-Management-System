@@ -76,6 +76,66 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <el-row :gutter="16" class="log-row">
+      <el-col :span="24">
+        <el-card>
+          <template #header>
+            <div class="header-row">
+              <span>操作审计日志</span>
+            </div>
+          </template>
+
+          <el-form :inline="true" :model="logSearchForm" class="search-form">
+            <el-form-item label="用户ID">
+              <el-input-number v-model="logSearchForm.userId" :min="1" style="width: 130px" />
+            </el-form-item>
+            <el-form-item label="状态">
+              <el-select v-model="logSearchForm.status" clearable style="width: 140px">
+                <el-option label="成功" :value="1" />
+                <el-option label="失败" :value="0" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="操作">
+              <el-input v-model="logSearchForm.operation" clearable placeholder="Controller#method" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="handleLogSearch">查询</el-button>
+              <el-button @click="handleLogReset">重置</el-button>
+            </el-form-item>
+          </el-form>
+
+          <el-table :data="logTableData" v-loading="logLoading" stripe>
+            <el-table-column type="index" label="#" width="60" />
+            <el-table-column prop="userId" label="用户ID" width="100" />
+            <el-table-column prop="operation" label="操作" min-width="220" />
+            <el-table-column prop="method" label="请求" min-width="220" />
+            <el-table-column prop="ip" label="IP" width="150" />
+            <el-table-column prop="duration" label="耗时(ms)" width="110" />
+            <el-table-column label="状态" width="90">
+              <template #default="{ row }">
+                <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+                  {{ row.status === 1 ? '成功' : '失败' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="errorMsg" label="错误信息" min-width="180" show-overflow-tooltip />
+            <el-table-column prop="createTime" label="时间" width="180" />
+          </el-table>
+
+          <el-pagination
+            class="pagination"
+            v-model:current-page="logPage"
+            v-model:page-size="logSize"
+            :total="logTotal"
+            :page-sizes="[20, 50, 100]"
+            layout="total, sizes, prev, pager, next"
+            @size-change="fetchLogList"
+            @current-change="fetchLogList"
+          />
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -83,16 +143,28 @@
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getUserList, updatePassword, updateUserStatus } from '@/api/user'
+import { getSysLogList } from '@/api/sysLog'
 
 const loading = ref(false)
 const page = ref(1)
 const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
+const logLoading = ref(false)
+const logPage = ref(1)
+const logSize = ref(20)
+const logTotal = ref(0)
+const logTableData = ref([])
 
 const searchForm = reactive({
   username: '',
   role: ''
+})
+
+const logSearchForm = reactive({
+  userId: null,
+  status: null,
+  operation: ''
 })
 
 const passwordForm = reactive({
@@ -173,7 +245,39 @@ async function submitPassword() {
   }
 }
 
-onMounted(fetchList)
+async function fetchLogList() {
+  logLoading.value = true
+  try {
+    const res = await getSysLogList({
+      page: logPage.value,
+      size: logSize.value,
+      userId: logSearchForm.userId || undefined,
+      status: logSearchForm.status,
+      operation: logSearchForm.operation || undefined
+    })
+    logTableData.value = res.data?.records || []
+    logTotal.value = Number(res.data?.total || 0)
+  } finally {
+    logLoading.value = false
+  }
+}
+
+function handleLogSearch() {
+  logPage.value = 1
+  fetchLogList()
+}
+
+function handleLogReset() {
+  logSearchForm.userId = null
+  logSearchForm.status = null
+  logSearchForm.operation = ''
+  handleLogSearch()
+}
+
+onMounted(() => {
+  fetchList()
+  fetchLogList()
+})
 </script>
 
 <style scoped>
@@ -191,5 +295,8 @@ onMounted(fetchList)
 .pagination {
   margin-top: 16px;
   justify-content: flex-end;
+}
+.log-row {
+  margin-top: 16px;
 }
 </style>

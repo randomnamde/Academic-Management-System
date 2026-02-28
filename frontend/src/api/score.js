@@ -1,4 +1,5 @@
 import request from './request'
+import { downloadWithAuth } from '@/utils/download'
 
 export function getScoreList(params) {
   return request({
@@ -80,4 +81,8 @@ export function batchCreateScores(data) {
     method: 'post',
     data
   })
+}
+
+export function exportScoreReport(params) {
+  return downloadWithAuth('/report/score', params, 'score.csv')
 }

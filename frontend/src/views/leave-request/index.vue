@@ -48,19 +48,42 @@
         <el-table-column prop="createTime" label="提交时间" width="170">
           <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="320" fixed="right" class-name="op-cell" label-class-name="op-header-cell">
+          <template #header>
+            <span class="op-header-badge">操作</span>
+          </template>
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetail(row)">详情</el-button>
-
-            <template v-if="isStudent && row.status === 'PENDING'">
-              <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-              <el-button link type="danger" @click="handleCancel(row)">撤销</el-button>
-            </template>
-
-            <template v-if="canApprove && row.status === 'PENDING'">
-              <el-button link type="success" @click="handleApprove(row, true)">通过</el-button>
-              <el-button link type="danger" @click="handleApprove(row, false)">驳回</el-button>
-            </template>
+            <div class="op-actions">
+              <el-button link type="primary" @click="openDetail(row)">详情</el-button>
+              <el-dropdown v-if="hasMoreAction(row)" @command="(cmd) => handleRowCommand(cmd, row)">
+                <el-button link type="primary">
+                  更多
+                  <el-icon><ArrowDown /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item v-if="isStudent && row.status === 'PENDING'" command="edit">编辑</el-dropdown-item>
+                    <el-dropdown-item v-if="isStudent && row.status === 'PENDING'" command="cancel">撤销</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+              <el-button
+                v-if="canApprove && row.status === 'PENDING'"
+                link
+                type="success"
+                @click="handleApprove(row, true)"
+              >
+                通过
+              </el-button>
+              <el-button
+                v-if="canApprove && row.status === 'PENDING'"
+                link
+                type="danger"
+                @click="handleApprove(row, false)"
+              >
+                驳回
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -125,7 +148,7 @@
           <el-input v-model="form.reason" type="textarea" :rows="4" maxlength="500" show-word-limit />
         </el-form-item>
         <el-form-item label="附件链接">
-          <el-input v-model="form.attachment" placeholder="可选：填写附件URL" />
+          <el-input v-model="form.attachment" placeholder="可选：填写附件 URL" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -218,11 +241,16 @@ const rules = {
   reason: [{ required: true, message: '请输入请假事由', trigger: 'blur' }]
 }
 
-const showPagination = computed(() => !(canApprove.value && activeTab.value === 'pending'))
+const usePendingShortcut = computed(
+  () => canApprove.value && activeTab.value === 'pending' && !searchForm.status
+)
+
+const showPagination = computed(() => !usePendingShortcut.value)
 const currentRows = computed(() => {
-  if (canApprove.value && activeTab.value === 'pending') return pendingData.value
+  if (usePendingShortcut.value) return pendingData.value
   return tableData.value
 })
+const hasMoreAction = (row) => isStudent.value && row.status === 'PENDING'
 
 const getLeaveTypeText = (type) => {
   const map = {
@@ -274,7 +302,7 @@ const resetForm = () => {
 const fetchList = async () => {
   loading.value = true
   try {
-    if (canApprove.value && activeTab.value === 'pending') {
+    if (usePendingShortcut.value) {
       const res = await getPendingLeaveRequests()
       pendingData.value = res.data || []
       return
@@ -378,6 +406,16 @@ const handleApprove = async (row, approved) => {
   fetchList()
 }
 
+const handleRowCommand = async (command, row) => {
+  if (command === 'edit') {
+    openEdit(row)
+    return
+  }
+  if (command === 'cancel') {
+    await handleCancel(row)
+  }
+}
+
 const openDetail = async (row) => {
   const res = await getLeaveRequestDetail(row.id)
   detail.value = res.data || {}
@@ -410,5 +448,50 @@ onMounted(() => {
 .pagination {
   margin-top: 16px;
   justify-content: flex-end;
+}
+
+.op-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+:deep(.op-cell .cell) {
+  white-space: normal;
+  line-height: 1.6;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+:deep(.op-cell) {
+  background-color: #eee6ff !important;
+}
+
+:deep(.el-table__fixed-right .op-cell) {
+  background-color: #eee6ff !important;
+}
+
+:deep(.op-header-cell) {
+  background-color: #eee6ff !important;
+}
+
+:deep(.el-table__fixed-right .op-header-cell) {
+  background-color: #eee6ff !important;
+}
+
+:deep(.el-table__fixed-right-patch) {
+  background-color: #eee6ff !important;
+}
+
+:deep(.op-actions .el-button + .el-button) {
+  margin-left: 0;
+}
+
+.op-header-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #e2d3ff;
 }
 </style>

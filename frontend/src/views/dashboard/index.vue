@@ -1,180 +1,189 @@
 ﻿<template>
   <div class="dashboard">
-    <el-row :gutter="20" class="statistics-row">
-      <el-col :xs="24" :sm="12" :lg="6" class="stat-col">
-        <el-card class="stat-card glow-card" @click="openStatDetail('student')">
-          <div class="stat-icon student-icon">
+    <section class="hero-panel">
+      <div class="hero-content">
+        <p class="hero-kicker">Campus Operations</p>
+        <h2 class="hero-title">教学运营总览</h2>
+        <p class="hero-description">
+          在同一视图追踪学生、课程、考勤与审批数据，快速定位今日重点任务。
+        </p>
+        <div class="hero-chip-list">
+          <div class="hero-chip">
+            <span>待处理审批</span>
+            <strong>{{ operationOverview.pendingApprovalCount }}</strong>
+          </div>
+          <div class="hero-chip">
+            <span>今日异常考勤</span>
+            <strong>{{ operationOverview.abnormalTodayCount }}</strong>
+          </div>
+          <div class="hero-chip">
+            <span>低分预警</span>
+            <strong>{{ operationOverview.lowScoreWarningCount }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-metric-grid">
+        <el-card class="metric-card" @click="openStatDetail('student')">
+          <div class="metric-icon student-icon">
             <el-icon><User /></el-icon>
           </div>
-          <div class="stat-info">
-            <div class="stat-title">学生总数</div>
-            <div class="stat-value">{{ statistics.studentCount }}</div>
+          <div class="metric-content">
+            <span class="metric-label">学生总数</span>
+            <strong class="metric-value">{{ statistics.studentCount }}</strong>
           </div>
         </el-card>
-      </el-col>
-      <el-col :xs="24" :sm="12" :lg="6" class="stat-col">
-        <el-card class="stat-card glow-card" @click="openStatDetail('teacher')">
-          <div class="stat-icon teacher-icon">
+
+        <el-card class="metric-card" @click="openStatDetail('teacher')">
+          <div class="metric-icon teacher-icon">
             <el-icon><UserFilled /></el-icon>
           </div>
-          <div class="stat-info">
-            <div class="stat-title">教师总数</div>
-            <div class="stat-value">{{ statistics.teacherCount }}</div>
+          <div class="metric-content">
+            <span class="metric-label">教师总数</span>
+            <strong class="metric-value">{{ statistics.teacherCount }}</strong>
           </div>
         </el-card>
-      </el-col>
-      <el-col :xs="24" :sm="12" :lg="6" class="stat-col">
-        <el-card class="stat-card glow-card" @click="openStatDetail('course')">
-          <div class="stat-icon course-icon">
+
+        <el-card class="metric-card" @click="openStatDetail('course')">
+          <div class="metric-icon course-icon">
             <el-icon><Reading /></el-icon>
           </div>
-          <div class="stat-info">
-            <div class="stat-title">课程总数</div>
-            <div class="stat-value">{{ statistics.courseCount }}</div>
+          <div class="metric-content">
+            <span class="metric-label">课程总数</span>
+            <strong class="metric-value">{{ statistics.courseCount }}</strong>
           </div>
         </el-card>
-      </el-col>
-      <el-col :xs="24" :sm="12" :lg="6" class="stat-col">
-        <el-card class="stat-card glow-card" @click="openStatDetail('class')">
-          <div class="stat-icon class-icon">
+
+        <el-card class="metric-card" @click="openStatDetail('class')">
+          <div class="metric-icon class-icon">
             <el-icon><School /></el-icon>
           </div>
-          <div class="stat-info">
-            <div class="stat-title">班级总数</div>
-            <div class="stat-value">{{ statistics.classCount }}</div>
+          <div class="metric-content">
+            <span class="metric-label">班级总数</span>
+            <strong class="metric-value">{{ statistics.classCount }}</strong>
           </div>
         </el-card>
-      </el-col>
-    </el-row>
+      </div>
+    </section>
 
-    <el-row :gutter="20" class="chart-row">
-      <el-col :xs="24" :lg="12" class="chart-col">
-        <el-card class="panel-card glow-card">
-          <template #header>
-            <span>学生性别分布</span>
-          </template>
-          <div ref="genderChartRef" class="chart chart-gender"></div>
-        </el-card>
-      </el-col>
-      <el-col :xs="24" :lg="12" class="chart-col">
-        <el-card class="panel-card glow-card">
-          <template #header>
-            <span>课程类型分布</span>
-          </template>
-          <div ref="courseChartRef" class="chart chart-course"></div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <section class="bento-grid">
+      <el-card class="panel-card panel-gender">
+        <template #header>
+          <span>学生性别分布</span>
+        </template>
+        <div ref="genderChartRef" class="chart chart-gender"></div>
+      </el-card>
 
-    <el-row :gutter="20" class="ops-row">
-      <el-col :xs="24" :lg="8" class="info-col">
-        <el-card class="panel-card glow-card">
-          <template #header>
-            <span>运营概览</span>
-          </template>
-          <div class="ops-list">
-            <div class="ops-item">
-              <span class="ops-label">待处理审批</span>
-              <strong class="ops-value">{{ operationOverview.pendingApprovalCount }}</strong>
-            </div>
-            <div class="ops-item">
-              <span class="ops-label">今日异常考勤</span>
-              <strong class="ops-value">{{ operationOverview.abnormalTodayCount }}</strong>
-            </div>
-            <div class="ops-item">
-              <span class="ops-label">低分预警人数</span>
-              <strong class="ops-value">{{ operationOverview.lowScoreWarningCount }}</strong>
-            </div>
+      <el-card class="panel-card panel-course">
+        <template #header>
+          <span>课程类型分布</span>
+        </template>
+        <div ref="courseChartRef" class="chart chart-course"></div>
+      </el-card>
+
+      <el-card class="panel-card panel-ops">
+        <template #header>
+          <span>运营概览</span>
+        </template>
+        <div class="ops-list">
+          <div class="ops-item">
+            <span class="ops-label">待处理审批</span>
+            <strong class="ops-value">{{ operationOverview.pendingApprovalCount }}</strong>
           </div>
-        </el-card>
-      </el-col>
-      <el-col :xs="24" :lg="16" class="info-col">
-        <el-card class="panel-card glow-card">
-          <template #header>
-            <span>近7日异常考勤趋势</span>
-          </template>
-          <div ref="trendChartRef" class="chart chart-trend"></div>
-        </el-card>
-      </el-col>
-    </el-row>
-
-    <el-row :gutter="20" class="info-row">
-      <el-col :xs="24" :lg="12" class="info-col">
-        <el-card class="panel-card glow-card">
-          <template #header>
-            <div class="card-header">
-              <span>最新公告</span>
-              <el-link type="primary" @click="$router.push('/announcement')">查看更多</el-link>
-            </div>
-          </template>
-          <el-empty v-if="announcementLoading || !announcements.length" :description="announcementLoading ? '加载中...' : '暂无公告'" />
-          <el-timeline v-else>
-            <el-timeline-item
-              v-for="(item, index) in announcements"
-              :key="item.id || index"
-              :timestamp="item.createTime"
-              :type="index === 0 ? 'primary' : ''"
-            >
-              <el-link type="primary" :underline="false" @click="openAnnouncementDetail(item)">
-                {{ item.title }}
-              </el-link>
-            </el-timeline-item>
-          </el-timeline>
-        </el-card>
-      </el-col>
-      <el-col :xs="24" :lg="12" class="info-col">
-        <el-card class="panel-card glow-card">
-          <template #header>
-            <div class="card-header">
-              <span>待办事项</span>
-              <el-button link type="primary" :loading="todoLoading" @click="refreshTodos">刷新</el-button>
-            </div>
-          </template>
-          <div class="todo-create">
-            <el-input
-              v-model="todoDraft"
-              clearable
-              maxlength="60"
-              show-word-limit
-              placeholder="添加个人待办，例如：准备班会材料"
-              @keyup.enter="addCustomTodo"
-            >
-              <template #append>
-                <el-button @click="addCustomTodo">添加</el-button>
-              </template>
-            </el-input>
+          <div class="ops-item">
+            <span class="ops-label">今日异常考勤</span>
+            <strong class="ops-value">{{ operationOverview.abnormalTodayCount }}</strong>
           </div>
-          <el-skeleton :loading="todoLoading" animated :rows="4">
-            <template #default>
-              <el-empty v-if="!todoList.length" description="暂无待办事项" />
-              <div v-else class="todo-list">
-                <div
-                  v-for="item in todoList"
-                  :key="item.id"
-                  class="todo-item"
-                  :class="{ completed: item.completed }"
-                >
-                  <div class="todo-main">
-                    <el-checkbox :model-value="item.completed" @change="(val) => toggleTodo(item, val)" />
-                    <div class="todo-content">
-                      <div class="todo-title">{{ item.title }}</div>
-                      <div class="todo-meta">
-                        <el-tag size="small" effect="plain">{{ item.sourceLabel }}</el-tag>
-                        <span class="todo-time">{{ item.timeText }}</span>
-                      </div>
+          <div class="ops-item">
+            <span class="ops-label">低分预警人数</span>
+            <strong class="ops-value">{{ operationOverview.lowScoreWarningCount }}</strong>
+          </div>
+        </div>
+      </el-card>
+
+      <el-card class="panel-card panel-trend">
+        <template #header>
+          <span>近7日异常考勤趋势</span>
+        </template>
+        <div ref="trendChartRef" class="chart chart-trend"></div>
+      </el-card>
+
+      <el-card class="panel-card panel-announcement">
+        <template #header>
+          <div class="card-header">
+            <span>最新公告</span>
+            <el-link type="primary" @click="$router.push('/announcement')">查看更多</el-link>
+          </div>
+        </template>
+        <el-empty
+          v-if="announcementLoading || !announcements.length"
+          :description="announcementLoading ? '加载中...' : '暂无公告'"
+        />
+        <el-timeline v-else class="announcement-timeline">
+          <el-timeline-item
+            v-for="(item, index) in announcements"
+            :key="item.id || index"
+            :timestamp="item.createTime"
+            :type="index === 0 ? 'primary' : ''"
+          >
+            <el-link type="primary" :underline="false" @click="openAnnouncementDetail(item)">
+              {{ item.title }}
+            </el-link>
+          </el-timeline-item>
+        </el-timeline>
+      </el-card>
+
+      <el-card class="panel-card panel-todo">
+        <template #header>
+          <div class="card-header">
+            <span>待办事项</span>
+            <el-button link type="primary" :loading="todoLoading" @click="refreshTodos">刷新</el-button>
+          </div>
+        </template>
+        <div class="todo-create">
+          <el-input
+            v-model="todoDraft"
+            clearable
+            maxlength="60"
+            show-word-limit
+            placeholder="添加个人待办，例如：准备班会材料"
+            @keyup.enter="addCustomTodo"
+          >
+            <template #append>
+              <el-button @click="addCustomTodo">添加</el-button>
+            </template>
+          </el-input>
+        </div>
+        <el-skeleton :loading="todoLoading" animated :rows="4">
+          <template #default>
+            <el-empty v-if="!todoList.length" description="暂无待办事项" />
+            <div v-else class="todo-list">
+              <div
+                v-for="item in todoList"
+                :key="item.id"
+                class="todo-item"
+                :class="{ completed: item.completed }"
+              >
+                <div class="todo-main">
+                  <el-checkbox :model-value="item.completed" @change="(val) => toggleTodo(item, val)" />
+                  <div class="todo-content">
+                    <div class="todo-title">{{ item.title }}</div>
+                    <div class="todo-meta">
+                      <el-tag size="small" effect="plain">{{ item.sourceLabel }}</el-tag>
+                      <span class="todo-time">{{ item.timeText }}</span>
                     </div>
                   </div>
-                  <div class="todo-actions">
-                    <el-button v-if="item.route" link type="primary" @click="openTodoRoute(item)">前往</el-button>
-                    <el-button v-if="item.type === 'custom'" link type="danger" @click="removeCustomTodo(item.id)">删除</el-button>
-                  </div>
+                </div>
+                <div class="todo-actions">
+                  <el-button v-if="item.route" link type="primary" @click="openTodoRoute(item)">前往</el-button>
+                  <el-button v-if="item.type === 'custom'" link type="danger" @click="removeCustomTodo(item.id)">删除</el-button>
                 </div>
               </div>
-            </template>
-          </el-skeleton>
-        </el-card>
-      </el-col>
-    </el-row>
+            </div>
+          </template>
+        </el-skeleton>
+      </el-card>
+    </section>
 
     <el-dialog v-model="detailDialogVisible" title="公告详情" width="720px">
       <el-descriptions :column="2" border>
@@ -1046,230 +1055,253 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .dashboard {
-  padding: 20px;
-  position: relative;
-}
-
-.statistics-row {
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  position: relative;
-  overflow: hidden;
+  width: 100%;
+  min-height: calc(100vh - 140px);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 10px;
-  padding: 20px 12px;
-  min-height: 150px;
-  cursor: pointer;
+  gap: 18px;
+  padding: 2px 0 14px;
+  box-sizing: border-box;
 }
 
-.stat-card::before,
-.panel-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.16), transparent 45%);
-}
-
-.glow-card {
-  transition: transform 0.28s ease, box-shadow 0.28s ease;
-}
-
-.glow-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 36px rgba(65, 48, 126, 0.24);
-}
-
-.stat-col,
-.chart-col,
-.info-col {
-  opacity: 0;
-  animation: revealUp 0.68s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.stat-col:nth-child(1) { animation-delay: 0.04s; }
-.stat-col:nth-child(2) { animation-delay: 0.12s; }
-.stat-col:nth-child(3) { animation-delay: 0.2s; }
-.stat-col:nth-child(4) { animation-delay: 0.28s; }
-.chart-col:nth-child(1) { animation-delay: 0.26s; }
-.chart-col:nth-child(2) { animation-delay: 0.34s; }
-.info-col:nth-child(1) { animation-delay: 0.36s; }
-.info-col:nth-child(2) { animation-delay: 0.44s; }
-
-.panel-card {
+.hero-panel {
   position: relative;
   overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(340px, 1fr) minmax(420px, 1.1fr);
+  gap: 16px;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(165, 143, 255, 0.25);
+  background:
+    radial-gradient(circle at 8% 12%, rgba(255, 255, 255, 0.42), transparent 38%),
+    radial-gradient(circle at 92% 4%, rgba(189, 171, 255, 0.22), transparent 36%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.86), rgba(244, 236, 255, 0.82));
+  box-shadow: 0 20px 40px rgba(78, 60, 145, 0.14);
 }
 
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+.hero-kicker {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8d79d0;
+}
+
+.hero-title {
+  margin: 10px 0 12px;
+  color: #2a1f4f;
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.hero-description {
+  margin: 0;
+  max-width: 580px;
+  color: #5e5186;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.hero-chip-list {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hero-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 143, 255, 0.24);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.hero-chip span {
+  color: #6f5f9f;
+  font-size: 13px;
+}
+
+.hero-chip strong {
+  color: #2d2150;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.hero-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metric-card {
+  cursor: pointer;
+  border-radius: 16px;
+  border: 1px solid rgba(161, 138, 246, 0.22);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.93), rgba(244, 237, 255, 0.82));
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 32px rgba(83, 61, 170, 0.18);
+}
+
+:deep(.metric-card .el-card__body) {
+  padding: 14px;
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+.metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  margin-right: 0;
-  font-size: 30px;
+  font-size: 22px;
   color: #fff;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2), 0 10px 24px rgba(116, 92, 199, 0.18);
-  backdrop-filter: blur(2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 .student-icon {
-  background:
-    radial-gradient(circle at 24% 24%, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0) 56%),
-    radial-gradient(circle at 70% 74%, rgba(126, 104, 248, 0.42) 0%, rgba(126, 104, 248, 0.16) 58%, rgba(126, 104, 248, 0) 100%);
-  border: 1px solid rgba(126, 104, 248, 0.22);
-  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.18), 0 8px 22px rgba(118, 95, 212, 0.16);
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.student-icon :deep(svg) {
-  opacity: 0.82;
-  transform: translateY(1px);
-  filter: drop-shadow(0 2px 6px rgba(109, 87, 198, 0.22));
+  background: linear-gradient(135deg, #7c66ff, #5a47d8);
 }
 
 .teacher-icon {
-  background:
-    radial-gradient(circle at 24% 24%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0) 56%),
-    radial-gradient(circle at 70% 74%, rgba(166, 126, 255, 0.42) 0%, rgba(166, 126, 255, 0.16) 58%, rgba(166, 126, 255, 0) 100%);
-  border: 1px solid rgba(166, 126, 255, 0.24);
-  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.2), 0 8px 22px rgba(130, 96, 226, 0.16);
-  color: rgba(255, 255, 255, 0.86);
+  background: linear-gradient(135deg, #a464ff, #7f4ed7);
 }
 
 .course-icon {
-  background:
-    radial-gradient(circle at 24% 24%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0) 56%),
-    radial-gradient(circle at 70% 74%, rgba(133, 171, 255, 0.42) 0%, rgba(133, 171, 255, 0.16) 58%, rgba(133, 171, 255, 0) 100%);
-  border: 1px solid rgba(133, 171, 255, 0.24);
-  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.2), 0 8px 22px rgba(92, 133, 219, 0.16);
-  color: rgba(255, 255, 255, 0.86);
+  background: linear-gradient(135deg, #55a8ff, #4f77df);
 }
 
 .class-icon {
-  background:
-    radial-gradient(circle at 24% 24%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 30%, rgba(255, 255, 255, 0) 56%),
-    radial-gradient(circle at 70% 74%, rgba(112, 201, 255, 0.42) 0%, rgba(112, 201, 255, 0.16) 58%, rgba(112, 201, 255, 0) 100%);
-  border: 1px solid rgba(112, 201, 255, 0.24);
-  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.2), 0 8px 22px rgba(86, 159, 209, 0.16);
-  color: rgba(255, 255, 255, 0.86);
+  background: linear-gradient(135deg, #42b8d2, #3f87bc);
 }
 
-.teacher-icon :deep(svg),
-.course-icon :deep(svg),
-.class-icon :deep(svg) {
-  opacity: 0.84;
-  transform: translateY(1px);
-  filter: drop-shadow(0 2px 6px rgba(80, 110, 188, 0.2));
-}
-
-.stat-info {
-  width: 100%;
+.metric-content {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 
-.stat-title {
-  color: #7e739f;
-  font-size: 14px;
-  margin-bottom: 8px;
+.metric-label {
+  color: #6f6296;
+  font-size: 13px;
 }
 
-.stat-value {
+.metric-value {
+  margin-top: 4px;
+  color: #261c49;
   font-size: 28px;
-  font-weight: bold;
-  color: #2b2150;
+  line-height: 1;
 }
 
-.chart-row {
-  margin-bottom: 20px;
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
 }
 
-.ops-row {
-  margin-bottom: 20px;
+.panel-card {
+  border-radius: 18px;
+  border: 1px solid rgba(166, 145, 247, 0.2);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.9), rgba(247, 241, 255, 0.82));
+  box-shadow: 0 12px 30px rgba(85, 65, 155, 0.1);
+}
+
+.panel-gender,
+.panel-course,
+.panel-ops {
+  grid-column: span 4;
+}
+
+.panel-trend {
+  grid-column: span 8;
+}
+
+.panel-announcement {
+  grid-column: span 4;
+}
+
+.panel-todo {
+  grid-column: span 12;
+}
+
+:deep(.panel-card .el-card__header) {
+  border-bottom: 1px solid rgba(171, 149, 255, 0.25);
+  padding: 14px 18px;
+}
+
+:deep(.panel-card .el-card__body) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 250px;
+  padding: 16px 18px;
+  box-sizing: border-box;
 }
 
 .chart {
-  height: 300px;
-  border-radius: 16px;
-  border: 1px solid rgba(182, 162, 255, 0.08);
+  width: 100%;
+  min-height: 250px;
+  flex: 1;
+  border-radius: 12px;
   background:
-    radial-gradient(circle at 24% 22%, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.014) 34%, transparent 68%),
-    linear-gradient(165deg, rgba(246, 241, 255, 0.22) 0%, rgba(231, 223, 252, 0.07) 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -8px 16px rgba(126, 99, 225, 0.025),
-    0 4px 8px rgba(98, 73, 187, 0.028);
-  animation: chartGlow 8s ease-in-out infinite;
-}
-
-.chart-gender {
-  background:
-    radial-gradient(circle at 18% 16%, rgba(248, 241, 255, 0.14) 0%, rgba(222, 207, 255, 0.05) 40%, transparent 72%),
-    linear-gradient(165deg, rgba(244, 238, 255, 0.24) 0%, rgba(226, 217, 250, 0.07) 100%);
-}
-
-.chart-course {
-  background:
-    radial-gradient(circle at 82% 20%, rgba(238, 246, 255, 0.12) 0%, rgba(200, 224, 255, 0.04) 38%, transparent 70%),
-    linear-gradient(165deg, rgba(243, 239, 255, 0.22) 0%, rgba(220, 231, 253, 0.07) 100%);
+    radial-gradient(circle at 14% 12%, rgba(255, 255, 255, 0.55), transparent 45%),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.65), rgba(236, 226, 255, 0.46));
+  border: 1px solid rgba(180, 160, 255, 0.18);
 }
 
 .chart-trend {
-  height: 260px;
-  background:
-    radial-gradient(circle at 18% 16%, rgba(248, 241, 255, 0.14) 0%, rgba(222, 207, 255, 0.05) 40%, transparent 72%),
-    linear-gradient(165deg, rgba(244, 238, 255, 0.24) 0%, rgba(226, 217, 250, 0.07) 100%);
+  min-height: 280px;
 }
 
 .ops-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  height: 100%;
 }
 
 .ops-item {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid rgba(177, 159, 255, 0.2);
-  border-radius: 10px;
-  padding: 12px;
-  background: linear-gradient(160deg, rgba(250, 246, 255, 0.8) 0%, rgba(241, 234, 255, 0.56) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(175, 154, 255, 0.2);
+  background: rgba(255, 255, 255, 0.68);
+  padding: 14px;
 }
 
 .ops-label {
-  color: #5d4d8f;
+  color: #5e4f8d;
   font-size: 14px;
 }
 
 .ops-value {
+  color: #2b204f;
   font-size: 24px;
-  color: #2f2458;
-}
-
-:deep(.panel-card .el-card__header) {
-  border-bottom: 1px solid rgba(175, 157, 255, 0.3);
-}
-
-:deep(.el-link--primary) {
-  color: #7e67f6;
-  text-shadow: 0 0 12px rgba(149, 126, 237, 0.2);
 }
 
 .card-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+}
+
+.announcement-timeline {
+  flex: 1;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .todo-create {
@@ -1280,8 +1312,8 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 320px;
-  overflow-y: auto;
+  overflow: auto;
+  max-height: 360px;
   padding-right: 4px;
 }
 
@@ -1292,8 +1324,8 @@ onBeforeUnmount(() => {
   gap: 10px;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(177, 159, 255, 0.2);
-  background: linear-gradient(160deg, rgba(250, 246, 255, 0.8) 0%, rgba(241, 234, 255, 0.56) 100%);
+  border: 1px solid rgba(176, 155, 255, 0.22);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .todo-main {
@@ -1310,7 +1342,7 @@ onBeforeUnmount(() => {
 }
 
 .todo-title {
-  color: #3b2f64;
+  color: #32265e;
   font-size: 14px;
   line-height: 1.45;
   word-break: break-word;
@@ -1336,11 +1368,15 @@ onBeforeUnmount(() => {
 }
 
 .todo-item.completed {
-  opacity: 0.72;
+  opacity: 0.66;
 }
 
 .todo-item.completed .todo-title {
   text-decoration: line-through;
+}
+
+:deep(.el-link--primary) {
+  color: #6d55ef;
 }
 
 .detail-content {
@@ -1355,54 +1391,80 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
 }
 
-@keyframes revealUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.985);
-    filter: blur(3px);
+@media (max-width: 1400px) {
+  .hero-panel {
+    grid-template-columns: 1fr;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-}
 
-@keyframes chartGlow {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 0 rgba(154, 128, 245, 0));
+  .panel-gender,
+  .panel-course,
+  .panel-ops {
+    grid-column: span 6;
   }
-  50% {
-    filter: drop-shadow(0 0 3px rgba(154, 128, 245, 0.05));
+
+  .panel-trend,
+  .panel-announcement,
+  .panel-todo {
+    grid-column: span 12;
   }
 }
 
 @media (max-width: 992px) {
-  .stat-col,
-  .chart-col,
-  .info-col {
-    margin-bottom: 20px;
+  .dashboard {
+    min-height: auto;
   }
 
-  .chart-row,
-  .info-row {
-    margin-bottom: 0;
+  .hero-panel {
+    padding: 16px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-chip-list {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bento-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panel-gender,
+  .panel-course,
+  .panel-ops,
+  .panel-trend,
+  .panel-announcement,
+  .panel-todo {
+    grid-column: span 2;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .stat-col,
-  .chart-col,
-  .info-col,
-  .chart {
-    animation: none;
-    opacity: 1;
+@media (max-width: 768px) {
+  .hero-metric-grid {
+    grid-template-columns: 1fr;
   }
 
-  .glow-card,
-  .glow-card:hover {
-    transform: none;
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-gender,
+  .panel-course,
+  .panel-ops,
+  .panel-trend,
+  .panel-announcement,
+  .panel-todo {
+    grid-column: span 1;
+  }
+
+  .chart,
+  .chart-trend {
+    min-height: 220px;
   }
 }
 </style>

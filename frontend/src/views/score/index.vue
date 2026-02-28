@@ -52,7 +52,7 @@
         <el-table-column type="index" label="#" width="60" />
         <el-table-column prop="studentId" label="学生ID" width="90" />
         <el-table-column prop="studentName" label="学生" width="120" />
-        <el-table-column prop="courseArrangementId" label="排课ID" width="90" />
+        <el-table-column prop="courseArrangementId" label="排课ID" width="120" show-overflow-tooltip />
         <el-table-column prop="courseName" label="课程" width="140" />
         <el-table-column prop="usualScore" label="平时" width="80" />
         <el-table-column prop="midtermScore" label="期中" width="80" />
@@ -109,17 +109,38 @@
         <el-row :gutter="16">
           <el-col :span="8">
             <el-form-item label="平时分">
-              <el-input-number v-model="form.usualScore" :min="0" :max="100" :precision="2" style="width: 100%" />
+              <el-input-number
+                v-model="form.usualScore"
+                :min="0"
+                :max="100"
+                :precision="2"
+                :controls="false"
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="期中分">
-              <el-input-number v-model="form.midtermScore" :min="0" :max="100" :precision="2" style="width: 100%" />
+              <el-input-number
+                v-model="form.midtermScore"
+                :min="0"
+                :max="100"
+                :precision="2"
+                :controls="false"
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="期末分">
-              <el-input-number v-model="form.finalScore" :min="0" :max="100" :precision="2" style="width: 100%" />
+              <el-input-number
+                v-model="form.finalScore"
+                :min="0"
+                :max="100"
+                :precision="2"
+                :controls="false"
+                style="width: 100%"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -212,7 +233,7 @@ async function fetchList() {
 
 function formatArrangementLabel(item) {
   const parts = [item.semester, item.courseName, item.className].filter(Boolean)
-  return parts.length ? `${parts.join(' | ')} (ID:${item.id})` : `排课ID:${item.id}`
+  return parts.length ? `ID:${item.id} | ${parts.join(' | ')}` : `ID:${item.id}`
 }
 
 async function fetchArrangementOptions() {
@@ -251,8 +272,19 @@ function openCreate() {
 function openEdit(row) {
   isEdit.value = true
   resetForm()
-  Object.assign(form, row)
+  Object.assign(form, {
+    ...row,
+    usualScore: toNullableNumber(row.usualScore),
+    midtermScore: toNullableNumber(row.midtermScore),
+    finalScore: toNullableNumber(row.finalScore)
+  })
   dialogVisible.value = true
+}
+
+function toNullableNumber(value) {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isNaN(parsed) ? null : parsed
 }
 
 async function submit() {

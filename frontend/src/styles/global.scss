@@ -2,10 +2,24 @@
   --sms-font: 'Segoe UI Variable', 'Avenir Next', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --sms-violet: #8f7cff;
   --sms-violet-deep: #6f5de7;
+  --sms-violet-soft: #cfc2ff;
   --sms-text: #2c2250;
+  --sms-text-soft: #6e6397;
+  --sms-text-muted: #9489b8;
   --sms-surface: rgba(248, 246, 255, 0.86);
+  --sms-surface-2: rgba(255, 255, 255, 0.72);
+  --sms-surface-3: rgba(246, 239, 255, 0.9);
   --sms-border: rgba(170, 152, 255, 0.28);
+  --sms-border-strong: rgba(150, 130, 236, 0.4);
   --sms-shadow: 0 14px 30px rgba(51, 37, 96, 0.15);
+  --sms-shadow-strong: 0 20px 36px rgba(42, 28, 85, 0.25);
+  --sms-radius-sm: 10px;
+  --sms-radius-md: 16px;
+  --sms-radius-lg: 20px;
+  --sms-motion-micro: 120ms;
+  --sms-motion-standard: 180ms;
+  --sms-motion-panel: 240ms;
+  --sms-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
   --el-color-primary: #7f68f8;
   --el-color-primary-light-3: #9f8efd;
   --el-color-primary-light-5: #b8adff;
@@ -55,16 +69,18 @@ body {
 }
 
 .el-card {
-  border-radius: 16px;
+  border-radius: var(--sms-radius-md);
   border: 1px solid var(--sms-border);
   background: var(--sms-surface);
   box-shadow: var(--sms-shadow);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    transform var(--sms-motion-standard) var(--sms-ease-standard),
+    box-shadow var(--sms-motion-standard) var(--sms-ease-standard);
 }
 
 .el-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 20px 34px rgba(63, 46, 120, 0.2);
+  box-shadow: var(--sms-shadow-strong);
 }
 
 .el-table {
@@ -80,12 +96,14 @@ body {
 }
 
 .el-dialog {
-  border-radius: 16px;
+  border-radius: var(--sms-radius-md);
   overflow: hidden;
 }
 
 .el-button {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform var(--sms-motion-micro) var(--sms-ease-standard),
+    box-shadow var(--sms-motion-micro) var(--sms-ease-standard);
 }
 
 .el-button:hover {

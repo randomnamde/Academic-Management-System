@@ -190,3 +190,8 @@ CREATE INDEX IF NOT EXISTS idx_announcement_time_window ON announcement(start_ti
 
 CREATE INDEX IF NOT EXISTS idx_sys_log_create_time ON sys_log(create_time);
 CREATE INDEX IF NOT EXISTS idx_sys_log_user_time ON sys_log(user_id, create_time);
+CREATE INDEX IF NOT EXISTS idx_score_total_create ON score(total_score, create_time);
+CREATE INDEX IF NOT EXISTS idx_score_arrangement_total ON score(course_arrangement_id, total_score);
+CREATE INDEX IF NOT EXISTS idx_attendance_status_scope_date ON attendance(status, course_arrangement_id, attendance_date);
+CREATE INDEX IF NOT EXISTS idx_leave_pending_create ON leave_request(status, create_time);
+CREATE INDEX IF NOT EXISTS idx_leave_arrangement_pending ON leave_request(course_arrangement_id, status, create_time);

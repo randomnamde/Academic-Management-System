@@ -83,18 +83,21 @@
 
       <el-card class="panel-card panel-ops">
         <template #header>
-          <span>运营概览</span>
+          <div class="card-header">
+            <span>运营概览</span>
+            <el-link type="primary" @click="goAnalytics()">进入分析中心</el-link>
+          </div>
         </template>
         <div class="ops-list">
-          <div class="ops-item">
+          <div class="ops-item clickable" @click="goAnalytics({ riskType: 'approval_overdue' })">
             <span class="ops-label">待处理审批</span>
             <strong class="ops-value">{{ operationOverview.pendingApprovalCount }}</strong>
           </div>
-          <div class="ops-item">
+          <div class="ops-item clickable" @click="goAnalytics({ riskType: 'abnormal_attendance' })">
             <span class="ops-label">今日异常考勤</span>
             <strong class="ops-value">{{ operationOverview.abnormalTodayCount }}</strong>
           </div>
-          <div class="ops-item">
+          <div class="ops-item clickable" @click="goAnalytics({ riskType: 'low_score' })">
             <span class="ops-label">低分预警人数</span>
             <strong class="ops-value">{{ operationOverview.lowScoreWarningCount }}</strong>
           </div>
@@ -1010,6 +1013,10 @@ const goToModule = () => {
   }
 }
 
+const goAnalytics = (query = {}) => {
+  router.push({ path: '/analytics', query })
+}
+
 const getGenderText = (gender) => (gender === 'MALE' ? '男' : '女')
 
 const getStudentStatusText = (status) => {
@@ -1280,6 +1287,17 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(175, 154, 255, 0.2);
   background: rgba(255, 255, 255, 0.68);
   padding: 14px;
+}
+
+.ops-item.clickable {
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.ops-item.clickable:hover {
+  transform: translateY(-2px);
+  border-color: rgba(130, 104, 238, 0.45);
+  box-shadow: 0 10px 20px rgba(99, 71, 194, 0.15);
 }
 
 .ops-label {

@@ -1,147 +1,223 @@
-﻿<template>
-  <div class="page-container">
-    <el-row :gutter="16">
-      <el-col :span="16">
-        <el-card>
-          <template #header>
-            <div class="header-row">
-              <span>系统用户管理</span>
-            </div>
-          </template>
+<template>
+  <div class="system-page">
+    <section class="hero-panel">
+      <div class="hero-content">
+        <p class="hero-kicker">System Console</p>
+        <h2 class="hero-title">系统设置与安全中心</h2>
+        <p class="hero-description">
+          统一管理系统账号状态、密码安全和操作审计，保障日常教务管理稳定运行。
+        </p>
+        <div class="hero-chip-list">
+          <div class="hero-chip">
+            <span>系统用户总数</span>
+            <strong>{{ total }}</strong>
+          </div>
+          <div class="hero-chip">
+            <span>当前页启用用户</span>
+            <strong>{{ enabledUserCount }}</strong>
+          </div>
+          <div class="hero-chip">
+            <span>审计日志总数</span>
+            <strong>{{ logTotal }}</strong>
+          </div>
+        </div>
+      </div>
 
-          <el-form :inline="true" :model="searchForm" class="search-form">
-            <el-form-item label="用户名">
-              <el-input v-model="searchForm.username" clearable />
-            </el-form-item>
-            <el-form-item label="角色">
-              <el-select v-model="searchForm.role" clearable style="width: 140px">
-                <el-option label="管理员" value="ADMIN" />
-                <el-option label="教师" value="TEACHER" />
-                <el-option label="学生" value="STUDENT" />
-              </el-select>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="handleSearch">查询</el-button>
-              <el-button @click="handleReset">重置</el-button>
-            </el-form-item>
-          </el-form>
+      <div class="hero-metric-grid">
+        <el-card class="metric-card admin-card">
+          <div class="metric-icon">
+            <el-icon><UserFilled /></el-icon>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">管理员</span>
+            <strong class="metric-value">{{ adminCount }}</strong>
+          </div>
+        </el-card>
 
-          <el-table :data="tableData" v-loading="loading" stripe>
-            <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="username" label="用户名" width="140" />
-            <el-table-column prop="realName" label="姓名" width="130" />
-            <el-table-column prop="role" label="角色" width="100" />
-            <el-table-column prop="phone" label="电话" width="140" />
-            <el-table-column prop="email" label="邮箱" />
-            <el-table-column label="状态" width="100">
-              <template #default="{ row }">
+        <el-card class="metric-card teacher-card">
+          <div class="metric-icon">
+            <el-icon><Avatar /></el-icon>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">教师</span>
+            <strong class="metric-value">{{ teacherCount }}</strong>
+          </div>
+        </el-card>
+
+        <el-card class="metric-card student-card">
+          <div class="metric-icon">
+            <el-icon><School /></el-icon>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">学生</span>
+            <strong class="metric-value">{{ studentCount }}</strong>
+          </div>
+        </el-card>
+
+        <el-card class="metric-card risk-card">
+          <div class="metric-icon">
+            <el-icon><WarningFilled /></el-icon>
+          </div>
+          <div class="metric-content">
+            <span class="metric-label">当前页失败日志</span>
+            <strong class="metric-value">{{ failedLogCount }}</strong>
+          </div>
+        </el-card>
+      </div>
+    </section>
+
+    <section class="bento-grid">
+      <el-card class="panel-card panel-user">
+        <template #header>
+          <div class="card-header">
+            <span>系统用户管理</span>
+          </div>
+        </template>
+
+        <el-form :inline="true" :model="searchForm" class="search-form">
+          <el-form-item label="用户名">
+            <el-input v-model="searchForm.username" clearable placeholder="请输入用户名" />
+          </el-form-item>
+          <el-form-item label="角色">
+            <el-select v-model="searchForm.role" clearable style="width: 140px">
+              <el-option label="管理员" value="ADMIN" />
+              <el-option label="教师" value="TEACHER" />
+              <el-option label="学生" value="STUDENT" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </el-form>
+
+        <el-table :data="tableData" v-loading="loading" stripe>
+          <el-table-column type="index" label="#" width="60" />
+          <el-table-column prop="username" label="用户名" width="140" />
+          <el-table-column prop="realName" label="姓名" width="130" />
+          <el-table-column label="角色" width="110">
+            <template #default="{ row }">
+              <el-tag :type="getRoleTagType(row.role)" effect="light">{{ getRoleLabel(row.role) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="phone" label="电话" width="140" />
+          <el-table-column prop="email" label="邮箱" min-width="220" />
+          <el-table-column label="状态" width="110">
+            <template #default="{ row }">
+              <div class="status-cell">
                 <el-switch
                   :model-value="row.status === 1"
                   @change="(val) => handleStatusChange(row, val)"
                 />
-              </template>
-            </el-table-column>
-          </el-table>
+                <span class="status-text">{{ row.status === 1 ? '启用' : '停用' }}</span>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
 
-          <el-pagination
-            class="pagination"
-            v-model:current-page="page"
-            v-model:page-size="size"
-            :total="total"
-            :page-sizes="[10, 20, 50]"
-            layout="total, sizes, prev, pager, next"
-            @size-change="fetchList"
-            @current-change="fetchList"
-          />
-        </el-card>
-      </el-col>
+        <el-pagination
+          class="pagination"
+          v-model:current-page="page"
+          v-model:page-size="size"
+          :total="total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
+          @size-change="fetchList"
+          @current-change="fetchList"
+        />
+      </el-card>
 
-      <el-col :span="8">
-        <el-card>
-          <template #header>
-            <span>修改当前账号密码</span>
-          </template>
-          <el-form ref="pwdFormRef" :model="passwordForm" :rules="pwdRules" label-width="80px">
-            <el-form-item label="旧密码" prop="oldPassword">
-              <el-input v-model="passwordForm.oldPassword" type="password" show-password />
-            </el-form-item>
-            <el-form-item label="新密码" prop="newPassword">
-              <el-input v-model="passwordForm.newPassword" type="password" show-password />
-            </el-form-item>
-            <el-form-item label="确认" prop="confirmPassword">
-              <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
-            </el-form-item>
-            <el-button type="primary" @click="submitPassword" :loading="pwdLoading">保存密码</el-button>
-          </el-form>
-        </el-card>
-      </el-col>
-    </el-row>
+      <el-card class="panel-card panel-security">
+        <template #header>
+          <div class="card-header">
+            <span>账号安全</span>
+          </div>
+        </template>
 
-    <el-row :gutter="16" class="log-row">
-      <el-col :span="24">
-        <el-card>
-          <template #header>
-            <div class="header-row">
-              <span>操作审计日志</span>
-            </div>
-          </template>
+        <div class="security-tip">
+          <el-icon><Lock /></el-icon>
+          <span>建议定期更新密码，并避免使用与其他平台重复的弱口令。</span>
+        </div>
 
-          <el-form :inline="true" :model="logSearchForm" class="search-form">
-            <el-form-item label="用户ID">
-              <el-input-number v-model="logSearchForm.userId" :min="1" style="width: 130px" />
-            </el-form-item>
-            <el-form-item label="状态">
-              <el-select v-model="logSearchForm.status" clearable style="width: 140px">
-                <el-option label="成功" :value="1" />
-                <el-option label="失败" :value="0" />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="操作">
-              <el-input v-model="logSearchForm.operation" clearable placeholder="Controller#method" />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="handleLogSearch">查询</el-button>
-              <el-button @click="handleLogReset">重置</el-button>
-            </el-form-item>
-          </el-form>
+        <el-form ref="pwdFormRef" :model="passwordForm" :rules="pwdRules" label-width="80px">
+          <el-form-item label="旧密码" prop="oldPassword">
+            <el-input v-model="passwordForm.oldPassword" type="password" show-password />
+          </el-form-item>
+          <el-form-item label="新密码" prop="newPassword">
+            <el-input v-model="passwordForm.newPassword" type="password" show-password />
+          </el-form-item>
+          <el-form-item label="确认" prop="confirmPassword">
+            <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
+          </el-form-item>
+          <el-button type="primary" @click="submitPassword" :loading="pwdLoading">保存密码</el-button>
+        </el-form>
+      </el-card>
+    </section>
 
-          <el-table :data="logTableData" v-loading="logLoading" stripe>
-            <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="userId" label="用户ID" width="100" />
-            <el-table-column prop="operation" label="操作" min-width="220" />
-            <el-table-column prop="method" label="请求" min-width="220" />
-            <el-table-column prop="ip" label="IP" width="150" />
-            <el-table-column prop="duration" label="耗时(ms)" width="110" />
-            <el-table-column label="状态" width="90">
-              <template #default="{ row }">
-                <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-                  {{ row.status === 1 ? '成功' : '失败' }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="errorMsg" label="错误信息" min-width="180" show-overflow-tooltip />
-            <el-table-column prop="createTime" label="时间" width="180" />
-          </el-table>
+    <section class="bento-grid log-grid">
+      <el-card class="panel-card panel-log">
+        <template #header>
+          <div class="card-header">
+            <span>操作审计日志</span>
+          </div>
+        </template>
 
-          <el-pagination
-            class="pagination"
-            v-model:current-page="logPage"
-            v-model:page-size="logSize"
-            :total="logTotal"
-            :page-sizes="[20, 50, 100]"
-            layout="total, sizes, prev, pager, next"
-            @size-change="fetchLogList"
-            @current-change="fetchLogList"
-          />
-        </el-card>
-      </el-col>
-    </el-row>
+        <el-form :inline="true" :model="logSearchForm" class="search-form">
+          <el-form-item label="用户ID">
+            <el-input-number v-model="logSearchForm.userId" :min="1" style="width: 130px" />
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-select v-model="logSearchForm.status" clearable style="width: 140px">
+              <el-option label="成功" :value="1" />
+              <el-option label="失败" :value="0" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="操作">
+            <el-input v-model="logSearchForm.operation" clearable placeholder="Controller#method" />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="handleLogSearch">查询</el-button>
+            <el-button @click="handleLogReset">重置</el-button>
+          </el-form-item>
+        </el-form>
+
+        <el-table :data="logTableData" v-loading="logLoading" stripe>
+          <el-table-column type="index" label="#" width="60" />
+          <el-table-column prop="userId" label="用户ID" width="100" />
+          <el-table-column prop="operation" label="操作" min-width="220" />
+          <el-table-column prop="method" label="请求" min-width="220" />
+          <el-table-column prop="ip" label="IP" width="150" />
+          <el-table-column prop="duration" label="耗时(ms)" width="110" />
+          <el-table-column label="状态" width="90">
+            <template #default="{ row }">
+              <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+                {{ row.status === 1 ? '成功' : '失败' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="errorMsg" label="错误信息" min-width="180" show-overflow-tooltip />
+          <el-table-column prop="createTime" label="时间" width="180" />
+        </el-table>
+
+        <el-pagination
+          class="pagination"
+          v-model:current-page="logPage"
+          v-model:page-size="logSize"
+          :total="logTotal"
+          :page-sizes="[20, 50, 100]"
+          layout="total, sizes, prev, pager, next"
+          @size-change="fetchLogList"
+          @current-change="fetchLogList"
+        />
+      </el-card>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Avatar, Lock, School, UserFilled, WarningFilled } from '@element-plus/icons-vue'
 import { getUserList, updatePassword, updateUserStatus } from '@/api/user'
 import { getSysLogList } from '@/api/sysLog'
 
@@ -174,6 +250,12 @@ const passwordForm = reactive({
 })
 const pwdFormRef = ref()
 const pwdLoading = ref(false)
+
+const enabledUserCount = computed(() => tableData.value.filter(item => item.status === 1).length)
+const adminCount = computed(() => tableData.value.filter(item => item.role === 'ADMIN').length)
+const teacherCount = computed(() => tableData.value.filter(item => item.role === 'TEACHER').length)
+const studentCount = computed(() => tableData.value.filter(item => item.role === 'STUDENT').length)
+const failedLogCount = computed(() => logTableData.value.filter(item => item.status === 0).length)
 
 const pwdRules = {
   oldPassword: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],
@@ -218,6 +300,22 @@ function handleReset() {
   searchForm.username = ''
   searchForm.role = ''
   handleSearch()
+}
+
+function getRoleLabel(role) {
+  const roleMap = {
+    ADMIN: '管理员',
+    TEACHER: '教师',
+    STUDENT: '学生'
+  }
+  return roleMap[role] || role
+}
+
+function getRoleTagType(role) {
+  if (role === 'ADMIN') return 'danger'
+  if (role === 'TEACHER') return 'warning'
+  if (role === 'STUDENT') return 'success'
+  return 'info'
 }
 
 async function handleStatusChange(row, enabled) {
@@ -280,23 +378,294 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.page-container {
-  padding: 20px;
-}
-.header-row {
+<style scoped lang="scss">
+.system-page {
+  width: 100%;
+  min-height: calc(100vh - 140px);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 18px;
+  padding: 2px 0 14px;
+  box-sizing: border-box;
 }
+
+.hero-panel {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(340px, 1fr) minmax(420px, 1.1fr);
+  gap: 16px;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(165, 143, 255, 0.25);
+  background:
+    radial-gradient(circle at 8% 12%, rgba(255, 255, 255, 0.42), transparent 38%),
+    radial-gradient(circle at 92% 4%, rgba(189, 171, 255, 0.22), transparent 36%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.86), rgba(244, 236, 255, 0.82));
+  box-shadow: 0 20px 40px rgba(78, 60, 145, 0.14);
+}
+
+.hero-kicker {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8d79d0;
+}
+
+.hero-title {
+  margin: 10px 0 12px;
+  color: #2a1f4f;
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.hero-description {
+  margin: 0;
+  max-width: 580px;
+  color: #5e5186;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.hero-chip-list {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hero-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 143, 255, 0.24);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.hero-chip span {
+  color: #6f5f9f;
+  font-size: 13px;
+}
+
+.hero-chip strong {
+  color: #2d2150;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.hero-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metric-card {
+  border-radius: 16px;
+  border: 1px solid rgba(161, 138, 246, 0.22);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.93), rgba(244, 237, 255, 0.82));
+}
+
+:deep(.metric-card .el-card__body) {
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.admin-card .metric-icon {
+  background: linear-gradient(135deg, #7c66ff, #5a47d8);
+}
+
+.teacher-card .metric-icon {
+  background: linear-gradient(135deg, #a464ff, #7f4ed7);
+}
+
+.student-card .metric-icon {
+  background: linear-gradient(135deg, #55a8ff, #4f77df);
+}
+
+.risk-card .metric-icon {
+  background: linear-gradient(135deg, #ff8f9e, #e56b8c);
+}
+
+.metric-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-label {
+  color: #6f6296;
+  font-size: 13px;
+}
+
+.metric-value {
+  margin-top: 4px;
+  color: #261c49;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.panel-card {
+  border-radius: 18px;
+  border: 1px solid rgba(166, 145, 247, 0.2);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.9), rgba(247, 241, 255, 0.82));
+  box-shadow: 0 12px 30px rgba(85, 65, 155, 0.1);
+}
+
+.panel-user {
+  grid-column: span 8;
+}
+
+.panel-security {
+  grid-column: span 4;
+}
+
+.panel-log {
+  grid-column: span 12;
+}
+
+:deep(.panel-card .el-card__header) {
+  border-bottom: 1px solid rgba(171, 149, 255, 0.25);
+  padding: 14px 18px;
+}
+
+:deep(.panel-card .el-card__body) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 250px;
+  padding: 16px 18px;
+  box-sizing: border-box;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .search-form {
   margin-bottom: 16px;
 }
+
 .pagination {
   margin-top: 16px;
   justify-content: flex-end;
 }
-.log-row {
-  margin-top: 16px;
+
+.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-text {
+  color: #6c5f96;
+  font-size: 12px;
+}
+
+.security-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(176, 155, 255, 0.22);
+  background: rgba(255, 255, 255, 0.72);
+  color: #594b88;
+  line-height: 1.6;
+}
+
+.security-tip .el-icon {
+  margin-top: 2px;
+  color: #775ef0;
+}
+
+.log-grid :deep(.el-card__body) {
+  min-height: 320px;
+}
+
+@media (max-width: 1400px) {
+  .hero-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-user,
+  .panel-security,
+  .panel-log {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 992px) {
+  .system-page {
+    min-height: auto;
+  }
+
+  .hero-panel {
+    padding: 16px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-chip-list {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bento-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panel-user,
+  .panel-security,
+  .panel-log {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-user,
+  .panel-security,
+  .panel-log {
+    grid-column: span 1;
+  }
 }
 </style>

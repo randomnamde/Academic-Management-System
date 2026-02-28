@@ -104,6 +104,62 @@ class SecurityScopeIntegrationTest {
                 .andExpect(jsonPath("$.data.abnormalTrend").isArray());
     }
 
+    @Test
+    void studentCanAccessAnalyticsEndpoints() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+
+        mockMvc.perform(get("/analytics/overview")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.studentCount").exists())
+                .andExpect(jsonPath("$.data.attendanceRate").exists());
+
+        mockMvc.perform(get("/analytics/score-trend")
+                        .param("granularity", "week")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").isArray());
+    }
+
+    @Test
+    void unauthenticatedCannotAccessAnalyticsOverview() throws Exception {
+        mockMvc.perform(get("/analytics/overview"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void adminCanAccessAnalyticsEndpoints() throws Exception {
+        String token = loginAndGetToken("demo_admin", "123456");
+
+        mockMvc.perform(get("/analytics/overview")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        mockMvc.perform(get("/analytics/attendance-trend")
+                        .param("granularity", "month")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").isArray());
+
+        mockMvc.perform(get("/analytics/score-trend")
+                        .param("granularity", "week")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").isArray());
+
+        mockMvc.perform(get("/analytics/risk-students")
+                        .param("riskType", "low_score")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.records").isArray());
+    }
+
     private String loginAndGetToken(String username, String password) throws Exception {
         String body = """
                 {

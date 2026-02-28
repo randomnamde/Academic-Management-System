@@ -23,6 +23,12 @@ const routes = [
         meta: { title: '首页', icon: 'HomeFilled' }
       },
       {
+        path: 'analytics',
+        name: 'Analytics',
+        component: () => import('@/views/analytics/index.vue'),
+        meta: { title: '分析中心', icon: 'DataAnalysis', roles: ['ADMIN', 'TEACHER', 'STUDENT'] }
+      },
+      {
         path: 'student',
         name: 'Student',
         component: () => import('@/views/student/index.vue'),

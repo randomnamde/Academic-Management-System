@@ -33,7 +33,10 @@ const getRootTransition = (path) => (path === '/login' ? 'auth-fade' : 'app-pop'
 .auth-fade-leave-active,
 .app-pop-enter-active,
 .app-pop-leave-active {
-  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    opacity var(--sms-motion-panel, 240ms) var(--sms-ease-standard, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform var(--sms-motion-panel, 240ms) var(--sms-ease-standard, cubic-bezier(0.22, 1, 0.36, 1)),
+    filter var(--sms-motion-panel, 240ms) var(--sms-ease-standard, cubic-bezier(0.22, 1, 0.36, 1));
 }
 
 .auth-fade-enter-from,

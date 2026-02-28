@@ -219,3 +219,10 @@ CREATE TABLE sys_log (
     INDEX idx_user_time (user_id, create_time),
     FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='操作日志表';
+
+-- Analytics and trend query indexes
+CREATE INDEX idx_score_total_create ON score(total_score, create_time);
+CREATE INDEX idx_score_arrangement_total ON score(course_arrangement_id, total_score);
+CREATE INDEX idx_attendance_status_scope_date ON attendance(status, course_arrangement_id, attendance_date);
+CREATE INDEX idx_leave_pending_create ON leave_request(status, create_time);
+CREATE INDEX idx_leave_arrangement_pending ON leave_request(course_arrangement_id, status, create_time);

@@ -5,10 +5,12 @@ import com.student.dto.ScoreDTO;
 import com.student.dto.ScoreQueryDTO;
 import com.student.dto.ScoreStatisticsDTO;
 import com.student.entity.Score;
+import com.student.security.CurrentUserService;
 import com.student.service.ScoreService;
 import com.student.vo.ResultVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +23,7 @@ import java.util.Map;
 public class ScoreController {
 
     private final ScoreService scoreService;
+    private final CurrentUserService currentUserService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
@@ -46,8 +49,17 @@ public class ScoreController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    public ResultVO<Score> getById(@PathVariable Long id) {
+    public ResultVO<Score> getById(@PathVariable Long id, Authentication authentication) {
         Score score = scoreService.getScoreById(id);
+        if (score == null) {
+            return ResultVO.error(404, "Score not found");
+        }
+        if (currentUserService.isStudent(authentication)) {
+            Long studentId = currentUserService.getCurrentStudentId(authentication);
+            if (!studentId.equals(score.getStudentId())) {
+                return ResultVO.error(403, "Forbidden");
+            }
+        }
         return ResultVO.success(score);
     }
 
@@ -58,7 +70,11 @@ public class ScoreController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) Long studentId,
             @RequestParam(required = false) Long courseArrangementId,
-            @RequestParam(required = false) String semester) {
+            @RequestParam(required = false) String semester,
+            Authentication authentication) {
+        if (currentUserService.isStudent(authentication)) {
+            studentId = currentUserService.getCurrentStudentId(authentication);
+        }
         ScoreQueryDTO queryDTO = new ScoreQueryDTO();
         queryDTO.setStudentId(studentId);
         queryDTO.setCourseArrangementId(courseArrangementId);
@@ -69,7 +85,10 @@ public class ScoreController {
 
     @GetMapping("/student/{studentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    public ResultVO<List<Score>> getByStudentId(@PathVariable Long studentId) {
+    public ResultVO<List<Score>> getByStudentId(@PathVariable Long studentId, Authentication authentication) {
+        if (currentUserService.isStudent(authentication)) {
+            studentId = currentUserService.getCurrentStudentId(authentication);
+        }
         List<Score> scores = scoreService.getScoresByStudentId(studentId);
         return ResultVO.success(scores);
     }
@@ -83,7 +102,10 @@ public class ScoreController {
 
     @GetMapping("/statistics/{studentId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    public ResultVO<ScoreStatisticsDTO> getStatistics(@PathVariable Long studentId) {
+    public ResultVO<ScoreStatisticsDTO> getStatistics(@PathVariable Long studentId, Authentication authentication) {
+        if (currentUserService.isStudent(authentication)) {
+            studentId = currentUserService.getCurrentStudentId(authentication);
+        }
         ScoreStatisticsDTO statistics = scoreService.getStudentStatistics(studentId);
         return ResultVO.success(statistics);
     }

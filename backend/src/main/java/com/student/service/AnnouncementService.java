@@ -3,6 +3,7 @@ package com.student.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.student.entity.Announcement;
+import com.student.entity.SysUser;
 
 public interface AnnouncementService extends IService<Announcement> {
 
@@ -12,6 +13,13 @@ public interface AnnouncementService extends IService<Announcement> {
                                            Announcement.Type type,
                                            Announcement.TargetRole targetRole,
                                            Integer status);
+
+    Page<Announcement> getVisibleAnnouncementPage(Integer page,
+                                                  Integer size,
+                                                  String title,
+                                                  Announcement.Type type,
+                                                  SysUser.Role role,
+                                                  Long classId);
 
     void createAnnouncement(Announcement announcement);
 

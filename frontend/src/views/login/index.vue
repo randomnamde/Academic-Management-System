@@ -112,7 +112,6 @@
               <el-form-item label="角色" prop="role">
                 <el-select v-model="registerForm.role" placeholder="请选择角色" size="large" style="width: 100%">
                   <el-option label="学生" value="STUDENT" />
-                  <el-option label="教师" value="TEACHER" />
                 </el-select>
               </el-form-item>
               <el-form-item>
@@ -133,7 +132,6 @@
         <div class="login-footer">
           <p>测试账号：</p>
           <p>管理员：demo_admin / 123456</p>
-          <p>教师：teacher001 / 123456</p>
           <p>学生：student001 / 123456</p>
         </div>
       </el-card>

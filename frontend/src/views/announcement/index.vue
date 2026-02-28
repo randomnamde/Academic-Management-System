@@ -121,6 +121,34 @@
             </el-form-item>
           </el-col>
         </el-row>
+
+        <el-row :gutter="16">
+          <el-col :span="8">
+            <el-form-item label="目标班级ID">
+              <el-input-number v-model="form.targetClassId" :min="1" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="生效时间">
+              <el-date-picker
+                v-model="form.startTime"
+                type="datetime"
+                value-format="YYYY-MM-DDTHH:mm:ss"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="失效时间">
+              <el-date-picker
+                v-model="form.endTime"
+                type="datetime"
+                value-format="YYYY-MM-DDTHH:mm:ss"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -163,7 +191,6 @@ const form = reactive({
   type: 'NOTICE',
   targetRole: 'ALL',
   priority: 0,
-  authorId: 1,
   isTop: 0,
   status: 1
 })
@@ -190,7 +217,6 @@ function resetForm() {
     type: 'NOTICE',
     targetRole: 'ALL',
     priority: 0,
-    authorId: 1,
     isTop: 0,
     status: 1
   })
@@ -242,11 +268,24 @@ async function submit() {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
 
+  const payload = {
+    title: form.title,
+    content: form.content,
+    type: form.type,
+    targetRole: form.targetRole,
+    priority: form.priority,
+    isTop: form.isTop,
+    status: form.status,
+    startTime: form.startTime || null,
+    endTime: form.endTime || null,
+    targetClassId: form.targetClassId || null
+  }
+
   if (isEdit.value) {
-    await updateAnnouncement(form.id, form)
+    await updateAnnouncement(form.id, payload)
     ElMessage.success('修改成功')
   } else {
-    await createAnnouncement(form)
+    await createAnnouncement(payload)
     ElMessage.success('发布成功')
   }
   dialogVisible.value = false

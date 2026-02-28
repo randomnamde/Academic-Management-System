@@ -2,10 +2,14 @@ package com.student.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.entity.Announcement;
+import com.student.entity.Student;
+import com.student.entity.SysUser;
+import com.student.security.CurrentUserService;
 import com.student.service.AnnouncementService;
 import com.student.vo.ResultVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class AnnouncementController {
 
     private final AnnouncementService announcementService;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
@@ -22,7 +27,15 @@ public class AnnouncementController {
                                              @RequestParam(required = false) String title,
                                              @RequestParam(required = false) Announcement.Type type,
                                              @RequestParam(required = false) Announcement.TargetRole targetRole,
-                                             @RequestParam(required = false) Integer status) {
+                                             @RequestParam(required = false) Integer status,
+                                             Authentication authentication) {
+        SysUser currentUser = currentUserService.getCurrentUser(authentication);
+        if (currentUser.getRole() == SysUser.Role.STUDENT) {
+            Student student = currentUserService.getCurrentStudent(authentication);
+            return ResultVO.success(
+                    announcementService.getVisibleAnnouncementPage(page, size, title, type, currentUser.getRole(), student.getClassId())
+            );
+        }
         return ResultVO.success(announcementService.getAnnouncementPage(page, size, title, type, targetRole, status));
     }
 
@@ -34,7 +47,9 @@ public class AnnouncementController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ResultVO<Void> add(@RequestBody Announcement announcement) {
+    public ResultVO<Void> add(@RequestBody Announcement announcement, Authentication authentication) {
+        SysUser currentUser = currentUserService.getCurrentUser(authentication);
+        announcement.setAuthorId(currentUser.getId());
         announcementService.createAnnouncement(announcement);
         return ResultVO.success();
     }

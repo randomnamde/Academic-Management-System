@@ -71,6 +71,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional
     public void register(RegisterDTO registerDTO) {
+        if (registerDTO.getRole() != SysUser.Role.STUDENT) {
+            throw new BusinessException(403, "Only student self-registration is supported");
+        }
         if (userMapper.countByUsername(registerDTO.getUsername()) > 0) {
             throw new BusinessException("Username already exists");
         }

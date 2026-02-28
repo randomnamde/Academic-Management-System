@@ -78,17 +78,19 @@ public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attenda
 
     @Override
     public List<Attendance> getStudentAttendance(Long studentId, LocalDate startDate, LocalDate endDate) {
-        return attendanceMapper.selectByStudentIdAndDateRange(studentId, startDate, endDate);
+        LocalDate[] range = normalizeDateRange(startDate, endDate);
+        return attendanceMapper.selectByStudentIdAndDateRange(studentId, range[0], range[1]);
     }
 
     @Override
     public Map<String, Object> getAttendanceStatistics(Long studentId, LocalDate startDate, LocalDate endDate) {
+        LocalDate[] range = normalizeDateRange(startDate, endDate);
         Map<String, Object> statistics = new HashMap<>();
 
-        Long presentCount = attendanceMapper.countByStatus(studentId, Attendance.Status.PRESENT, startDate, endDate);
-        Long absentCount = attendanceMapper.countByStatus(studentId, Attendance.Status.ABSENT, startDate, endDate);
-        Long lateCount = attendanceMapper.countByStatus(studentId, Attendance.Status.LATE, startDate, endDate);
-        Long leaveCount = attendanceMapper.countByStatus(studentId, Attendance.Status.LEAVE, startDate, endDate);
+        Long presentCount = attendanceMapper.countByStatus(studentId, Attendance.Status.PRESENT, range[0], range[1]);
+        Long absentCount = attendanceMapper.countByStatus(studentId, Attendance.Status.ABSENT, range[0], range[1]);
+        Long lateCount = attendanceMapper.countByStatus(studentId, Attendance.Status.LATE, range[0], range[1]);
+        Long leaveCount = attendanceMapper.countByStatus(studentId, Attendance.Status.LEAVE, range[0], range[1]);
 
         long total = presentCount + absentCount + lateCount + leaveCount;
 
@@ -124,6 +126,15 @@ public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attenda
     @Override
     @Transactional
     public void checkIn(Long studentId, Long courseArrangementId) {
+        Attendance existing = lambdaQuery()
+                .eq(Attendance::getStudentId, studentId)
+                .eq(Attendance::getCourseArrangementId, courseArrangementId)
+                .eq(Attendance::getAttendanceDate, LocalDate.now())
+                .one();
+        if (existing != null) {
+            throw new BusinessException("Already checked in for today");
+        }
+
         Attendance attendance = new Attendance();
         attendance.setStudentId(studentId);
         attendance.setCourseArrangementId(courseArrangementId);
@@ -154,5 +165,14 @@ public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attenda
 
         attendance.setCheckOutTime(LocalTime.now());
         attendanceMapper.updateById(attendance);
+    }
+
+    private LocalDate[] normalizeDateRange(LocalDate startDate, LocalDate endDate) {
+        LocalDate start = startDate == null ? LocalDate.of(1970, 1, 1) : startDate;
+        LocalDate end = endDate == null ? LocalDate.of(2999, 12, 31) : endDate;
+        if (start.isAfter(end)) {
+            throw new BusinessException("Start date cannot be after end date");
+        }
+        return new LocalDate[]{start, end};
     }
 }

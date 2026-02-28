@@ -3,11 +3,13 @@ package com.student.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.dto.AttendanceDTO;
 import com.student.entity.Attendance;
+import com.student.security.CurrentUserService;
 import com.student.service.AttendanceService;
 import com.student.vo.ResultVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +23,7 @@ import java.util.Map;
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
+    private final CurrentUserService currentUserService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
@@ -46,8 +49,17 @@ public class AttendanceController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    public ResultVO<Attendance> getById(@PathVariable Long id) {
+    public ResultVO<Attendance> getById(@PathVariable Long id, Authentication authentication) {
         Attendance attendance = attendanceService.getAttendanceById(id);
+        if (attendance == null) {
+            return ResultVO.error(404, "Attendance record not found");
+        }
+        if (currentUserService.isStudent(authentication)) {
+            Long studentId = currentUserService.getCurrentStudentId(authentication);
+            if (!studentId.equals(attendance.getStudentId())) {
+                return ResultVO.error(403, "Forbidden");
+            }
+        }
         return ResultVO.success(attendance);
     }
 
@@ -59,7 +71,11 @@ public class AttendanceController {
             @RequestParam(required = false) Long studentId,
             @RequestParam(required = false) Long courseArrangementId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate attendanceDate,
-            @RequestParam(required = false) Attendance.Status status) {
+            @RequestParam(required = false) Attendance.Status status,
+            Authentication authentication) {
+        if (currentUserService.isStudent(authentication)) {
+            studentId = currentUserService.getCurrentStudentId(authentication);
+        }
         Page<Attendance> result = attendanceService.getAttendancePage(page, size, studentId, 
                                                                         courseArrangementId, attendanceDate, status);
         return ResultVO.success(result);
@@ -70,7 +86,11 @@ public class AttendanceController {
     public ResultVO<List<Attendance>> getByStudentId(
             @PathVariable Long studentId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Authentication authentication) {
+        if (currentUserService.isStudent(authentication)) {
+            studentId = currentUserService.getCurrentStudentId(authentication);
+        }
         List<Attendance> attendances = attendanceService.getStudentAttendance(studentId, startDate, endDate);
         return ResultVO.success(attendances);
     }
@@ -80,7 +100,11 @@ public class AttendanceController {
     public ResultVO<Map<String, Object>> getStatistics(
             @PathVariable Long studentId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Authentication authentication) {
+        if (currentUserService.isStudent(authentication)) {
+            studentId = currentUserService.getCurrentStudentId(authentication);
+        }
         Map<String, Object> statistics = attendanceService.getAttendanceStatistics(studentId, startDate, endDate);
         return ResultVO.success(statistics);
     }
@@ -95,7 +119,8 @@ public class AttendanceController {
     @PostMapping("/check-in")
     @PreAuthorize("hasRole('STUDENT')")
     public ResultVO<Void> checkIn(@RequestParam Long courseArrangementId, 
-                                     @RequestAttribute("userId") Long studentId) {
+                                  Authentication authentication) {
+        Long studentId = currentUserService.getCurrentStudentId(authentication);
         attendanceService.checkIn(studentId, courseArrangementId);
         return ResultVO.success();
     }
@@ -103,7 +128,8 @@ public class AttendanceController {
     @PostMapping("/check-out")
     @PreAuthorize("hasRole('STUDENT')")
     public ResultVO<Void> checkOut(@RequestParam Long courseArrangementId,
-                                      @RequestAttribute("userId") Long studentId) {
+                                   Authentication authentication) {
+        Long studentId = currentUserService.getCurrentStudentId(authentication);
         attendanceService.checkOut(studentId, courseArrangementId);
         return ResultVO.success();
     }

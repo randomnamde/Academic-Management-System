@@ -13,7 +13,20 @@
           <el-input-number v-model="searchForm.studentId" :min="1" style="width: 140px" />
         </el-form-item>
         <el-form-item label="排课ID">
-          <el-input-number v-model="searchForm.courseArrangementId" :min="1" style="width: 140px" />
+          <el-select
+            v-model="searchForm.courseArrangementId"
+            clearable
+            filterable
+            style="width: 260px"
+            placeholder="请选择排课"
+          >
+            <el-option
+              v-for="item in arrangementOptions"
+              :key="item.id"
+              :label="formatArrangementLabel(item)"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="日期">
           <el-date-picker v-model="searchForm.attendanceDate" type="date" value-format="YYYY-MM-DD" />
@@ -72,7 +85,19 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="排课ID" prop="courseArrangementId">
-              <el-input-number v-model="form.courseArrangementId" :min="1" style="width: 100%" />
+              <el-select
+                v-model="form.courseArrangementId"
+                filterable
+                style="width: 100%"
+                placeholder="请选择排课"
+              >
+                <el-option
+                  v-for="item in arrangementOptions"
+                  :key="item.id"
+                  :label="formatArrangementLabel(item)"
+                  :value="item.id"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
         </el-row>
@@ -129,12 +154,14 @@ import {
   recordAttendance,
   updateAttendance
 } from '@/api/attendance'
+import { getCourseArrangementOptions } from '@/api/courseArrangement'
 
 const loading = ref(false)
 const page = ref(1)
 const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
+const arrangementOptions = ref([])
 
 const searchForm = reactive({
   studentId: null,
@@ -195,6 +222,16 @@ async function fetchList() {
   }
 }
 
+function formatArrangementLabel(item) {
+  const parts = [item.semester, item.courseName, item.className].filter(Boolean)
+  return parts.length ? `${parts.join(' | ')} (ID:${item.id})` : `排课ID:${item.id}`
+}
+
+async function fetchArrangementOptions() {
+  const res = await getCourseArrangementOptions({ status: 1 })
+  arrangementOptions.value = Array.isArray(res.data) ? res.data : []
+}
+
 function handleSearch() {
   page.value = 1
   fetchList()
@@ -243,7 +280,10 @@ async function handleDelete(row) {
   fetchList()
 }
 
-onMounted(fetchList)
+onMounted(async () => {
+  await fetchArrangementOptions()
+  await fetchList()
+})
 </script>
 
 <style scoped>

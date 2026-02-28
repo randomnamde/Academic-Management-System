@@ -1,5 +1,5 @@
 ﻿import { createRouter, createWebHistory } from 'vue-router'
-import { useStore } from 'vuex'
+import Cookies from 'js-cookie'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 
@@ -47,6 +47,12 @@ const routes = [
         meta: { title: '课程管理', icon: 'Reading', roles: ['ADMIN', 'TEACHER'] }
       },
       {
+        path: 'course-arrangement',
+        name: 'CourseArrangement',
+        component: () => import('@/views/course-arrangement/index.vue'),
+        meta: { title: '排课管理', icon: 'Tickets', roles: ['ADMIN', 'TEACHER'] }
+      },
+      {
         path: 'score',
         name: 'Score',
         component: () => import('@/views/score/index.vue'),
@@ -85,6 +91,12 @@ const routes = [
     ]
   },
   {
+    path: '/403',
+    name: 'Forbidden',
+    component: () => import('@/views/error/403.vue'),
+    meta: { public: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/error/404.vue')
@@ -99,9 +111,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   NProgress.start()
 
-  const store = useStore()
-  const token = store.state.token
-  const userRole = store.state.userInfo?.role
+  const token = Cookies.get('token')
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+  const userRole = userInfo?.role
 
   if (to.meta.public) {
     next()

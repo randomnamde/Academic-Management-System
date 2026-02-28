@@ -2,9 +2,12 @@ package com.student.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.student.dto.LeaveRequestDTO;
+import com.student.entity.Attendance;
 import com.student.entity.LeaveRequest;
 import com.student.exception.BusinessException;
+import com.student.mapper.AttendanceMapper;
 import com.student.mapper.LeaveRequestMapper;
 import com.student.service.LeaveRequestService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +15,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,6 +24,7 @@ import java.util.List;
 public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, LeaveRequest> implements LeaveRequestService {
 
     private final LeaveRequestMapper leaveRequestMapper;
+    private final AttendanceMapper attendanceMapper;
 
     @Override
     @Transactional
@@ -92,6 +97,10 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
         leaveRequest.setApproveTime(LocalDateTime.now());
         leaveRequest.setApproveRemark(remark);
         leaveRequestMapper.updateById(leaveRequest);
+
+        if (approved) {
+            syncAttendanceForApprovedLeave(leaveRequest);
+        }
     }
 
     @Override
@@ -113,5 +122,49 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
     @Override
     public List<LeaveRequest> getPendingRequestsForTeacher(Long teacherId) {
         return leaveRequestMapper.selectPendingByTeacherId(teacherId);
+    }
+
+    private void syncAttendanceForApprovedLeave(LeaveRequest leaveRequest) {
+        if (leaveRequest.getCourseArrangementId() == null) {
+            return;
+        }
+
+        LocalDate startDate = leaveRequest.getStartTime().toLocalDate();
+        LocalDate endDate = leaveRequest.getEndTime().toLocalDate();
+        LocalDate current = startDate;
+        while (!current.isAfter(endDate)) {
+            upsertLeaveAttendance(leaveRequest, current);
+            current = current.plusDays(1);
+        }
+    }
+
+    private void upsertLeaveAttendance(LeaveRequest leaveRequest, LocalDate attendanceDate) {
+        Attendance existing = attendanceMapper.selectOne(
+                new LambdaQueryWrapper<Attendance>()
+                        .eq(Attendance::getStudentId, leaveRequest.getStudentId())
+                        .eq(Attendance::getCourseArrangementId, leaveRequest.getCourseArrangementId())
+                        .eq(Attendance::getAttendanceDate, attendanceDate)
+        );
+
+        if (existing == null) {
+            Attendance attendance = new Attendance();
+            attendance.setStudentId(leaveRequest.getStudentId());
+            attendance.setCourseArrangementId(leaveRequest.getCourseArrangementId());
+            attendance.setAttendanceDate(attendanceDate);
+            attendance.setStatus(Attendance.Status.LEAVE);
+            attendance.setRemark("Auto synced from approved leave request #" + leaveRequest.getId());
+            attendanceMapper.insert(attendance);
+            return;
+        }
+
+        // Do not overwrite a confirmed present record.
+        if (existing.getStatus() == Attendance.Status.PRESENT) {
+            return;
+        }
+        existing.setStatus(Attendance.Status.LEAVE);
+        if (existing.getRemark() == null || existing.getRemark().isBlank()) {
+            existing.setRemark("Auto synced from approved leave request #" + leaveRequest.getId());
+        }
+        attendanceMapper.updateById(existing);
     }
 }

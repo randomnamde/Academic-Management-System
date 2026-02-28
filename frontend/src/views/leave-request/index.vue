@@ -106,7 +106,19 @@
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="排课ID" prop="courseArrangementId">
-              <el-input-number v-model="form.courseArrangementId" :min="1" style="width: 100%" />
+              <el-select
+                v-model="form.courseArrangementId"
+                filterable
+                style="width: 100%"
+                placeholder="请选择排课"
+              >
+                <el-option
+                  v-for="item in arrangementOptions"
+                  :key="item.id"
+                  :label="formatArrangementLabel(item)"
+                  :value="item.id"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -185,6 +197,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getCourseArrangementOptions } from '@/api/courseArrangement'
 import {
   approveLeaveRequest,
   cancelLeaveRequest,
@@ -212,6 +225,7 @@ const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
 const pendingData = ref([])
+const arrangementOptions = ref([])
 const activeTab = ref('pending')
 
 const searchForm = reactive({
@@ -287,6 +301,11 @@ const formatDateTime = (value) => {
 
 const formatRange = (row) => `${formatDateTime(row.startTime)} ~ ${formatDateTime(row.endTime)}`
 
+const formatArrangementLabel = (item) => {
+  const parts = [item.semester, item.courseName, item.className].filter(Boolean)
+  return parts.length ? `${parts.join(' | ')} (ID:${item.id})` : `排课ID:${item.id}`
+}
+
 const resetForm = () => {
   Object.assign(form, {
     id: null,
@@ -297,6 +316,11 @@ const resetForm = () => {
     reason: '',
     attachment: ''
   })
+}
+
+const fetchArrangementOptions = async () => {
+  const res = await getCourseArrangementOptions({ status: 1 })
+  arrangementOptions.value = Array.isArray(res.data) ? res.data : []
 }
 
 const fetchList = async () => {
@@ -426,6 +450,7 @@ onMounted(() => {
   if (!canApprove.value) {
     activeTab.value = 'all'
   }
+  fetchArrangementOptions()
   fetchList()
 })
 </script>

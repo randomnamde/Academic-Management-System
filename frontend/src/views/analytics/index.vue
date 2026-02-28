@@ -104,13 +104,48 @@
 
       <el-table :data="riskRecords" v-loading="riskLoading" stripe>
         <el-table-column type="index" label="#" width="60" />
-        <el-table-column prop="studentNo" label="学号" width="140" />
-        <el-table-column prop="studentName" label="姓名" width="120" />
-        <el-table-column prop="className" label="班级" min-width="140" />
-        <el-table-column prop="riskCount" label="风险次数" width="120" />
-        <el-table-column label="风险值" width="140">
+        <el-table-column v-if="!isStudent" prop="studentNo" label="学号" width="140" />
+        <el-table-column v-if="!isStudent" prop="studentName" label="姓名" width="120" />
+        <el-table-column v-if="!isStudent" prop="className" label="班级" min-width="140" />
+        <el-table-column v-if="!isStudent" prop="riskCount" label="风险次数" width="120" />
+        <el-table-column v-if="!isStudent" label="风险值" width="140">
           <template #default="{ row }">{{ formatNumber(row.riskValue) }}</template>
         </el-table-column>
+
+        <template v-if="isStudent && riskType === 'low_score'">
+          <el-table-column prop="courseName" label="课程" min-width="180" />
+          <el-table-column label="最低分" width="120">
+            <template #default="{ row }">{{ formatNumber(row.score) }}</template>
+          </el-table-column>
+          <el-table-column prop="riskCount" label="低分次数" width="120" />
+        </template>
+
+        <template v-if="isStudent && riskType === 'abnormal_attendance'">
+          <el-table-column label="日期" width="140">
+            <template #default="{ row }">{{ row.attendanceDate || '-' }}</template>
+          </el-table-column>
+          <el-table-column prop="courseName" label="课程" min-width="180" />
+          <el-table-column label="考勤状态" width="120">
+            <template #default="{ row }">{{ formatAttendanceStatus(row.attendanceStatus) }}</template>
+          </el-table-column>
+        </template>
+
+        <template v-if="isStudent && riskType === 'approval_overdue'">
+          <el-table-column prop="leaveRequestId" label="审批单号" width="120" />
+          <el-table-column label="提交时间" min-width="180">
+            <template #default="{ row }">{{ formatDateTime(row.submitTime) }}</template>
+          </el-table-column>
+          <el-table-column label="超时状态" width="120">
+            <template #default="{ row }">
+              <el-tag :type="row.overdue ? 'danger' : 'info'" size="small">
+                {{ row.overdue ? '已超时' : '未超时' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="超时小时" width="120">
+            <template #default="{ row }">{{ formatNumber(row.overdueHours) }}</template>
+          </el-table-column>
+        </template>
       </el-table>
 
       <el-pagination
@@ -207,6 +242,26 @@ function buildParams() {
 function formatNumber(value) {
   const number = Number(value || 0)
   return Number.isFinite(number) ? number.toFixed(2).replace(/\.00$/, '') : '0'
+}
+
+function formatAttendanceStatus(status) {
+  if (status === 'ABSENT') return '缺勤'
+  if (status === 'LATE') return '迟到'
+  return status || '-'
+}
+
+function formatDateTime(value) {
+  if (!value) return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return String(value)
+  }
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const hh = String(date.getHours()).padStart(2, '0')
+  const mm = String(date.getMinutes()).padStart(2, '0')
+  return `${y}-${m}-${d} ${hh}:${mm}`
 }
 
 function formatPercent(value) {

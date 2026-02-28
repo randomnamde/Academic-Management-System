@@ -311,6 +311,208 @@ class SecurityScopeIntegrationTest {
     }
 
     @Test
+    void studentRiskLowScoreShowsOwnCourseDetails() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String semester = "risk-low-score-" + suffix;
+
+        String courseCode = "RLS" + suffix.substring(Math.max(0, suffix.length() - 8));
+        jdbcTemplate.update("""
+                INSERT INTO course
+                (course_name, course_code, credit, hours, category, description, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                "Risk Low Score Course " + suffix, courseCode, 2.0, 32, "ELECTIVE", "risk detail", 1
+        );
+        Long secondCourseId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course", Long.class);
+        assertTrue(secondCourseId != null && secondCourseId > 0);
+
+        jdbcTemplate.update("""
+                INSERT INTO course_arrangement
+                (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                1L, 1L, 1L, semester, "Mon 08:00-09:40-" + suffix, "A401", 60, 2, 1
+        );
+        Long firstArrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
+        assertTrue(firstArrangementId != null && firstArrangementId > 0);
+
+        jdbcTemplate.update("""
+                INSERT INTO course_arrangement
+                (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                secondCourseId, 1L, 1L, semester, "Tue 10:00-11:40-" + suffix, "A402", 60, 2, 1
+        );
+        Long secondArrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
+        assertTrue(secondArrangementId != null && secondArrangementId > 0);
+
+        jdbcTemplate.update("""
+                INSERT INTO score
+                (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                1L, firstArrangementId, 55.0, 54.0, 53.0, 54.0, 0.0, "NORMAL"
+        );
+        jdbcTemplate.update("""
+                INSERT INTO score
+                (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                1L, firstArrangementId, 53.0, 52.0, 51.0, 52.0, 0.0, "NORMAL"
+        );
+        jdbcTemplate.update("""
+                INSERT INTO score
+                (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                1L, secondArrangementId, 58.0, 57.0, 56.0, 57.0, 0.0, "NORMAL"
+        );
+        jdbcTemplate.update("""
+                INSERT INTO score
+                (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                2L, secondArrangementId, 40.0, 39.0, 38.0, 39.0, 0.0, "NORMAL"
+        );
+
+        MvcResult result = mockMvc.perform(get("/analytics/risk-students")
+                        .param("riskType", "low_score")
+                        .param("semester", semester)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode records = objectMapper.readTree(result.getResponse().getContentAsString())
+                .path("data")
+                .path("records");
+        assertEquals(2, records.size());
+        for (JsonNode node : records) {
+            assertEquals(1L, node.path("studentId").asLong());
+            assertTrue(node.path("courseName").asText().trim().length() > 0);
+            assertTrue(node.path("score").asDouble() > 0);
+            assertTrue(node.path("score").asDouble() < 60.0);
+        }
+    }
+
+    @Test
+    void studentRiskAbnormalAttendanceShowsOwnAttendanceDetails() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String semester = "risk-attendance-" + suffix;
+
+        jdbcTemplate.update("""
+                INSERT INTO course_arrangement
+                (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                1L, 1L, 1L, semester, "Wed 08:00-09:40-" + suffix, "A501", 60, 2, 1
+        );
+        Long arrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
+        assertTrue(arrangementId != null && arrangementId > 0);
+
+        jdbcTemplate.update("""
+                INSERT INTO attendance
+                (student_id, course_arrangement_id, attendance_date, status, check_in_time, remark)
+                VALUES (?, ?, CURRENT_DATE, ?, ?, ?)
+                """,
+                1L, arrangementId, "ABSENT", "08:00:00", "risk-absent-" + suffix
+        );
+        jdbcTemplate.update("""
+                INSERT INTO attendance
+                (student_id, course_arrangement_id, attendance_date, status, check_in_time, remark)
+                VALUES (?, ?, CURRENT_DATE, ?, ?, ?)
+                """,
+                1L, arrangementId, "LATE", "08:30:00", "risk-late-" + suffix
+        );
+        jdbcTemplate.update("""
+                INSERT INTO attendance
+                (student_id, course_arrangement_id, attendance_date, status, check_in_time, remark)
+                VALUES (?, ?, CURRENT_DATE, ?, ?, ?)
+                """,
+                2L, arrangementId, "ABSENT", "08:00:00", "risk-other-" + suffix
+        );
+
+        MvcResult result = mockMvc.perform(get("/analytics/risk-students")
+                        .param("riskType", "abnormal_attendance")
+                        .param("semester", semester)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode records = objectMapper.readTree(result.getResponse().getContentAsString())
+                .path("data")
+                .path("records");
+        assertEquals(2, records.size());
+        for (JsonNode node : records) {
+            assertEquals(1L, node.path("studentId").asLong());
+            assertTrue(node.path("attendanceDate").asText().trim().length() > 0);
+            assertTrue(Set.of("ABSENT", "LATE").contains(node.path("attendanceStatus").asText()));
+            assertTrue(node.path("courseName").asText().trim().length() > 0);
+        }
+    }
+
+    @Test
+    void studentRiskApprovalOverdueShowsOnlyOwnOverdueSubmissions() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String semester = "risk-approval-" + suffix;
+
+        jdbcTemplate.update("""
+                INSERT INTO course_arrangement
+                (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                1L, 1L, 1L, semester, "Thu 08:00-09:40-" + suffix, "A601", 60, 2, 1
+        );
+        Long arrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
+        assertTrue(arrangementId != null && arrangementId > 0);
+
+        jdbcTemplate.update("""
+                INSERT INTO leave_request
+                (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id, create_time)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?, DATEADD('HOUR', -72, CURRENT_TIMESTAMP))
+                """,
+                1L, arrangementId, "SICK", "risk-overdue-self-" + suffix, "PENDING", 1L
+        );
+        jdbcTemplate.update("""
+                INSERT INTO leave_request
+                (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id, create_time)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?, DATEADD('HOUR', -12, CURRENT_TIMESTAMP))
+                """,
+                1L, arrangementId, "SICK", "risk-not-overdue-self-" + suffix, "PENDING", 1L
+        );
+        jdbcTemplate.update("""
+                INSERT INTO leave_request
+                (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id, create_time)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?, DATEADD('HOUR', -80, CURRENT_TIMESTAMP))
+                """,
+                2L, arrangementId, "SICK", "risk-overdue-other-" + suffix, "PENDING", 1L
+        );
+
+        MvcResult result = mockMvc.perform(get("/analytics/risk-students")
+                        .param("riskType", "approval_overdue")
+                        .param("semester", semester)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode records = objectMapper.readTree(result.getResponse().getContentAsString())
+                .path("data")
+                .path("records");
+        assertEquals(1, records.size());
+        JsonNode node = records.get(0);
+        assertEquals(1L, node.path("studentId").asLong());
+        assertTrue(node.path("leaveRequestId").asLong() > 0);
+        assertTrue(node.path("submitTime").asText().trim().length() > 0);
+        assertTrue(node.path("overdue").asBoolean());
+        assertTrue(node.path("overdueHours").asDouble() >= 48.0);
+    }
+
+    @Test
     void studentOverviewPendingIncludesRejectedExcludesApproved() throws Exception {
         String token = loginAndGetToken("student001", "123456");
         String suffix = String.valueOf(System.nanoTime());

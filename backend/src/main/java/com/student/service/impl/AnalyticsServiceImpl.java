@@ -7,12 +7,14 @@ import com.student.dto.AnalyticsOverviewDTO;
 import com.student.dto.RiskStudentDTO;
 import com.student.dto.TrendPointDTO;
 import com.student.entity.Attendance;
+import com.student.entity.Course;
 import com.student.entity.CourseArrangement;
 import com.student.entity.LeaveRequest;
 import com.student.entity.Score;
 import com.student.entity.Student;
 import com.student.entity.SysUser;
 import com.student.exception.BusinessException;
+import com.student.mapper.CourseMapper;
 import com.student.mapper.CourseArrangementMapper;
 import com.student.mapper.StudentMapper;
 import com.student.security.CurrentUserService;
@@ -55,6 +57,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final ScoreService scoreService;
     private final StudentService studentService;
     private final CurrentUserService currentUserService;
+    private final CourseMapper courseMapper;
     private final CourseArrangementMapper courseArrangementMapper;
     private final StudentMapper studentMapper;
 
@@ -172,14 +175,24 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         ArrangementScope arrangementScope = resolveArrangementScope(filter, scope);
         String normalizedRiskType = normalizeRiskType(riskType);
 
-        List<RiskStudentDTO> allRecords = new ArrayList<>(switch (normalizedRiskType) {
-            case "low_score" -> collectLowScoreRisk(range, scope, arrangementScope);
-            case "abnormal_attendance" -> collectAbnormalAttendanceRisk(range, scope, arrangementScope);
-            case "approval_overdue" -> collectApprovalOverdueRisk(scope, arrangementScope);
-            default -> throw new BusinessException(400, "Unsupported riskType: " + normalizedRiskType);
-        });
-
-        allRecords.sort(buildRiskComparator(normalizedRiskType));
+        List<RiskStudentDTO> allRecords;
+        if (scope.role() == SysUser.Role.STUDENT) {
+            allRecords = new ArrayList<>(switch (normalizedRiskType) {
+                case "low_score" -> collectStudentLowScoreRiskDetails(range, scope, arrangementScope);
+                case "abnormal_attendance" -> collectStudentAbnormalAttendanceRiskDetails(range, scope, arrangementScope);
+                case "approval_overdue" -> collectStudentApprovalOverdueRiskDetails(scope, arrangementScope);
+                default -> throw new BusinessException(400, "Unsupported riskType: " + normalizedRiskType);
+            });
+            allRecords.sort(buildStudentRiskComparator(normalizedRiskType));
+        } else {
+            allRecords = new ArrayList<>(switch (normalizedRiskType) {
+                case "low_score" -> collectLowScoreRisk(range, scope, arrangementScope);
+                case "abnormal_attendance" -> collectAbnormalAttendanceRisk(range, scope, arrangementScope);
+                case "approval_overdue" -> collectApprovalOverdueRisk(scope, arrangementScope);
+                default -> throw new BusinessException(400, "Unsupported riskType: " + normalizedRiskType);
+            });
+            allRecords.sort(buildRiskComparator(normalizedRiskType));
+        }
 
         long total = allRecords.size();
         int fromIndex = (safePage - 1) * safeSize;
@@ -390,6 +403,155 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return toRiskStudentList(aggregateMap, "approval_overdue", true);
     }
 
+    private List<RiskStudentDTO> collectStudentLowScoreRiskDetails(DateRange range, UserScope scope, ArrangementScope arrangementScope) {
+        if (arrangementScope.enabled() && arrangementScope.arrangementIds().isEmpty()) {
+            return List.of();
+        }
+        if (scope.studentId() == null) {
+            return List.of();
+        }
+
+        var query = scoreService.lambdaQuery()
+                .lt(Score::getTotalScore, PASS_SCORE)
+                .between(Score::getCreateTime, range.startDate().atStartOfDay(), range.endDate().plusDays(1).atStartOfDay().minusNanos(1));
+        applyScoreUserScope(query, scope);
+        applyArrangementScope(query, arrangementScope, Score::getCourseArrangementId);
+        List<Score> records = query.list();
+        if (records.isEmpty()) {
+            return List.of();
+        }
+
+        Set<Long> arrangementIds = new HashSet<>();
+        for (Score record : records) {
+            if (record.getCourseArrangementId() != null) {
+                arrangementIds.add(record.getCourseArrangementId());
+            }
+        }
+        Map<Long, CourseRef> courseRefByArrangementId = resolveCourseRefByArrangementIds(arrangementIds);
+        Student student = studentMapper.selectByIdWithClass(scope.studentId());
+
+        Map<String, LowScoreDetailAggregate> aggregateByCourse = new HashMap<>();
+        for (Score score : records) {
+            if (score.getTotalScore() == null) {
+                continue;
+            }
+            Long arrangementId = score.getCourseArrangementId();
+            CourseRef courseRef = arrangementId == null ? null : courseRefByArrangementId.get(arrangementId);
+            Long courseId = courseRef == null ? null : courseRef.courseId();
+            String groupKey = courseId != null ? "course_" + courseId : "arrangement_" + arrangementId;
+            String courseName = courseRef == null || !StringUtils.hasText(courseRef.courseName()) ? "-" : courseRef.courseName();
+            double scoreValue = score.getTotalScore().doubleValue();
+            aggregateByCourse.computeIfAbsent(groupKey, key -> new LowScoreDetailAggregate(courseName)).add(scoreValue);
+        }
+
+        List<RiskStudentDTO> details = new ArrayList<>();
+        for (LowScoreDetailAggregate aggregate : aggregateByCourse.values()) {
+            RiskStudentDTO dto = new RiskStudentDTO();
+            fillStudentBase(dto, student);
+            dto.setRiskType("low_score");
+            dto.setCourseName(aggregate.courseName());
+            dto.setRiskCount(aggregate.count());
+            dto.setScore(round2(aggregate.minScore()));
+            dto.setRiskValue(round2(aggregate.minScore()));
+            details.add(dto);
+        }
+        return details;
+    }
+
+    private List<RiskStudentDTO> collectStudentAbnormalAttendanceRiskDetails(DateRange range, UserScope scope, ArrangementScope arrangementScope) {
+        if (arrangementScope.enabled() && arrangementScope.arrangementIds().isEmpty()) {
+            return List.of();
+        }
+        if (scope.studentId() == null) {
+            return List.of();
+        }
+
+        var query = attendanceService.lambdaQuery()
+                .between(Attendance::getAttendanceDate, range.startDate(), range.endDate())
+                .in(Attendance::getStatus, Attendance.Status.ABSENT, Attendance.Status.LATE);
+        applyAttendanceUserScope(query, scope);
+        applyArrangementScope(query, arrangementScope, Attendance::getCourseArrangementId);
+        List<Attendance> records = query.list();
+        if (records.isEmpty()) {
+            return List.of();
+        }
+
+        Set<Long> arrangementIds = new HashSet<>();
+        for (Attendance record : records) {
+            if (record.getCourseArrangementId() != null) {
+                arrangementIds.add(record.getCourseArrangementId());
+            }
+        }
+        Map<Long, CourseRef> courseRefByArrangementId = resolveCourseRefByArrangementIds(arrangementIds);
+        Student student = studentMapper.selectByIdWithClass(scope.studentId());
+
+        List<RiskStudentDTO> details = new ArrayList<>();
+        for (Attendance attendance : records) {
+            RiskStudentDTO dto = new RiskStudentDTO();
+            fillStudentBase(dto, student);
+            dto.setRiskType("abnormal_attendance");
+            dto.setRiskCount(1L);
+            dto.setRiskValue(1D);
+            dto.setAttendanceDate(attendance.getAttendanceDate());
+            dto.setAttendanceStatus(attendance.getStatus() == null ? null : attendance.getStatus().name());
+            CourseRef courseRef = attendance.getCourseArrangementId() == null ? null : courseRefByArrangementId.get(attendance.getCourseArrangementId());
+            dto.setCourseName(courseRef == null || !StringUtils.hasText(courseRef.courseName()) ? "-" : courseRef.courseName());
+            details.add(dto);
+        }
+        return details;
+    }
+
+    private List<RiskStudentDTO> collectStudentApprovalOverdueRiskDetails(UserScope scope, ArrangementScope arrangementScope) {
+        if (arrangementScope.enabled() && arrangementScope.arrangementIds().isEmpty()) {
+            return List.of();
+        }
+        if (scope.studentId() == null) {
+            return List.of();
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime threshold = now.minusHours(OVERDUE_THRESHOLD_HOURS);
+        var query = leaveRequestService.lambdaQuery()
+                .eq(LeaveRequest::getStatus, LeaveRequest.Status.PENDING)
+                .le(LeaveRequest::getCreateTime, threshold);
+        applyLeaveUserScope(query, scope);
+        applyArrangementScope(query, arrangementScope, LeaveRequest::getCourseArrangementId);
+        List<LeaveRequest> records = query.list();
+        if (records.isEmpty()) {
+            return List.of();
+        }
+
+        Set<Long> arrangementIds = new HashSet<>();
+        for (LeaveRequest record : records) {
+            if (record.getCourseArrangementId() != null) {
+                arrangementIds.add(record.getCourseArrangementId());
+            }
+        }
+        Map<Long, CourseRef> courseRefByArrangementId = resolveCourseRefByArrangementIds(arrangementIds);
+        Student student = studentMapper.selectByIdWithClass(scope.studentId());
+
+        List<RiskStudentDTO> details = new ArrayList<>();
+        for (LeaveRequest leaveRequest : records) {
+            if (leaveRequest.getCreateTime() == null) {
+                continue;
+            }
+            double overdueHours = Duration.between(leaveRequest.getCreateTime(), now).toHours();
+            RiskStudentDTO dto = new RiskStudentDTO();
+            fillStudentBase(dto, student);
+            dto.setRiskType("approval_overdue");
+            dto.setRiskCount(1L);
+            dto.setRiskValue(round2(overdueHours));
+            dto.setLeaveRequestId(leaveRequest.getId());
+            dto.setSubmitTime(leaveRequest.getCreateTime());
+            dto.setOverdue(true);
+            dto.setOverdueHours(round2(overdueHours));
+            CourseRef courseRef = leaveRequest.getCourseArrangementId() == null ? null : courseRefByArrangementId.get(leaveRequest.getCourseArrangementId());
+            dto.setCourseName(courseRef == null || !StringUtils.hasText(courseRef.courseName()) ? "-" : courseRef.courseName());
+            details.add(dto);
+        }
+        return details;
+    }
+
     private List<RiskStudentDTO> toRiskStudentList(Map<Long, Aggregate> aggregateMap, String riskType, boolean averageValue) {
         if (aggregateMap.isEmpty()) {
             return List.of();
@@ -433,6 +595,68 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             return byCount.thenComparing(RiskStudentDTO::getRiskValue, Comparator.nullsLast(Double::compareTo));
         }
         return byCount.thenComparing(RiskStudentDTO::getRiskValue, Comparator.nullsLast(Double::compareTo)).reversed();
+    }
+
+    private Comparator<RiskStudentDTO> buildStudentRiskComparator(String riskType) {
+        return switch (riskType) {
+            case "low_score" -> Comparator
+                    .comparing(RiskStudentDTO::getScore, Comparator.nullsLast(Double::compareTo))
+                    .thenComparing(RiskStudentDTO::getRiskCount, Comparator.nullsLast(Comparator.reverseOrder()));
+            case "abnormal_attendance" -> Comparator
+                    .comparing(RiskStudentDTO::getAttendanceDate, Comparator.nullsLast(Comparator.reverseOrder()));
+            case "approval_overdue" -> Comparator
+                    .comparing(RiskStudentDTO::getOverdueHours, Comparator.nullsLast(Comparator.reverseOrder()));
+            default -> Comparator.comparing(RiskStudentDTO::getRiskValue, Comparator.nullsLast(Double::compareTo)).reversed();
+        };
+    }
+
+    private Map<Long, CourseRef> resolveCourseRefByArrangementIds(Set<Long> arrangementIds) {
+        if (arrangementIds == null || arrangementIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<CourseArrangement> arrangements = courseArrangementMapper.selectList(
+                new LambdaQueryWrapper<CourseArrangement>().in(CourseArrangement::getId, arrangementIds));
+        if (arrangements.isEmpty()) {
+            return Map.of();
+        }
+
+        Set<Long> courseIds = new HashSet<>();
+        for (CourseArrangement arrangement : arrangements) {
+            if (arrangement.getCourseId() != null) {
+                courseIds.add(arrangement.getCourseId());
+            }
+        }
+
+        Map<Long, String> courseNameById = new HashMap<>();
+        if (!courseIds.isEmpty()) {
+            List<Course> courses = courseMapper.selectBatchIds(courseIds);
+            for (Course course : courses) {
+                if (course.getId() != null) {
+                    courseNameById.put(course.getId(), course.getCourseName());
+                }
+            }
+        }
+
+        Map<Long, CourseRef> result = new HashMap<>();
+        for (CourseArrangement arrangement : arrangements) {
+            if (arrangement.getId() == null) {
+                continue;
+            }
+            String courseName = arrangement.getCourseId() == null ? null : courseNameById.get(arrangement.getCourseId());
+            result.put(arrangement.getId(), new CourseRef(arrangement.getCourseId(), courseName));
+        }
+        return result;
+    }
+
+    private void fillStudentBase(RiskStudentDTO dto, Student student) {
+        if (student == null) {
+            return;
+        }
+        dto.setStudentId(student.getId());
+        dto.setStudentNo(student.getStudentNo());
+        dto.setStudentName(student.getName());
+        dto.setClassName(student.getClassName());
     }
 
     private UserScope resolveUserScope(Authentication authentication) {
@@ -621,6 +845,38 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                                    Long lowScoreRiskCount,
                                    Double attendanceRate,
                                    Double approvalAvgHours) {
+    }
+
+    private record CourseRef(Long courseId, String courseName) {
+    }
+
+    private static class LowScoreDetailAggregate {
+        private final String courseName;
+        private long count = 0;
+        private double minScore = Double.MAX_VALUE;
+
+        private LowScoreDetailAggregate(String courseName) {
+            this.courseName = courseName;
+        }
+
+        private void add(double score) {
+            count++;
+            if (score < minScore) {
+                minScore = score;
+            }
+        }
+
+        private String courseName() {
+            return courseName;
+        }
+
+        private long count() {
+            return count;
+        }
+
+        private double minScore() {
+            return minScore == Double.MAX_VALUE ? 0D : minScore;
+        }
     }
 
     private static class Aggregate {

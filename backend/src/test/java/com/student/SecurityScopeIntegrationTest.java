@@ -124,6 +124,38 @@ class SecurityScopeIntegrationTest {
     }
 
     @Test
+    void studentAnalyticsIgnoresCrossScopeFilters() throws Exception {
+        String token = loginAndGetToken("student001", "123456");
+
+        MvcResult overviewResult = mockMvc.perform(get("/analytics/overview")
+                        .param("classId", "999")
+                        .param("teacherId", "999")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode overviewRoot = objectMapper.readTree(overviewResult.getResponse().getContentAsString());
+        assertEquals(1L, overviewRoot.path("data").path("studentCount").asLong());
+
+        MvcResult riskResult = mockMvc.perform(get("/analytics/risk-students")
+                        .param("riskType", "low_score")
+                        .param("classId", "999")
+                        .param("teacherId", "999")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode records = objectMapper.readTree(riskResult.getResponse().getContentAsString())
+                .path("data")
+                .path("records");
+        for (JsonNode node : records) {
+            assertEquals(1L, node.path("studentId").asLong());
+        }
+    }
+
+    @Test
     void unauthenticatedCannotAccessAnalyticsOverview() throws Exception {
         mockMvc.perform(get("/analytics/overview"))
                 .andExpect(status().isUnauthorized());

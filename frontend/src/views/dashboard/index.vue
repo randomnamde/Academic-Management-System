@@ -24,42 +24,42 @@
       </div>
 
       <div class="hero-metric-grid">
-        <el-card class="metric-card" @click="openStatDetail('student')">
+        <el-card class="metric-card" :class="{ disabled: isStudent }" @click="openStatDetail('student')">
           <div class="metric-icon student-icon">
             <el-icon><User /></el-icon>
           </div>
           <div class="metric-content">
-            <span class="metric-label">学生总数</span>
+            <span class="metric-label">{{ metricLabels.student }}</span>
             <strong class="metric-value">{{ statistics.studentCount }}</strong>
           </div>
         </el-card>
 
-        <el-card class="metric-card" @click="openStatDetail('teacher')">
+        <el-card class="metric-card" :class="{ disabled: isStudent }" @click="openStatDetail('teacher')">
           <div class="metric-icon teacher-icon">
             <el-icon><UserFilled /></el-icon>
           </div>
           <div class="metric-content">
-            <span class="metric-label">教师总数</span>
+            <span class="metric-label">{{ metricLabels.teacher }}</span>
             <strong class="metric-value">{{ statistics.teacherCount }}</strong>
           </div>
         </el-card>
 
-        <el-card class="metric-card" @click="openStatDetail('course')">
+        <el-card class="metric-card" :class="{ disabled: isStudent }" @click="openStatDetail('course')">
           <div class="metric-icon course-icon">
             <el-icon><Reading /></el-icon>
           </div>
           <div class="metric-content">
-            <span class="metric-label">课程总数</span>
+            <span class="metric-label">{{ metricLabels.course }}</span>
             <strong class="metric-value">{{ statistics.courseCount }}</strong>
           </div>
         </el-card>
 
-        <el-card class="metric-card" @click="openStatDetail('class')">
+        <el-card class="metric-card" :class="{ disabled: isStudent }" @click="openStatDetail('class')">
           <div class="metric-icon class-icon">
             <el-icon><School /></el-icon>
           </div>
           <div class="metric-content">
-            <span class="metric-label">班级总数</span>
+            <span class="metric-label">{{ metricLabels.class }}</span>
             <strong class="metric-value">{{ statistics.classCount }}</strong>
           </div>
         </el-card>
@@ -67,24 +67,48 @@
     </section>
 
     <section class="bento-grid">
-      <el-card class="panel-card panel-gender">
+      <el-card v-if="!isStudent" class="panel-card panel-gender">
         <template #header>
           <span>学生性别分布</span>
         </template>
         <div ref="genderChartRef" class="chart chart-gender"></div>
       </el-card>
 
-      <el-card class="panel-card panel-course">
+      <el-card v-if="!isStudent" class="panel-card panel-course">
         <template #header>
           <span>课程类型分布</span>
         </template>
         <div ref="courseChartRef" class="chart chart-course"></div>
       </el-card>
 
+      <el-card v-else class="panel-card panel-personal">
+        <template #header>
+          <span>我的学习概览</span>
+        </template>
+        <div class="personal-grid">
+          <div class="personal-item">
+            <span>任课教师</span>
+            <strong>{{ statistics.teacherCount }}</strong>
+          </div>
+          <div class="personal-item">
+            <span>我的课程</span>
+            <strong>{{ statistics.courseCount }}</strong>
+          </div>
+          <div class="personal-item">
+            <span>我的班级</span>
+            <strong>{{ statistics.classCount }}</strong>
+          </div>
+          <div class="personal-item">
+            <span>待处理请假</span>
+            <strong>{{ operationOverview.pendingApprovalCount }}</strong>
+          </div>
+        </div>
+      </el-card>
+
       <el-card class="panel-card panel-ops">
         <template #header>
           <div class="card-header">
-            <span>运营概览</span>
+            <span>{{ isStudent ? '我的运营概览' : '运营概览' }}</span>
             <el-link type="primary" @click="goAnalytics()">进入分析中心</el-link>
           </div>
         </template>
@@ -98,7 +122,7 @@
             <strong class="ops-value">{{ operationOverview.abnormalTodayCount }}</strong>
           </div>
           <div class="ops-item clickable" @click="goAnalytics({ riskType: 'low_score' })">
-            <span class="ops-label">低分预警人数</span>
+            <span class="ops-label">{{ isStudent ? '我的低分预警' : '低分预警人数' }}</span>
             <strong class="ops-value">{{ operationOverview.lowScoreWarningCount }}</strong>
           </div>
         </div>
@@ -106,7 +130,7 @@
 
       <el-card class="panel-card panel-trend">
         <template #header>
-          <span>近7日异常考勤趋势</span>
+          <span>{{ isStudent ? '近7日我的异常考勤趋势' : '近7日异常考勤趋势' }}</span>
         </template>
         <div ref="trendChartRef" class="chart chart-trend"></div>
       </el-card>
@@ -291,6 +315,7 @@ import { getStudentGenderStatistics, getStudentList } from '@/api/student'
 import { getTeacherList } from '@/api/teacher'
 import { getCourseCategoryStatistics, getCourseList } from '@/api/course'
 import { getClassList } from '@/api/clazz'
+import { getCourseArrangementList } from '@/api/courseArrangement'
 import { getDashboardOverview } from '@/api/dashboard'
 
 use([PieChart, BarChart, PictorialBarChart, LineChart, TooltipComponent, LegendComponent, GridComponent, GraphicComponent, CanvasRenderer])
@@ -360,6 +385,23 @@ const statMeta = {
 const currentStatTitle = computed(() => statMeta[statType.value]?.title || '详情')
 const userInfo = computed(() => store.state.userInfo || {})
 const userRole = computed(() => userInfo.value.role || 'STUDENT')
+const isStudent = computed(() => userRole.value === 'STUDENT')
+const metricLabels = computed(() => {
+  if (isStudent.value) {
+    return {
+      student: '我的信息',
+      teacher: '任课教师数',
+      course: '我的课程数',
+      class: '我的班级数'
+    }
+  }
+  return {
+    student: '学生总数',
+    teacher: '教师总数',
+    course: '课程总数',
+    class: '班级总数'
+  }
+})
 
 const todoLoading = ref(false)
 const todoDraft = ref('')
@@ -884,6 +926,30 @@ const initCharts = () => {
 
 const fetchStatistics = async () => {
   try {
+    if (isStudent.value) {
+      const [studentRes, arrangementRes] = await Promise.all([
+        getStudentList({ page: 1, size: 1 }),
+        getCourseArrangementList({ page: 1, size: 500, status: 1 })
+      ])
+
+      const studentRecords = studentRes.data?.records || []
+      const arrangements = arrangementRes.data?.records || []
+      const teacherIds = new Set(arrangements.map((item) => item.teacherId).filter(Boolean))
+      const courseIds = new Set(arrangements.map((item) => item.courseId).filter(Boolean))
+      const classIds = new Set(arrangements.map((item) => item.classId).filter(Boolean))
+      if (!classIds.size && studentRecords[0]?.classId) {
+        classIds.add(studentRecords[0].classId)
+      }
+
+      statistics.value = {
+        studentCount: Number(studentRes.data?.total || 1),
+        teacherCount: teacherIds.size,
+        courseCount: courseIds.size,
+        classCount: classIds.size || 1
+      }
+      return
+    }
+
     const [studentRes, teacherRes, courseRes, classRes] = await Promise.all([
       getStudentList({ page: 1, size: 1 }),
       getTeacherList({ page: 1, size: 1 }),
@@ -988,6 +1054,10 @@ const fetchStatDetail = async () => {
 }
 
 const openStatDetail = async (type) => {
+  if (isStudent.value) {
+    ElMessage.warning('学生仅可查看个人总览数据')
+    return
+  }
   statType.value = type
   statPage.value = 1
   statSize.value = 10
@@ -1041,8 +1111,10 @@ const getCourseCategoryText = (category) => {
 onMounted(() => {
   loadTodoState()
   fetchStatistics()
-  fetchGenderStatistics()
-  fetchCourseCategoryStatistics()
+  if (!isStudent.value) {
+    fetchGenderStatistics()
+    fetchCourseCategoryStatistics()
+  }
   fetchDashboardOperationOverview()
   fetchLatestAnnouncements()
   refreshTodos()
@@ -1158,6 +1230,15 @@ onBeforeUnmount(() => {
   box-shadow: 0 18px 32px rgba(83, 61, 170, 0.18);
 }
 
+.metric-card.disabled {
+  cursor: default;
+}
+
+.metric-card.disabled:hover {
+  transform: none;
+  box-shadow: 0 12px 30px rgba(85, 65, 155, 0.1);
+}
+
 :deep(.metric-card .el-card__body) {
   padding: 14px;
   display: flex;
@@ -1230,6 +1311,10 @@ onBeforeUnmount(() => {
   grid-column: span 4;
 }
 
+.panel-personal {
+  grid-column: span 8;
+}
+
 .panel-trend {
   grid-column: span 8;
 }
@@ -1276,6 +1361,34 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 10px;
   height: 100%;
+}
+
+.personal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  height: 100%;
+}
+
+.personal-item {
+  border-radius: 12px;
+  border: 1px solid rgba(175, 154, 255, 0.2);
+  background: rgba(255, 255, 255, 0.68);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.personal-item span {
+  color: #5e4f8d;
+  font-size: 14px;
+}
+
+.personal-item strong {
+  color: #2b204f;
+  font-size: 24px;
+  line-height: 1;
 }
 
 .ops-item {
@@ -1416,6 +1529,7 @@ onBeforeUnmount(() => {
 
   .panel-gender,
   .panel-course,
+  .panel-personal,
   .panel-ops {
     grid-column: span 6;
   }
@@ -1454,6 +1568,7 @@ onBeforeUnmount(() => {
 
   .panel-gender,
   .panel-course,
+  .panel-personal,
   .panel-ops,
   .panel-trend,
   .panel-announcement,
@@ -1467,12 +1582,17 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
+  .personal-grid {
+    grid-template-columns: 1fr;
+  }
+
   .bento-grid {
     grid-template-columns: 1fr;
   }
 
   .panel-gender,
   .panel-course,
+  .panel-personal,
   .panel-ops,
   .panel-trend,
   .panel-announcement,

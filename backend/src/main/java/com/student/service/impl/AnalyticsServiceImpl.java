@@ -418,11 +418,26 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private ArrangementScope resolveArrangementScope(AnalyticsFilterDTO filter, UserScope scope) {
-        Long teacherId = scope.role() == SysUser.Role.TEACHER ? scope.teacherId() : filter.getTeacherId();
-        Long classId = scope.role() == SysUser.Role.STUDENT ? scope.classId() : filter.getClassId();
+        Long teacherId = null;
+        Long classId = null;
+        if (scope.role() == SysUser.Role.TEACHER) {
+            teacherId = scope.teacherId();
+        } else if (scope.role() == SysUser.Role.ADMIN) {
+            teacherId = filter.getTeacherId();
+            classId = filter.getClassId();
+        }
         String semester = filter.getSemester();
 
-        boolean enabled = teacherId != null || classId != null || StringUtils.hasText(semester) || scope.role() != SysUser.Role.ADMIN;
+        // Student analytics must stay in "self" scope; classId/teacherId filters are ignored.
+        // Optional semester filter is still supported for narrowing personal records.
+        boolean enabled;
+        if (scope.role() == SysUser.Role.ADMIN) {
+            enabled = teacherId != null || classId != null || StringUtils.hasText(semester);
+        } else if (scope.role() == SysUser.Role.TEACHER) {
+            enabled = true;
+        } else {
+            enabled = StringUtils.hasText(semester);
+        }
         if (!enabled) {
             return new ArrangementScope(false, Set.of());
         }

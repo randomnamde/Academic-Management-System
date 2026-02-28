@@ -41,7 +41,11 @@
         <el-table-column prop="gender" label="性别" width="80">
           <template #default="{ row }">{{ row.gender === 'MALE' ? '男' : '女' }}</template>
         </el-table-column>
-        <el-table-column prop="className" label="班级" width="150" />
+        <el-table-column label="班级" width="150">
+          <template #default="{ row }">
+            {{ row.className || getClassNameById(row.classId) || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="phone" label="电话" width="140" />
         <el-table-column prop="email" label="邮箱" min-width="180" />
         <el-table-column prop="status" label="状态" width="100">
@@ -318,6 +322,12 @@ function getStatusType(status) {
 function getStatusText(status) {
   const map = { ENROLLED: '在读', SUSPENDED: '休学', GRADUATED: '毕业', DROPPED: '退学' }
   return map[status] || status
+}
+
+function getClassNameById(classId) {
+  if (!classId) return ''
+  const hit = classList.value.find((item) => item.id === classId)
+  return hit?.className || ''
 }
 
 onMounted(async () => {

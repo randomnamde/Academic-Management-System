@@ -127,12 +127,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     @Override
     public Page<Student> getStudentPage(Integer page, Integer size, String studentNo, String name, Long classId, Student.Status status) {
         Page<Student> pageParam = new Page<>(page, size);
-        return lambdaQuery()
-                .like(StringUtils.hasText(studentNo), Student::getStudentNo, studentNo)
-                .like(StringUtils.hasText(name), Student::getName, name)
-                .eq(classId != null, Student::getClassId, classId)
-                .eq(status != null, Student::getStatus, status)
-                .page(pageParam);
+        return studentMapper.selectPageWithClass(pageParam, studentNo, name, classId, status);
     }
 
     @Override

@@ -16,7 +16,29 @@ public interface StudentMapper extends BaseMapper<Student> {
     
     @Select("SELECT s.*, c.class_name FROM student s LEFT JOIN class c ON s.class_id = c.id WHERE s.id = #{id}")
     Student selectByIdWithClass(@Param("id") Long id);
-    
+
+    @Select({
+            "<script>",
+            "SELECT s.*, c.class_name",
+            "FROM student s",
+            "LEFT JOIN class c ON s.class_id = c.id",
+            "<where>",
+            "  <if test='studentNo != null and studentNo != \"\"'>",
+            "    AND s.student_no LIKE CONCAT('%', #{studentNo}, '%')",
+            "  </if>",
+            "  <if test='name != null and name != \"\"'>",
+            "    AND s.name LIKE CONCAT('%', #{name}, '%')",
+            "  </if>",
+            "  <if test='classId != null'>",
+            "    AND s.class_id = #{classId}",
+            "  </if>",
+            "  <if test='status != null'>",
+            "    AND s.status = #{status}",
+            "  </if>",
+            "</where>",
+            "ORDER BY s.create_time DESC",
+            "</script>"
+    })
     Page<Student> selectPageWithClass(Page<Student> page, 
                                        @Param("studentNo") String studentNo,
                                        @Param("name") String name,
@@ -26,7 +48,7 @@ public interface StudentMapper extends BaseMapper<Student> {
     @Select("SELECT * FROM student WHERE student_no = #{studentNo}")
     Student selectByStudentNo(@Param("studentNo") String studentNo);
     
-    @Select("SELECT * FROM student WHERE class_id = #{classId}")
+    @Select("SELECT s.*, c.class_name FROM student s LEFT JOIN class c ON s.class_id = c.id WHERE s.class_id = #{classId}")
     List<Student> selectByClassId(@Param("classId") Long classId);
     
     @Update("UPDATE student SET status = #{status} WHERE id = #{id}")

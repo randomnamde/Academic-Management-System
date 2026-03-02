@@ -1,93 +1,91 @@
-<template>
-  <div class="page-container">
-    <el-row :gutter="16">
-      <el-col :xs="24" :lg="8">
-        <el-card>
-          <template #header>
-            <span>账号信息</span>
-          </template>
-          <div class="user-info">
-            <el-avatar :size="88" :src="user.avatar || defaultAvatar" />
-            <div class="user-name">{{ user.realName || user.username }}</div>
-            <div class="user-role">{{ user.role || '-' }}</div>
-          </div>
-          <el-descriptions :column="1" border>
-            <el-descriptions-item label="用户名">{{ user.username || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="账号状态">
-              <el-tag :type="user.status === 1 ? 'success' : 'danger'">{{ user.status === 1 ? '启用' : '禁用' }}</el-tag>
-            </el-descriptions-item>
-            <el-descriptions-item label="创建时间">{{ user.createTime || '-' }}</el-descriptions-item>
-          </el-descriptions>
-        </el-card>
-      </el-col>
+﻿<template>
+  <ProfilePageShell title="个人中心">
+    <div class="grid gap-4 xl:grid-cols-[320px,1fr]">
+      <AppCard title="账户信息" content-class="p-5">
+        <div class="user-info">
+          <el-avatar :size="88" :src="user.avatar || defaultAvatar" />
+          <div class="user-name">{{ user.realName || user.username }}</div>
+          <div class="user-role">{{ user.role || '-' }}</div>
+        </div>
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="用户名">{{ user.username || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="账号状态">
+            <el-tag :type="user.status === 1 ? 'success' : 'danger'">{{ user.status === 1 ? '启用' : '禁用' }}</el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ user.createTime || '-' }}</el-descriptions-item>
+        </el-descriptions>
+      </AppCard>
 
-      <el-col :xs="24" :lg="16">
-        <el-card>
-          <template #header>
-            <span>个人中心</span>
-          </template>
-          <el-tabs v-model="activeTab">
-            <el-tab-pane label="个人资料" name="profile">
-              <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-                <el-form-item label="真实姓名" prop="realName">
-                  <el-input v-model="form.realName" />
-                </el-form-item>
-                <el-form-item label="手机号">
-                  <el-input v-model="form.phone" />
-                </el-form-item>
-                <el-form-item label="邮箱">
-                  <el-input v-model="form.email" />
-                </el-form-item>
-                <el-form-item label="头像">
-                  <div class="avatar-upload-row">
-                    <el-avatar :size="64" :src="form.avatar || defaultAvatar" />
-                    <div class="avatar-upload-actions">
-                      <el-upload
-                        class="avatar-uploader"
-                        :show-file-list="false"
-                        :before-upload="beforeAvatarUpload"
-                        :http-request="handleAvatarUpload"
-                        :disabled="uploadingAvatar"
-                        accept="image/*"
-                      >
-                        <el-button :loading="uploadingAvatar">上传头像</el-button>
-                      </el-upload>
-                      <div class="avatar-tip">支持 jpg/png/gif/webp，大小不超过 5MB</div>
-                    </div>
+      <AppCard title="资料与安全" content-class="p-5">
+        <el-tabs v-model="activeTab">
+          <el-tab-pane label="个人资料" name="profile">
+            <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+              <el-form-item label="真实姓名" prop="realName">
+                <el-input v-model="form.realName" />
+              </el-form-item>
+              <el-form-item label="手机号">
+                <el-input v-model="form.phone" />
+              </el-form-item>
+              <el-form-item label="邮箱">
+                <el-input v-model="form.email" />
+              </el-form-item>
+              <el-form-item label="头像">
+                <div class="avatar-upload-row">
+                  <el-avatar :size="64" :src="form.avatar || defaultAvatar" />
+                  <div class="avatar-upload-actions">
+                    <el-upload
+                      class="avatar-uploader"
+                      :show-file-list="false"
+                      :before-upload="beforeAvatarUpload"
+                      :http-request="handleAvatarUpload"
+                      :disabled="uploadingAvatar"
+                      accept="image/*"
+                    >
+                      <AppButton variant="secondary" :loading="uploadingAvatar">上传头像</AppButton>
+                    </el-upload>
+                    <div class="avatar-tip">支持 jpg/png/gif/webp，大小不超过 5MB</div>
                   </div>
-                </el-form-item>
-                <el-form-item label="头像地址">
-                  <el-input v-model="form.avatar" placeholder="上传后会自动填充，也可手动输入 URL" />
-                </el-form-item>
-                <el-form-item>
-                  <el-button type="primary" :loading="saving" @click="submit">保存资料</el-button>
-                  <el-button @click="resetFromUser">重置</el-button>
-                </el-form-item>
-              </el-form>
-            </el-tab-pane>
+                </div>
+              </el-form-item>
+              <el-form-item label="头像地址">
+                <el-input v-model="form.avatar" placeholder="上传后会自动填充，也可手动输入 URL" />
+              </el-form-item>
+              <el-form-item>
+                <AppButton :loading="saving" @click="submit">保存资料</AppButton>
+                <AppButton variant="secondary" class="ml-2" @click="resetFromUser">重置</AppButton>
+              </el-form-item>
+            </el-form>
+          </el-tab-pane>
 
-            <el-tab-pane label="修改密码" name="password">
-              <el-form ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="100px">
-                <el-form-item label="旧密码" prop="oldPassword">
-                  <el-input v-model="pwdForm.oldPassword" type="password" show-password />
-                </el-form-item>
-                <el-form-item label="新密码" prop="newPassword">
-                  <el-input v-model="pwdForm.newPassword" type="password" show-password />
-                </el-form-item>
-                <el-form-item label="确认新密码" prop="confirmPassword">
-                  <el-input v-model="pwdForm.confirmPassword" type="password" show-password />
-                </el-form-item>
-                <el-form-item>
-                  <el-button type="primary" :loading="updatingPassword" @click="submitPassword">更新密码</el-button>
-                  <el-button @click="resetPasswordForm">重置</el-button>
-                </el-form-item>
-              </el-form>
-            </el-tab-pane>
-          </el-tabs>
-        </el-card>
-      </el-col>
-    </el-row>
-  </div>
+          <el-tab-pane label="修改密码" name="password">
+            <el-form ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="100px">
+              <el-form-item label="旧密码" prop="oldPassword">
+                <el-input v-model="pwdForm.oldPassword" type="password" show-password />
+              </el-form-item>
+              <el-form-item label="新密码" prop="newPassword">
+                <el-input v-model="pwdForm.newPassword" type="password" show-password />
+              </el-form-item>
+              <el-form-item label="确认新密码" prop="confirmPassword">
+                <el-input v-model="pwdForm.confirmPassword" type="password" show-password />
+              </el-form-item>
+              <el-form-item>
+                <AppButton :loading="updatingPassword" @click="submitPassword">更新密码</AppButton>
+                <AppButton variant="secondary" class="ml-2" @click="resetPasswordForm">重置</AppButton>
+              </el-form-item>
+            </el-form>
+          </el-tab-pane>
+        </el-tabs>
+      </AppCard>
+    </div>
+
+    <template #aside>
+      <ul class="space-y-2">
+        <li>建议每 90 天更新一次密码，避免重复使用旧密码。</li>
+        <li>头像建议使用清晰人像，便于班级与教学协作识别。</li>
+        <li>手机号和邮箱建议保持可用，用于接收系统通知。</li>
+      </ul>
+    </template>
+  </ProfilePageShell>
 </template>
 
 <script setup>
@@ -95,6 +93,9 @@ import { onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
+import ProfilePageShell from '@/components/shell/ProfilePageShell.vue'
+import AppCard from '@/components/ui/AppCard.vue'
+import AppButton from '@/components/ui/AppButton.vue'
 import { getUserInfo, updatePassword, updateProfile, uploadAvatar } from '@/api/user'
 
 const route = useRoute()
@@ -246,23 +247,6 @@ watch(
 </script>
 
 <style scoped lang="scss">
-.page-container {
-  padding: 4px 0 10px;
-}
-
-.page-container :deep(.el-card) {
-  border-radius: 18px;
-  border: 1px solid rgba(21, 88, 102, 0.17);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
-  box-shadow: 0 10px 24px rgba(20, 68, 80, 0.1);
-}
-
-.page-container :deep(.el-card__header) {
-  border-bottom: 1px solid rgba(19, 87, 98, 0.15);
-  font-weight: 700;
-  color: #17384a;
-}
-
 .user-info {
   display: flex;
   flex-direction: column;
@@ -301,11 +285,5 @@ watch(
 .avatar-tip {
   font-size: 12px;
   color: #68818d;
-}
-
-@media (max-width: 992px) {
-  .page-container {
-    padding-top: 0;
-  }
 }
 </style>

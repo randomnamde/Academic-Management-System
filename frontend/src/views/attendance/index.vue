@@ -1,24 +1,19 @@
 ﻿<template>
-  <div class="page-container">
-    <el-card class="workbench-card">
-      <template #header>
-        <div class="header-row">
-          <span>考勤管理</span>
-          <div class="header-actions">
-            <el-dropdown @command="handleExport">
-              <el-button>导出报表</el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="csv">导出 CSV</el-dropdown-item>
-                  <el-dropdown-item command="xlsx">导出 Excel</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-            <el-button v-if="canEditAttendance" type="primary" @click="openCreate">新增考勤</el-button>
-          </div>
-        </div>
-      </template>
+  <CrudPageShell title="考勤管理">
+    <template #header-actions>
+      <el-dropdown @command="handleExport">
+        <AppButton variant="secondary">导出报表</AppButton>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="csv">导出 CSV</el-dropdown-item>
+            <el-dropdown-item command="xlsx">导出 Excel</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <AppButton v-if="canEditAttendance" class="ml-2" @click="openCreate">新增考勤</AppButton>
+    </template>
 
+    <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item v-if="canFilterStudent" label="学生ID">
           <el-input-number v-model="searchForm.studentId" :min="1" style="width: 140px" />
@@ -51,11 +46,13 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <AppButton @click="handleSearch">查询</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
         </el-form-item>
       </el-form>
+    </template>
 
+    <template #table>
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="studentId" label="学生ID" width="90" />
@@ -73,7 +70,9 @@
           </template>
         </el-table-column>
       </el-table>
+    </template>
 
+    <template #pagination>
       <el-pagination
         class="pagination"
         v-model:current-page="page"
@@ -84,9 +83,9 @@
         @size-change="fetchList"
         @current-change="fetchList"
       />
-    </el-card>
+    </template>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑考勤' : '新增考勤'" width="640px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? '编辑考勤' : '新增考勤'" width="640px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="12">
@@ -149,17 +148,20 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submit">保存</el-button>
+        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
+        <AppButton @click="submit">保存</AppButton>
       </template>
-    </el-dialog>
-  </div>
+    </AppModal>
+  </CrudPageShell>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import CrudPageShell from '@/components/shell/CrudPageShell.vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import AppModal from '@/components/ui/AppModal.vue'
 import {
   deleteAttendance,
   exportAttendanceReport,
@@ -320,62 +322,3 @@ onMounted(async () => {
   await fetchList()
 })
 </script>
-
-<style scoped lang="scss">
-.page-container {
-  padding: 4px 0 10px;
-}
-
-.workbench-card {
-  border-radius: 18px;
-  border: 1px solid rgba(21, 88, 102, 0.17);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
-  box-shadow: 0 10px 24px rgba(20, 68, 80, 0.1);
-}
-
-.workbench-card :deep(.el-card__header) {
-  border-bottom: 1px solid rgba(19, 87, 98, 0.15);
-}
-
-.header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-row > span {
-  font-size: 18px;
-  font-weight: 700;
-  color: #17384a;
-  letter-spacing: 0.01em;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.search-form {
-  margin-bottom: 16px;
-}
-
-.pagination {
-  margin-top: 16px;
-  justify-content: flex-end;
-}
-
-@media (max-width: 992px) {
-  .header-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .header-actions {
-    width: 100%;
-  }
-}
-</style>
-

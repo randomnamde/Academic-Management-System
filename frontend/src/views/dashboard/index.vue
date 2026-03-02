@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="dashboard">
+  <div class="dashboard app-page">
     <section class="hero-panel">
       <div class="hero-content">
         <p class="hero-kicker">{{ dashboardCopy.heroKicker }}</p>
@@ -24,7 +24,7 @@
       </div>
 
       <div class="hero-metric-grid">
-        <el-card class="metric-card" :class="{ disabled: isMetricDisabled('student') }" @click="handleMetricClick('student')">
+        <AppCard class="metric-card" content-class="metric-body" :class="{ disabled: isMetricDisabled('student') }" @click="handleMetricClick('student')">
           <div class="metric-icon student-icon">
             <el-icon><User /></el-icon>
           </div>
@@ -32,9 +32,9 @@
             <span class="metric-label">{{ metricLabels.student }}</span>
             <strong v-if="!isStudent" class="metric-value">{{ statistics.studentCount }}</strong>
           </div>
-        </el-card>
+        </AppCard>
 
-        <el-card class="metric-card" :class="{ disabled: isMetricDisabled('teacher') }" @click="handleMetricClick('teacher')">
+        <AppCard class="metric-card" content-class="metric-body" :class="{ disabled: isMetricDisabled('teacher') }" @click="handleMetricClick('teacher')">
           <div class="metric-icon teacher-icon">
             <el-icon><UserFilled /></el-icon>
           </div>
@@ -42,9 +42,9 @@
             <span class="metric-label">{{ metricLabels.teacher }}</span>
             <strong class="metric-value">{{ statistics.teacherCount }}</strong>
           </div>
-        </el-card>
+        </AppCard>
 
-        <el-card class="metric-card" :class="{ disabled: isMetricDisabled('course') }" @click="handleMetricClick('course')">
+        <AppCard class="metric-card" content-class="metric-body" :class="{ disabled: isMetricDisabled('course') }" @click="handleMetricClick('course')">
           <div class="metric-icon course-icon">
             <el-icon><Reading /></el-icon>
           </div>
@@ -52,9 +52,9 @@
             <span class="metric-label">{{ metricLabels.course }}</span>
             <strong class="metric-value">{{ statistics.courseCount }}</strong>
           </div>
-        </el-card>
+        </AppCard>
 
-        <el-card class="metric-card" :class="{ disabled: isMetricDisabled('class') }" @click="handleMetricClick('class')">
+        <AppCard class="metric-card" content-class="metric-body" :class="{ disabled: isMetricDisabled('class') }" @click="handleMetricClick('class')">
           <div class="metric-icon class-icon">
             <el-icon><School /></el-icon>
           </div>
@@ -62,29 +62,20 @@
             <span class="metric-label">{{ metricLabels.class }}</span>
             <strong class="metric-value">{{ statistics.classCount }}</strong>
           </div>
-        </el-card>
+        </AppCard>
       </div>
     </section>
 
     <section class="bento-grid">
-      <el-card v-if="!isStudent" class="panel-card panel-gender">
-        <template #header>
-          <span>学生性别分布</span>
-        </template>
+      <AppCard v-if="!isStudent" class="panel-card panel-gender" title="学生性别分布" content-class="panel-body">
         <div ref="genderChartRef" class="chart chart-gender"></div>
-      </el-card>
+      </AppCard>
 
-      <el-card v-if="!isStudent" class="panel-card panel-course">
-        <template #header>
-          <span>课程类型分布</span>
-        </template>
+      <AppCard v-if="!isStudent" class="panel-card panel-course" title="课程类型分布" content-class="panel-body">
         <div ref="courseChartRef" class="chart chart-course"></div>
-      </el-card>
+      </AppCard>
 
-      <el-card v-else class="panel-card panel-personal">
-        <template #header>
-          <span>{{ dashboardCopy.personalPanelTitle }}</span>
-        </template>
+      <AppCard v-else class="panel-card panel-personal" :title="dashboardCopy.personalPanelTitle" content-class="panel-body">
         <div class="personal-grid">
           <div class="personal-item">
             <span>任课教师</span>
@@ -103,14 +94,11 @@
             <strong>{{ operationOverview.pendingApprovalCount }}</strong>
           </div>
         </div>
-      </el-card>
+      </AppCard>
 
-      <el-card class="panel-card panel-ops">
+      <AppCard class="panel-card panel-ops" :title="dashboardCopy.opsPanelTitle" content-class="panel-body">
         <template #header>
-          <div class="card-header">
-            <span>{{ dashboardCopy.opsPanelTitle }}</span>
-            <el-link type="primary" @click="goAnalytics()">进入分析中心</el-link>
-          </div>
+          <AppButton variant="ghost" size="sm" @click="goAnalytics()">进入分析中心</AppButton>
         </template>
         <div class="ops-list">
           <div class="ops-item clickable" @click="goAnalytics({ riskType: 'approval_overdue' })">
@@ -126,21 +114,15 @@
             <strong class="ops-value">{{ operationOverview.lowScoreWarningCount }}</strong>
           </div>
         </div>
-      </el-card>
+      </AppCard>
 
-      <el-card class="panel-card panel-trend">
-        <template #header>
-          <span>{{ isStudent ? '近7日我的异常考勤趋势' : '近7日异常考勤趋势' }}</span>
-        </template>
+      <AppCard class="panel-card panel-trend" :title="isStudent ? '近7日我的异常考勤趋势' : '近7日异常考勤趋势'" content-class="panel-body">
         <div ref="trendChartRef" class="chart chart-trend"></div>
-      </el-card>
+      </AppCard>
 
-      <el-card class="panel-card panel-announcement">
+      <AppCard class="panel-card panel-announcement" title="最新公告" content-class="panel-body">
         <template #header>
-          <div class="card-header">
-            <span>最新公告</span>
-            <el-link type="primary" @click="$router.push('/announcement')">查看更多</el-link>
-          </div>
+          <AppButton variant="ghost" size="sm" @click="$router.push('/announcement')">查看更多</AppButton>
         </template>
         <el-empty
           v-if="announcementLoading || !announcements.length"
@@ -152,20 +134,19 @@
             :key="item.id || index"
             :timestamp="item.createTime"
             :type="index === 0 ? 'primary' : ''"
+            class="announcement-item"
+            :style="{ '--announcement-delay': `${index * 60}ms` }"
           >
-            <el-link type="primary" :underline="false" @click="openAnnouncementDetail(item)">
+            <button class="announcement-title" @click="openAnnouncementDetail(item)">
               {{ item.title }}
-            </el-link>
+            </button>
           </el-timeline-item>
         </el-timeline>
-      </el-card>
+      </AppCard>
 
-      <el-card class="panel-card panel-todo">
+      <AppCard class="panel-card panel-todo" title="待办事项" content-class="panel-body">
         <template #header>
-          <div class="card-header">
-            <span>待办事项</span>
-            <el-button link type="primary" :loading="todoLoading" @click="refreshTodos">刷新</el-button>
-          </div>
+          <AppButton variant="ghost" size="sm" :loading="todoLoading" @click="refreshTodos">刷新</AppButton>
         </template>
         <div class="todo-create">
           <el-input
@@ -177,19 +158,20 @@
             @keyup.enter="addCustomTodo"
           >
             <template #append>
-              <el-button @click="addCustomTodo">添加</el-button>
+              <AppButton size="sm" @click="addCustomTodo">添加</AppButton>
             </template>
           </el-input>
         </div>
         <el-skeleton :loading="todoLoading" animated :rows="4">
           <template #default>
             <el-empty v-if="!todoList.length" description="暂无待办事项" />
-            <div v-else class="todo-list">
+            <transition-group v-else name="todo-fade" tag="div" class="todo-list">
               <div
-                v-for="item in todoList"
+                v-for="(item, index) in todoList"
                 :key="item.id"
                 class="todo-item"
                 :class="{ completed: item.completed }"
+                :style="{ '--todo-delay': `${index * 48}ms` }"
               >
                 <div class="todo-main">
                   <el-checkbox :model-value="item.completed" @change="(val) => toggleTodo(item, val)" />
@@ -202,17 +184,17 @@
                   </div>
                 </div>
                 <div class="todo-actions">
-                  <el-button v-if="item.route" link type="primary" @click="openTodoRoute(item)">前往</el-button>
-                  <el-button v-if="item.type === 'custom'" link type="danger" @click="removeCustomTodo(item.id)">删除</el-button>
+                  <AppButton v-if="item.route" variant="ghost" size="sm" @click="openTodoRoute(item)">前往</AppButton>
+                  <AppButton v-if="item.type === 'custom'" variant="danger" size="sm" @click="removeCustomTodo(item.id)">删除</AppButton>
                 </div>
               </div>
-            </div>
+            </transition-group>
           </template>
         </el-skeleton>
-      </el-card>
+      </AppCard>
     </section>
 
-    <el-dialog v-model="detailDialogVisible" title="公告详情" width="720px">
+    <AppModal v-model="detailDialogVisible" title="公告详情" width="720px">
       <el-descriptions :column="2" border>
         <el-descriptions-item label="标题" :span="2">{{ detail.title || '-' }}</el-descriptions-item>
         <el-descriptions-item label="类型">{{ detail.type || '-' }}</el-descriptions-item>
@@ -223,11 +205,11 @@
       <el-divider />
       <div class="detail-content">{{ detail.content || '暂无内容' }}</div>
       <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
+        <AppButton variant="secondary" @click="detailDialogVisible = false">关闭</AppButton>
       </template>
-    </el-dialog>
+    </AppModal>
 
-    <el-dialog v-model="statDialogVisible" :title="currentStatTitle" width="520px">
+    <AppModal v-model="statDialogVisible" :title="currentStatTitle" width="520px">
       <el-descriptions :column="1" border>
         <el-descriptions-item label="当前统计值">{{ currentStatValue }}</el-descriptions-item>
         <el-descriptions-item label="可见范围">{{ statScopeText }}</el-descriptions-item>
@@ -239,10 +221,10 @@
         title="详细记录请在对应业务模块中查看。"
       />
       <template #footer>
-        <el-button @click="statDialogVisible = false">关闭</el-button>
-        <el-button v-if="canOpenStatRoute" type="primary" @click="goToModule">进入对应模块</el-button>
+        <AppButton variant="secondary" @click="statDialogVisible = false">关闭</AppButton>
+        <AppButton v-if="canOpenStatRoute" @click="goToModule">进入对应模块</AppButton>
       </template>
-    </el-dialog>
+    </AppModal>
   </div>
 </template>
 
@@ -251,6 +233,9 @@ import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
+import AppCard from '@/components/ui/AppCard.vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import AppModal from '@/components/ui/AppModal.vue'
 import { use, init, graphic } from 'echarts/core'
 import { PieChart, BarChart, PictorialBarChart, LineChart } from 'echarts/charts'
 import { TooltipComponent, LegendComponent, GridComponent, GraphicComponent } from 'echarts/components'
@@ -1142,7 +1127,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 10px 22px rgba(20, 66, 81, 0.12);
 }
 
-:deep(.metric-card .el-card__body) {
+:deep(.metric-card .metric-body) {
   padding: 14px;
   display: flex;
   align-items: center;
@@ -1230,12 +1215,12 @@ onBeforeUnmount(() => {
   grid-column: span 12;
 }
 
-:deep(.panel-card .el-card__header) {
+:deep(.panel-card .app-panel-header) {
   border-bottom: 1px solid rgba(19, 87, 98, 0.15);
   padding: 14px 18px;
 }
 
-:deep(.panel-card .el-card__body) {
+:deep(.panel-card .panel-body) {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -1335,37 +1320,110 @@ onBeforeUnmount(() => {
 .announcement-timeline {
   flex: 1;
   overflow: auto;
-  padding-right: 4px;
+  padding-right: 6px;
+}
+
+.announcement-item {
+  opacity: 0;
+  transform: translateX(-8px);
+  animation: announcement-enter 0.34s ease forwards;
+  animation-delay: var(--announcement-delay, 0ms);
+}
+
+.announcement-title {
+  display: inline-flex;
+  align-items: center;
+  color: #1a6766;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.announcement-title:hover {
+  color: #0f5c5a;
+  transform: translateX(3px);
+}
+
+.announcement-title:focus-visible {
+  outline: 2px solid rgba(25, 118, 113, 0.35);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+:deep(.announcement-timeline .el-timeline-item__tail) {
+  border-left-color: rgba(22, 106, 111, 0.2);
+}
+
+:deep(.announcement-timeline .el-timeline-item__wrapper) {
+  top: -2px;
+  padding-left: 12px;
+}
+
+:deep(.announcement-timeline .el-timeline-item__timestamp) {
+  color: #7693a0;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+:deep(.announcement-timeline .el-timeline-item__node) {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 0 0 3px rgba(24, 104, 108, 0.08);
+}
+
+:deep(.announcement-timeline .el-timeline-item:hover .el-timeline-item__node) {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 4px rgba(24, 104, 108, 0.16);
 }
 
 .todo-create {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .todo-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   overflow: auto;
-  max-height: 360px;
-  padding-right: 4px;
+  max-height: 372px;
+  padding-right: 6px;
 }
 
 .todo-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 12px;
+  padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid rgba(20, 93, 105, 0.16);
   background: rgba(255, 255, 255, 0.78);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  opacity: 0;
+  transform: translateY(7px);
+  animation: todo-enter 0.3s ease forwards;
+  animation-delay: var(--todo-delay, 0ms);
+}
+
+.todo-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(22, 112, 116, 0.34);
+  box-shadow: 0 10px 20px rgba(19, 88, 85, 0.12);
+}
+
+.todo-item:focus-within {
+  border-color: rgba(20, 112, 106, 0.5);
+  box-shadow: 0 0 0 3px rgba(20, 112, 106, 0.12);
 }
 
 .todo-main {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
   flex: 1;
 }
@@ -1383,7 +1441,7 @@ onBeforeUnmount(() => {
 }
 
 .todo-meta {
-  margin-top: 6px;
+  margin-top: 7px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1397,16 +1455,47 @@ onBeforeUnmount(() => {
 .todo-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
   flex-shrink: 0;
+  padding-top: 1px;
 }
 
 .todo-item.completed {
-  opacity: 0.66;
+  opacity: 0.64;
+  background: rgba(246, 251, 250, 0.92);
+  border-color: rgba(95, 141, 143, 0.26);
+}
+
+.todo-item.completed:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .todo-item.completed .todo-title {
   text-decoration: line-through;
+}
+
+:deep(.todo-main .el-checkbox__inner) {
+  transition: all 0.2s ease;
+}
+
+:deep(.todo-main .el-checkbox.is-checked .el-checkbox__inner) {
+  box-shadow: 0 0 0 3px rgba(24, 111, 105, 0.16);
+}
+
+.todo-fade-enter-active,
+.todo-fade-leave-active {
+  transition: all 0.24s ease;
+}
+
+.todo-fade-enter-from,
+.todo-fade-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.todo-fade-move {
+  transition: transform 0.24s ease;
 }
 
 :deep(.el-link--primary) {
@@ -1423,6 +1512,20 @@ onBeforeUnmount(() => {
 .pagination {
   margin-top: 16px;
   justify-content: flex-end;
+}
+
+@keyframes announcement-enter {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes todo-enter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 1400px) {
@@ -1506,6 +1609,40 @@ onBeforeUnmount(() => {
   .chart,
   .chart-trend {
     min-height: 220px;
+  }
+
+  .todo-item {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .todo-actions {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 0;
+  }
+
+  .todo-meta {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .announcement-item,
+  .todo-item {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .announcement-title,
+  .todo-item,
+  .todo-fade-enter-active,
+  .todo-fade-leave-active,
+  .todo-fade-move {
+    transition: none !important;
   }
 }
 </style>

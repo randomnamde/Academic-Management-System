@@ -1,24 +1,19 @@
 ﻿<template>
-  <div class="page-container">
-    <el-card class="leave-card">
-      <template #header>
-        <div class="header-row">
-          <span>{{ pageTitle }}</span>
-          <div class="header-actions">
-            <el-dropdown @command="handleExport">
-              <el-button>导出报表</el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="csv">导出 CSV</el-dropdown-item>
-                  <el-dropdown-item command="xlsx">导出 Excel</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-            <el-button v-if="isStudent" type="primary" @click="openCreate">发起请假</el-button>
-          </div>
-        </div>
-      </template>
+  <CrudPageShell :title="pageTitle">
+    <template #header-actions>
+      <el-dropdown @command="handleExport">
+        <AppButton variant="secondary">导出报表</AppButton>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="csv">导出 CSV</el-dropdown-item>
+            <el-dropdown-item command="xlsx">导出 Excel</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <AppButton v-if="isStudent" class="ml-2" @click="openCreate">发起请假</AppButton>
+    </template>
 
+    <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="状态">
           <el-select v-model="searchForm.status" clearable style="width: 140px">
@@ -28,8 +23,8 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <AppButton @click="handleSearch">查询</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
         </el-form-item>
       </el-form>
 
@@ -37,7 +32,9 @@
         <el-tab-pane label="待审批" name="pending" />
         <el-tab-pane label="全部记录" name="all" />
       </el-tabs>
+    </template>
 
+    <template #table>
       <el-table :data="currentRows" v-loading="loading" stripe>
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column v-if="!isStudent" prop="studentName" label="学生" width="120" />
@@ -98,7 +95,9 @@
           </template>
         </el-table-column>
       </el-table>
+    </template>
 
+    <template #pagination>
       <el-pagination
         v-if="showPagination"
         class="pagination"
@@ -110,9 +109,9 @@
         @size-change="fetchList"
         @current-change="fetchList"
       />
-    </el-card>
+    </template>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑请假申请' : '发起请假申请'" width="720px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? '编辑请假申请' : '发起请假申请'" width="720px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
         <el-row :gutter="16">
           <el-col :span="12">
@@ -175,12 +174,12 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitForm">提交</el-button>
+        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
+        <AppButton @click="submitForm">提交</AppButton>
       </template>
-    </el-dialog>
+    </AppModal>
 
-    <el-dialog v-model="detailVisible" title="请假详情" width="780px">
+    <AppModal v-model="detailVisible" title="请假详情" width="780px">
       <el-descriptions :column="2" border>
         <el-descriptions-item label="学生">{{ detail.studentName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="班级">{{ detail.className || '-' }}</el-descriptions-item>
@@ -198,16 +197,20 @@
         <el-descriptions-item label="请假事由" :span="2">{{ detail.reason || '-' }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
-        <el-button @click="detailVisible = false">关闭</el-button>
+        <AppButton variant="secondary" @click="detailVisible = false">关闭</AppButton>
       </template>
-    </el-dialog>
-  </div>
+    </AppModal>
+  </CrudPageShell>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
+import CrudPageShell from '@/components/shell/CrudPageShell.vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import AppModal from '@/components/ui/AppModal.vue'
 import { getCourseArrangementOptions } from '@/api/courseArrangement'
 import { canAction } from '@/permission/ability'
 import {
@@ -478,55 +481,6 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.page-container {
-  padding: 4px 0 10px;
-}
-
-.leave-card {
-  border-radius: 18px;
-  border: 1px solid rgba(21, 88, 102, 0.17);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
-  box-shadow: 0 12px 28px rgba(20, 68, 80, 0.1);
-}
-
-.leave-card :deep(.el-card__header) {
-  border-bottom: 1px solid rgba(19, 87, 98, 0.15);
-}
-
-.leave-card :deep(.el-card__body) {
-  padding-top: 14px;
-}
-
-.header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-row > span {
-  font-size: 18px;
-  font-weight: 700;
-  color: #17384a;
-  letter-spacing: 0.01em;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.search-form {
-  margin-bottom: 16px;
-}
-
-.pagination {
-  margin-top: 16px;
-  justify-content: flex-end;
-}
-
 .op-actions {
   display: flex;
   align-items: center;
@@ -573,16 +527,4 @@ onMounted(() => {
   color: #1f4f5f;
   font-weight: 700;
 }
-
-@media (max-width: 992px) {
-  .header-row {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .header-actions {
-    width: 100%;
-  }
-}
 </style>
-

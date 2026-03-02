@@ -1,13 +1,10 @@
 ﻿<template>
-  <div class="student-management">
-    <el-card class="workbench-card">
-      <template #header>
-        <div class="card-header">
-          <span>学生管理</span>
-          <el-button type="primary" @click="handleAdd">新增学生</el-button>
-        </div>
-      </template>
+  <CrudPageShell title="学生管理">
+    <template #header-actions>
+      <AppButton @click="handleAdd">新增学生</AppButton>
+    </template>
 
+    <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="学号">
           <el-input v-model="searchForm.studentNo" placeholder="请输入学号" clearable />
@@ -29,11 +26,13 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <AppButton @click="handleSearch">查询</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
         </el-form-item>
       </el-form>
+    </template>
 
+    <template #table>
       <el-table :data="studentList" v-loading="loading" stripe>
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="studentNo" label="学号" width="130" />
@@ -61,7 +60,9 @@
           </template>
         </el-table-column>
       </el-table>
+    </template>
 
+    <template #pagination>
       <el-pagination
         v-model:current-page="page"
         v-model:page-size="size"
@@ -72,9 +73,9 @@
         @current-change="handlePageChange"
         class="pagination"
       />
-    </el-card>
+    </template>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="760px">
+    <AppModal v-model="dialogVisible" :title="dialogTitle" width="760px">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
@@ -142,17 +143,20 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
+        <AppButton @click="handleSubmit">确定</AppButton>
       </template>
-    </el-dialog>
-  </div>
+    </AppModal>
+  </CrudPageShell>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import CrudPageShell from '@/components/shell/CrudPageShell.vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import AppModal from '@/components/ui/AppModal.vue'
 import { createStudent, deleteStudent, getNextStudentNo, getStudentList, updateStudent } from '@/api/student'
 import { getClassList } from '@/api/clazz'
 
@@ -361,48 +365,8 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-.student-management {
-  padding: 4px 0 10px;
-}
-
-.workbench-card {
-  border-radius: 18px;
-  border: 1px solid rgba(21, 88, 102, 0.17);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
-  box-shadow: 0 10px 24px rgba(20, 68, 80, 0.1);
-}
-
-.workbench-card :deep(.el-card__header) {
-  border-bottom: 1px solid rgba(19, 87, 98, 0.15);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.card-header > span {
-  font-size: 18px;
-  font-weight: 700;
-  color: #17384a;
-  letter-spacing: 0.01em;
-}
-
-.search-form {
-  margin-bottom: 16px;
-}
-
 .pagination {
-  margin-top: 16px;
+  margin-top: 8px;
   justify-content: flex-end;
-}
-
-@media (max-width: 992px) {
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 }
 </style>

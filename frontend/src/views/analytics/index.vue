@@ -1,6 +1,6 @@
 ﻿<template>
-  <div class="analytics-page">
-    <el-card class="filter-card">
+  <AnalyticsPageShell title="分析中心">
+    <template #filters>
       <div class="filter-header">
         <h2>分析中心</h2>
         <p>按时间与维度查看出勤趋势、成绩质量与风险学生分布。</p>
@@ -33,73 +33,66 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="loading" @click="refreshAll">刷新分析</el-button>
-          <el-button @click="resetFilters">重置</el-button>
+          <AppButton :loading="loading" @click="refreshAll">刷新分析</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="resetFilters">重置</AppButton>
         </el-form-item>
       </el-form>
-    </el-card>
+    </template>
 
-    <section class="kpi-grid" :class="{ 'kpi-grid-student': isStudent }">
-      <el-card v-if="!isStudent" class="kpi-card">
+    <template #insight>
+      <p class="text-sm leading-7 text-slate-600">
+        当前查询区间为 {{ dateRange[0] }} 至 {{ dateRange[1] }}，可通过风险类型切换查看低分、异常考勤和审批超时分布。
+      </p>
+    </template>
+
+    <template #kpi>
+      <AppCard v-if="!isStudent" class="kpi-card" content-class="kpi-body">
         <span class="kpi-label">学生规模</span>
         <strong class="kpi-value">{{ overview.studentCount }}</strong>
-      </el-card>
-      <el-card class="kpi-card">
+      </AppCard>
+      <AppCard class="kpi-card" content-class="kpi-body">
         <span class="kpi-label">{{ pendingKpiLabel }}</span>
         <strong class="kpi-value">{{ overview.pendingApprovalCount }}</strong>
-      </el-card>
-      <el-card class="kpi-card">
+      </AppCard>
+      <AppCard class="kpi-card" content-class="kpi-body">
         <span class="kpi-label">出勤率</span>
         <strong class="kpi-value">{{ formatPercent(overview.attendanceRate) }}</strong>
         <span class="kpi-trend" :class="trendClass(overview.attendanceRateChange)">
           {{ formatDelta(overview.attendanceRateChange) }}
         </span>
-      </el-card>
-      <el-card class="kpi-card">
+      </AppCard>
+      <AppCard class="kpi-card" content-class="kpi-body">
         <span class="kpi-label">审批平均时长(小时)</span>
         <strong class="kpi-value">{{ formatNumber(overview.approvalAvgHours) }}</strong>
         <span class="kpi-trend" :class="trendClass(-overview.approvalAvgHoursChange)">
           {{ formatDelta(overview.approvalAvgHoursChange) }}
         </span>
-      </el-card>
-      <el-card class="kpi-card">
+      </AppCard>
+      <AppCard class="kpi-card" content-class="kpi-body">
         <span class="kpi-label">{{ lowScoreKpiLabel }}</span>
         <strong class="kpi-value">{{ overview.lowScoreRiskCount }}</strong>
         <span class="kpi-trend" :class="trendClass(-overview.lowScoreRiskChange)">
           {{ formatDelta(overview.lowScoreRiskChange) }}
         </span>
-      </el-card>
-    </section>
+      </AppCard>
+    </template>
 
-    <section class="chart-grid">
-      <el-card class="chart-card">
-        <template #header>
-          <div class="card-header">
-            <span>异常考勤趋势</span>
-          </div>
-        </template>
+    <template #charts>
+      <AppCard class="chart-card" title="异常考勤趋势" content-class="p-4">
         <div ref="attendanceTrendRef" class="chart-canvas"></div>
-      </el-card>
-      <el-card class="chart-card">
-        <template #header>
-          <div class="card-header">
-            <span>成绩质量趋势</span>
-          </div>
-        </template>
+      </AppCard>
+      <AppCard class="chart-card" title="成绩质量趋势" content-class="p-4">
         <div ref="scoreTrendRef" class="chart-canvas"></div>
-      </el-card>
-    </section>
+      </AppCard>
+    </template>
 
-    <el-card class="risk-card">
+    <AppCard class="risk-card" title="风险学生榜单" content-class="p-4">
       <template #header>
-        <div class="card-header">
-          <span>风险学生榜单</span>
-          <el-radio-group v-model="riskType" size="small" @change="handleRiskTypeChange">
-            <el-radio-button label="low_score">低分风险</el-radio-button>
-            <el-radio-button label="abnormal_attendance">异常考勤</el-radio-button>
-            <el-radio-button label="approval_overdue">审批超时</el-radio-button>
-          </el-radio-group>
-        </div>
+        <el-radio-group v-model="riskType" size="small" @change="handleRiskTypeChange">
+          <el-radio-button label="low_score">低分风险</el-radio-button>
+          <el-radio-button label="abnormal_attendance">异常考勤</el-radio-button>
+          <el-radio-button label="approval_overdue">审批超时</el-radio-button>
+        </el-radio-group>
       </template>
 
       <el-table :data="riskRecords" v-loading="riskLoading" stripe>
@@ -158,14 +151,16 @@
         @size-change="fetchRiskStudents"
         @current-change="fetchRiskStudents"
       />
-    </el-card>
-  </div>
+    </AppCard>
+  </AnalyticsPageShell>
 </template>
-
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import AppButton from '@/components/ui/AppButton.vue'
+import AppCard from '@/components/ui/AppCard.vue'
+import AnalyticsPageShell from '@/components/shell/AnalyticsPageShell.vue'
 import { init } from 'echarts/core'
 import { LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
@@ -245,8 +240,8 @@ function formatNumber(value) {
 }
 
 function formatAttendanceStatus(status) {
-  if (status === 'ABSENT') return '缂哄嫟'
-  if (status === 'LATE') return '杩熷埌'
+  if (status === 'ABSENT') return '缺勤'
+  if (status === 'LATE') return '迟到'
   return status || '-'
 }
 
@@ -526,18 +521,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.analytics-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.filter-card {
-  border-radius: 18px;
-  border: 1px solid rgba(21, 88, 102, 0.17);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
-}
-
 .filter-header h2 {
   margin: 0;
   font-size: 26px;
@@ -556,23 +539,13 @@ onBeforeUnmount(() => {
   gap: 8px 0;
 }
 
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.kpi-grid-student {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
 .kpi-card {
   border-radius: 16px;
   border: 1px solid rgba(24, 97, 110, 0.2);
   background: linear-gradient(155deg, rgba(255, 255, 255, 0.94), rgba(238, 248, 247, 0.84));
 }
 
-.kpi-card :deep(.el-card__body) {
+.kpi-body {
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -607,12 +580,6 @@ onBeforeUnmount(() => {
   color: #66808f;
 }
 
-.chart-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
 .chart-card,
 .risk-card {
   border-radius: 18px;
@@ -624,37 +591,8 @@ onBeforeUnmount(() => {
   height: 320px;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .pagination {
   margin-top: 14px;
   justify-content: flex-end;
 }
-
-@media (max-width: 1400px) {
-  .kpi-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 992px) {
-  .kpi-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .chart-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-}
 </style>
-

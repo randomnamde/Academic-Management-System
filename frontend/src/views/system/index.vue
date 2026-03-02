@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="system-page">
+  <div class="system-page app-page">
     <section class="hero-panel">
       <div class="hero-content">
         <p class="hero-kicker">System Console</p>
@@ -67,13 +67,7 @@
     </section>
 
     <section class="bento-grid">
-      <el-card class="panel-card panel-user">
-        <template #header>
-          <div class="card-header">
-            <span>系统用户管理</span>
-          </div>
-        </template>
-
+      <AppCard class="panel-card panel-user" title="系统用户管理" content-class="panel-body">
         <el-form :inline="true" :model="searchForm" class="search-form">
           <el-form-item label="用户名">
             <el-input v-model="searchForm.username" clearable placeholder="请输入用户名" />
@@ -86,8 +80,8 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
+            <AppButton @click="handleSearch">查询</AppButton>
+            <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
           </el-form-item>
         </el-form>
 
@@ -125,15 +119,9 @@
           @size-change="fetchList"
           @current-change="fetchList"
         />
-      </el-card>
+      </AppCard>
 
-      <el-card class="panel-card panel-security">
-        <template #header>
-          <div class="card-header">
-            <span>账号安全</span>
-          </div>
-        </template>
-
+      <AppCard class="panel-card panel-security" title="账号安全" content-class="panel-body">
         <div class="security-tip">
           <el-icon><Lock /></el-icon>
           <span>建议定期更新密码，并避免使用与其他平台重复的弱口令。</span>
@@ -149,19 +137,13 @@
           <el-form-item label="确认" prop="confirmPassword">
             <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
           </el-form-item>
-          <el-button type="primary" @click="submitPassword" :loading="pwdLoading">保存密码</el-button>
+          <AppButton :loading="pwdLoading" @click="submitPassword">保存密码</AppButton>
         </el-form>
-      </el-card>
+      </AppCard>
     </section>
 
     <section class="bento-grid log-grid">
-      <el-card class="panel-card panel-log">
-        <template #header>
-          <div class="card-header">
-            <span>操作审计日志</span>
-          </div>
-        </template>
-
+      <AppCard class="panel-card panel-log" title="操作审计日志" content-class="panel-body">
         <el-form :inline="true" :model="logSearchForm" class="search-form">
           <el-form-item label="用户ID">
             <el-input-number v-model="logSearchForm.userId" :min="1" style="width: 130px" />
@@ -176,8 +158,8 @@
             <el-input v-model="logSearchForm.operation" clearable placeholder="Controller#method" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="handleLogSearch">查询</el-button>
-            <el-button @click="handleLogReset">重置</el-button>
+            <AppButton @click="handleLogSearch">查询</AppButton>
+            <AppButton variant="secondary" class="ml-2" @click="handleLogReset">重置</AppButton>
           </el-form-item>
         </el-form>
 
@@ -209,7 +191,7 @@
           @size-change="fetchLogList"
           @current-change="fetchLogList"
         />
-      </el-card>
+      </AppCard>
     </section>
   </div>
 </template>
@@ -218,6 +200,8 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Avatar, Lock, School, UserFilled, WarningFilled } from '@element-plus/icons-vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import AppCard from '@/components/ui/AppCard.vue'
 import { getUserList, updatePassword, updateUserStatus } from '@/api/user'
 import { getSysLogList } from '@/api/sysLog'
 
@@ -553,12 +537,12 @@ onMounted(() => {
   grid-column: span 12;
 }
 
-:deep(.panel-card .el-card__header) {
+:deep(.panel-card .app-panel-header) {
   border-bottom: 1px solid rgba(19, 87, 98, 0.15);
   padding: 14px 18px;
 }
 
-:deep(.panel-card .el-card__body) {
+:deep(.panel-card .panel-body) {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -611,7 +595,7 @@ onMounted(() => {
   color: #166f6b;
 }
 
-.log-grid :deep(.el-card__body) {
+.log-grid :deep(.panel-body) {
   min-height: 320px;
 }
 

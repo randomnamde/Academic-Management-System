@@ -79,7 +79,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="学号" prop="studentNo">
-              <el-input v-model="form.studentNo" :disabled="isEdit" />
+              <el-input v-model="form.studentNo" disabled placeholder="根据班级与入学日期自动生成" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -150,10 +150,10 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { createStudent, deleteStudent, getStudentList, updateStudent } from '@/api/student'
+import { createStudent, deleteStudent, getNextStudentNo, getStudentList, updateStudent } from '@/api/student'
 import { getClassList } from '@/api/clazz'
 
 const router = useRouter()
@@ -192,7 +192,6 @@ const form = reactive({
 })
 
 const rules = {
-  studentNo: [{ required: true, message: '请输入学号', trigger: 'blur' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   gender: [{ required: true, message: '请选择性别', trigger: 'change' }],
   classId: [{ required: true, message: '请选择班级', trigger: 'change' }]
@@ -314,6 +313,24 @@ async function handleSubmit() {
   fetchList()
 }
 
+async function refreshStudentNo() {
+  if (!dialogVisible.value || isEdit.value || !form.classId) {
+    if (!isEdit.value) {
+      form.studentNo = ''
+    }
+    return
+  }
+  try {
+    const res = await getNextStudentNo({
+      classId: form.classId,
+      enrollmentDate: form.enrollmentDate || undefined
+    })
+    form.studentNo = res.data || ''
+  } catch (_e) {
+    form.studentNo = ''
+  }
+}
+
 function getStatusType(status) {
   const map = { ENROLLED: 'success', SUSPENDED: 'warning', GRADUATED: 'info', DROPPED: 'danger' }
   return map[status] || ''
@@ -329,6 +346,13 @@ function getClassNameById(classId) {
   const hit = classList.value.find((item) => item.id === classId)
   return hit?.className || ''
 }
+
+watch(
+  () => [form.classId, form.enrollmentDate, dialogVisible.value, isEdit.value],
+  () => {
+    refreshStudentNo()
+  }
+)
 
 onMounted(async () => {
   await fetchClassList()

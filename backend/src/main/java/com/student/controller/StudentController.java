@@ -9,9 +9,11 @@ import com.student.vo.ResultVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -108,5 +110,13 @@ public class StudentController {
     public ResultVO<Void> updateStatus(@PathVariable Long id, @RequestParam Student.Status status) {
         studentService.updateStudentStatus(id, status);
         return ResultVO.success();
+    }
+
+    @GetMapping("/next-no")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ResultVO<String> getNextStudentNo(
+            @RequestParam Long classId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate enrollmentDate) {
+        return ResultVO.success(studentService.generateStudentNo(classId, enrollmentDate));
     }
 }

@@ -12,7 +12,6 @@ public class StudentDTO {
 
     private Long id;
 
-    @NotBlank(message = "Student number is required")
     private String studentNo;
 
     @NotBlank(message = "Name is required")

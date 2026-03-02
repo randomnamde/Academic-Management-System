@@ -59,3 +59,11 @@ export function getStudentGenderStatistics() {
     method: 'get'
   })
 }
+
+export function getNextStudentNo(params) {
+  return request({
+    url: '/student/next-no',
+    method: 'get',
+    params
+  })
+}

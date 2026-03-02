@@ -5,12 +5,15 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.student.dto.StudentDTO;
 import com.student.entity.Student;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 public interface StudentService extends IService<Student> {
     
     void addStudent(StudentDTO studentDTO);
+
+    String generateStudentNo(Long classId, LocalDate enrollmentDate);
     
     void updateStudent(StudentDTO studentDTO);
     

@@ -47,6 +47,9 @@ public interface StudentMapper extends BaseMapper<Student> {
     
     @Select("SELECT * FROM student WHERE student_no = #{studentNo}")
     Student selectByStudentNo(@Param("studentNo") String studentNo);
+
+    @Select("SELECT student_no FROM student WHERE student_no LIKE CONCAT(#{prefix}, '%') ORDER BY student_no DESC LIMIT 1")
+    String selectLatestStudentNoByPrefix(@Param("prefix") String prefix);
     
     @Select("SELECT s.*, c.class_name FROM student s LEFT JOIN class c ON s.class_id = c.id WHERE s.class_id = #{classId}")
     List<Student> selectByClassId(@Param("classId") Long classId);

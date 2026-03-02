@@ -523,76 +523,75 @@ onBeforeUnmount(() => {
 <style scoped lang="scss">
 .filter-header h2 {
   margin: 0;
-  font-size: 26px;
-  color: #173749;
+  font-size: 22px;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: #0f2742;
 }
 
 .filter-header p {
-  margin: 8px 0 14px;
-  color: #446173;
+  margin: 6px 0 10px;
+  color: #475569;
+  font-size: 13px;
 }
 
 .filter-form {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 0;
+  gap: 6px 0;
 }
 
-.kpi-card {
-  border-radius: 16px;
-  border: 1px solid rgba(24, 97, 110, 0.2);
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.94), rgba(238, 248, 247, 0.84));
+.kpi-card,
+.chart-card,
+.risk-card {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fcfdfe;
+  box-shadow: none;
 }
 
 .kpi-body {
-  padding: 14px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .kpi-label {
-  font-size: 13px;
-  color: #4e6574;
+  font-size: 12px;
+  color: #64748b;
 }
 
 .kpi-value {
-  font-size: 30px;
+  font-size: 24px;
   line-height: 1;
-  color: #163548;
+  color: #0f2742;
 }
 
 .kpi-trend {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .kpi-trend.positive {
-  color: #2e7d4f;
+  color: #15803d;
 }
 
 .kpi-trend.negative {
-  color: #c35f4e;
+  color: #b91c1c;
 }
 
 .kpi-trend.neutral {
-  color: #66808f;
-}
-
-.chart-card,
-.risk-card {
-  border-radius: 18px;
-  border: 1px solid rgba(21, 88, 102, 0.17);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
+  color: #64748b;
 }
 
 .chart-canvas {
-  height: 320px;
+  height: 300px;
 }
 
 .pagination {
-  margin-top: 14px;
+  margin-top: 10px;
   justify-content: flex-end;
 }
 </style>
+

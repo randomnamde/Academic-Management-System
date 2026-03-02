@@ -12,7 +12,11 @@ const ROLE_ROUTE_MAP = {
     'LeaveRequest',
     'Announcement',
     'Profile',
-    'System'
+    'System',
+    'RBACUsers',
+    'RBACRoles',
+    'RBACPermissions',
+    'RBACAudit'
   ]),
   TEACHER: new Set([
     'Dashboard',

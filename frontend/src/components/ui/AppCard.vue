@@ -12,17 +12,8 @@
 
 <script setup>
 defineProps({
-  title: {
-    type: String,
-    default: ''
-  },
-  bodyClass: {
-    type: String,
-    default: ''
-  },
-  contentClass: {
-    type: String,
-    default: 'p-5'
-  }
+  title: { type: String, default: '' },
+  bodyClass: { type: String, default: '' },
+  contentClass: { type: String, default: 'p-4' }
 })
 </script>

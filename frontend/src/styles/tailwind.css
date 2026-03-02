@@ -10,11 +10,13 @@
   }
 
   body {
-    @apply m-0 bg-slate-50 text-ink-800 font-sans antialiased;
-    background-image:
-      radial-gradient(circle at 8% 10%, rgba(84, 169, 160, 0.08), transparent 36%),
-      radial-gradient(circle at 92% 8%, rgba(47, 143, 134, 0.08), transparent 28%),
-      linear-gradient(150deg, #f7fbfc, #eef5f7 68%, #ecf4f6);
+    @apply m-0 bg-neutralx-50 font-sans text-slatex-900 antialiased;
+    letter-spacing: -0.002em;
+  }
+
+  *:focus-visible {
+    outline: 2px solid rgba(30, 66, 102, 0.45);
+    outline-offset: 2px;
   }
 }
 
@@ -24,94 +26,109 @@
   }
 
   .app-panel {
-    @apply rounded-2xl border border-slate-200/80 bg-white/85 shadow-soft backdrop-blur;
+    @apply rounded-md border border-neutralx-200 bg-panel;
+    box-shadow: none;
   }
 
   .app-panel-header {
-    @apply flex items-center justify-between gap-3 border-b border-slate-200/80 px-5 py-4;
+    @apply flex items-center justify-between gap-3 border-b border-neutralx-200 px-4 py-3;
   }
 
   .app-panel-title {
-    @apply text-lg font-semibold text-ink-900;
+    @apply text-[15px] font-semibold tracking-tight text-primary-900;
   }
 
   .app-toolbar {
-    @apply rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm;
+    @apply rounded-md border border-neutralx-200 bg-white p-3;
   }
 
-  .app-input {
-    @apply h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-ink-800 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
-  }
-
+  .app-input,
   .app-select {
-    @apply h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-ink-800 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
+    @apply h-8 w-full rounded-sm border border-neutralx-200 bg-white px-2.5 text-[13px] text-slatex-900 outline-none transition-all duration-180 ease-in-out;
+  }
+
+  .app-input:focus,
+  .app-select:focus {
+    @apply border-primary-700;
+    box-shadow: 0 0 0 2px rgba(30, 66, 102, 0.12);
   }
 
   .app-btn {
-    @apply inline-flex h-10 items-center justify-center rounded-xl px-4 text-sm font-medium transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex h-8 items-center justify-center rounded-sm px-3 text-[13px] font-medium transition-all duration-180 ease-in-out disabled:cursor-not-allowed disabled:opacity-55;
   }
 
   .app-btn-primary {
-    @apply app-btn bg-brand-600 text-white hover:bg-brand-700 shadow-sm;
+    @apply app-btn border border-primary-800 bg-primary-800 text-white hover:bg-primary-700;
   }
 
   .app-btn-secondary {
-    @apply app-btn border border-slate-300 bg-white text-ink-700 hover:bg-slate-50;
+    @apply app-btn border border-neutralx-200 bg-white text-slatex-700 hover:bg-neutralx-100;
   }
 
   .app-btn-danger {
-    @apply app-btn bg-rose-600 text-white hover:bg-rose-700;
+    @apply app-btn border border-state-danger bg-state-danger text-white hover:opacity-90;
   }
 
   .app-table-wrap {
-    @apply overflow-x-auto rounded-xl border border-slate-200 bg-white;
+    @apply overflow-x-auto rounded-sm border border-neutralx-200 bg-white;
   }
 
   .app-table {
-    @apply min-w-full divide-y divide-slate-200 text-sm;
+    @apply min-w-full text-[13px];
   }
 
   .app-table thead {
-    @apply bg-slate-100/70;
+    @apply bg-neutralx-100 text-slatex-700;
   }
 
   .app-table th {
-    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-ink-600;
+    @apply h-9 px-3 text-left text-[12px] font-semibold tracking-tight;
   }
 
   .app-table td {
-    @apply whitespace-nowrap px-4 py-3 text-ink-700;
+    @apply h-9 border-t border-neutralx-200 px-3 text-slatex-700;
   }
 
   .app-table tbody tr {
-    @apply transition hover:bg-brand-50/60;
+    @apply transition-all duration-180 ease-in-out hover:bg-neutralx-100/70;
   }
 
   .app-tag {
-    @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium;
+    @apply inline-flex h-5 items-center rounded-sm border px-2 text-[11px] font-medium;
   }
 
   .app-tag-success {
-    @apply app-tag bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200;
+    @apply app-tag border-[rgba(21,128,61,0.24)] bg-[rgba(21,128,61,0.08)] text-state-success;
   }
 
   .app-tag-warning {
-    @apply app-tag bg-amber-50 text-amber-700 ring-1 ring-amber-200;
+    @apply app-tag border-[rgba(180,83,9,0.26)] bg-[rgba(180,83,9,0.08)] text-state-warn;
   }
 
   .app-tag-danger {
-    @apply app-tag bg-rose-50 text-rose-700 ring-1 ring-rose-200;
+    @apply app-tag border-[rgba(185,28,28,0.25)] bg-[rgba(185,28,28,0.08)] text-state-danger;
   }
 
   .app-tag-info {
-    @apply app-tag bg-slate-100 text-slate-700 ring-1 ring-slate-200;
+    @apply app-tag border-neutralx-200 bg-neutralx-100 text-slatex-600;
   }
 
   .app-modal-backdrop {
-    @apply fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-sm;
+    @apply fixed inset-0 z-40 bg-slatex-900/35;
   }
 
   .app-modal-panel {
-    @apply relative z-50 mx-auto w-[min(92vw,760px)] rounded-2xl border border-slate-200 bg-white p-5 shadow-panel;
+    @apply relative z-50 mx-auto w-[min(92vw,760px)] rounded-md border border-neutralx-200 bg-white p-4;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
   }
+}
+
+body[data-density='compact'] .app-table th,
+body[data-density='compact'] .app-table td {
+  height: 34px;
+}
+
+body[data-density='compact'] .el-table .el-table__cell {
+  padding-top: 8px;
+  padding-bottom: 8px;
 }

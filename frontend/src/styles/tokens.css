@@ -1,0 +1,23 @@
+﻿:root {
+  --color-primary-900: #0f2742;
+  --color-primary-800: #163454;
+  --color-primary-700: #1e4266;
+  --color-primary-600: #2a527a;
+  --color-slate-900: #1e2938;
+  --color-slate-700: #334155;
+  --color-slate-600: #475569;
+  --color-slate-500: #64748b;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-100: #f1f5f9;
+  --color-surface: #f8fafc;
+  --color-panel: #fcfdfe;
+  --color-info: #2563eb;
+  --color-success: #15803d;
+  --color-warn: #b45309;
+  --color-danger: #b91c1c;
+
+  --font-sans: 'IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --motion-standard: 180ms ease;
+}

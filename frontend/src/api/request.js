@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 import router from '@/router'
 
 const service = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API || '/api',
+  baseURL: import.meta.env.VITE_APP_BASE_API || '/api',
   timeout: 30000
 })
 

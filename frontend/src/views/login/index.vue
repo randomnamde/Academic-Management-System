@@ -1,78 +1,75 @@
 ﻿<template>
-  <div class="min-h-screen bg-[radial-gradient(circle_at_10%_10%,rgba(84,169,160,0.14),transparent_28%),radial-gradient(circle_at_92%_12%,rgba(36,115,109,0.16),transparent_30%),linear-gradient(135deg,#f6fbfc,#eaf2f5)] px-4 py-10 md:px-6">
-    <div class="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[1.15fr,0.85fr]">
-      <section class="app-panel relative overflow-hidden p-8">
-        <div class="absolute right-0 top-0 h-56 w-56 rounded-full bg-brand-200/40 blur-3xl"></div>
-        <p class="mb-4 inline-flex items-center rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold tracking-widest text-brand-700">
-          EDU CORE ONLINE
-        </p>
-        <h1 class="font-display text-4xl font-bold leading-tight text-ink-900 md:text-5xl">智慧校园管控中枢</h1>
-        <p class="mt-3 text-sm uppercase tracking-[0.2em] text-ink-500">Unified Student Intelligence Platform</p>
+  <div class="min-h-screen bg-neutralx-50 px-4 py-10 md:px-6">
+    <div class="mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-[1.1fr,0.9fr]">
+      <section class="app-panel p-6">
+        <p class="text-[12px] uppercase tracking-[0.08em] text-slatex-500">Academic Administration</p>
+        <h1 class="mt-2 text-[30px] font-semibold tracking-tight text-primary-900">学生管理系统</h1>
+        <p class="mt-2 text-[13px] text-slatex-600">统一处理学生、课程、成绩、考勤与权限管理任务。</p>
 
-        <div class="mt-8 grid gap-3 sm:grid-cols-3">
-          <article class="rounded-2xl border border-slate-200 bg-white/80 p-4">
-            <p class="text-xs text-slate-500">节点状态</p>
-            <strong class="mt-1 block text-xl text-ink-900">{{ runtimeMetrics.nodeStatus }}</strong>
+        <div class="mt-5 grid gap-2 sm:grid-cols-3">
+          <article class="rounded-sm border border-neutralx-200 bg-white p-3">
+            <p class="text-[11px] text-slatex-500">节点状态</p>
+            <strong class="mt-1 block text-[16px] text-primary-900">{{ runtimeMetrics.nodeStatus }}</strong>
           </article>
-          <article class="rounded-2xl border border-slate-200 bg-white/80 p-4">
-            <p class="text-xs text-slate-500">并发网关</p>
-            <strong class="mt-1 block text-xl text-ink-900">{{ runtimeMetrics.gatewayConcurrency }}</strong>
+          <article class="rounded-sm border border-neutralx-200 bg-white p-3">
+            <p class="text-[11px] text-slatex-500">并发网关</p>
+            <strong class="mt-1 block text-[16px] text-primary-900">{{ runtimeMetrics.gatewayConcurrency }}</strong>
           </article>
-          <article class="rounded-2xl border border-slate-200 bg-white/80 p-4">
-            <p class="text-xs text-slate-500">同步延迟</p>
-            <strong class="mt-1 block text-xl text-ink-900">{{ runtimeMetrics.syncDelayMs }}</strong>
+          <article class="rounded-sm border border-neutralx-200 bg-white p-3">
+            <p class="text-[11px] text-slatex-500">同步延迟</p>
+            <strong class="mt-1 block text-[16px] text-primary-900">{{ runtimeMetrics.syncDelayMs }}</strong>
           </article>
         </div>
       </section>
 
-      <section class="app-panel p-6 md:p-8">
-        <header class="mb-6 text-center">
-          <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg">
-            <School class="h-6 w-6" />
+      <section class="app-panel p-5 md:p-6">
+        <header class="mb-4 text-center">
+          <div class="mx-auto mb-2 inline-flex h-10 w-10 items-center justify-center rounded-sm border border-neutralx-200 bg-white text-primary-800">
+            <School class="h-5 w-5" />
           </div>
-          <h2 class="text-2xl font-semibold text-ink-900">学生管理系统</h2>
-          <p class="mt-1 text-sm text-slate-500">Student Management System</p>
+          <h2 class="text-[22px] font-semibold tracking-tight text-primary-900">身份验证</h2>
+          <p class="mt-1 text-[12px] text-slatex-500">Student Management System</p>
         </header>
 
         <AppTabs v-model="activeTab" :items="tabs" />
 
-        <form v-if="activeTab === 'login'" class="mt-5 space-y-4" @submit.prevent="handleLogin">
+        <form v-if="activeTab === 'login'" class="mt-4 space-y-3" @submit.prevent="handleLogin">
           <div>
-            <label class="mb-1 block text-sm font-medium text-ink-700">用户名</label>
+            <label class="mb-1 block text-[13px] font-medium text-slatex-700">用户名</label>
             <AppInput v-model="loginForm.username" placeholder="请输入用户名" />
           </div>
           <div>
-            <label class="mb-1 block text-sm font-medium text-ink-700">密码</label>
+            <label class="mb-1 block text-[13px] font-medium text-slatex-700">密码</label>
             <AppInput v-model="loginForm.password" type="password" placeholder="请输入密码" />
           </div>
           <AppButton block :loading="loading" native-type="submit">登录</AppButton>
         </form>
 
-        <form v-else class="mt-5 space-y-4" @submit.prevent="handleRegister">
+        <form v-else class="mt-4 space-y-3" @submit.prevent="handleRegister">
           <div>
-            <label class="mb-1 block text-sm font-medium text-ink-700">用户名</label>
+            <label class="mb-1 block text-[13px] font-medium text-slatex-700">用户名</label>
             <AppInput v-model="registerForm.username" placeholder="请输入用户名" />
           </div>
           <div>
-            <label class="mb-1 block text-sm font-medium text-ink-700">真实姓名</label>
+            <label class="mb-1 block text-[13px] font-medium text-slatex-700">真实姓名</label>
             <AppInput v-model="registerForm.realName" placeholder="请输入真实姓名" />
           </div>
           <div>
-            <label class="mb-1 block text-sm font-medium text-ink-700">密码</label>
+            <label class="mb-1 block text-[13px] font-medium text-slatex-700">密码</label>
             <AppInput v-model="registerForm.password" type="password" placeholder="请输入密码" />
           </div>
           <div>
-            <label class="mb-1 block text-sm font-medium text-ink-700">确认密码</label>
+            <label class="mb-1 block text-[13px] font-medium text-slatex-700">确认密码</label>
             <AppInput v-model="registerForm.confirmPassword" type="password" placeholder="请再次输入密码" />
           </div>
           <div>
-            <label class="mb-1 block text-sm font-medium text-ink-700">角色</label>
+            <label class="mb-1 block text-[13px] font-medium text-slatex-700">角色</label>
             <AppSelect v-model="registerForm.role" :options="[{ label: '学生', value: 'STUDENT' }]" />
           </div>
           <AppButton variant="secondary" block :loading="loading" native-type="submit">注册</AppButton>
         </form>
 
-        <footer class="mt-6 border-t border-slate-200 pt-4 text-center text-xs text-slate-500">
+        <footer class="mt-5 border-t border-neutralx-200 pt-3 text-center text-[11px] text-slatex-500">
           <p>测试账号</p>
           <p>管理员：demo_admin / 123456</p>
           <p>学生：student001 / 123456</p>
@@ -81,7 +78,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { reactive, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
@@ -223,3 +219,4 @@ onBeforeUnmount(() => {
   runtimeMetricsTimer = null
 })
 </script>
+

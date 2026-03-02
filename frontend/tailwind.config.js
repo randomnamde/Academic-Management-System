@@ -1,44 +1,46 @@
-﻿/** @type {import('tailwindcss').Config} */
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./public/index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
+  content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
-        display: ['IBM Plex Serif', 'Source Han Serif SC', 'Noto Serif SC', 'serif']
+        sans: ['IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'sans-serif']
       },
       colors: {
-        brand: {
-          50: '#f1f9f8',
-          100: '#dff0ee',
-          200: '#bfe1dd',
-          300: '#8cc8c1',
-          400: '#54a9a0',
-          500: '#2f8f86',
-          600: '#24736d',
-          700: '#1f5d59',
-          800: '#1d4b48',
-          900: '#1a3f3d'
+        primary: {
+          900: '#0F2742',
+          800: '#163454',
+          700: '#1E4266',
+          600: '#2A527A'
         },
-        ink: {
-          50: '#f4f7f9',
-          100: '#e9eef2',
-          200: '#cdd9e2',
-          300: '#a5b9c8',
-          400: '#7894a9',
-          500: '#5b788e',
-          600: '#476076',
-          700: '#3a4e61',
-          800: '#334252',
-          900: '#2e3947'
+        slatex: {
+          900: '#1E2938',
+          700: '#334155',
+          600: '#475569',
+          500: '#64748B'
+        },
+        neutralx: {
+          200: '#E2E8F0',
+          100: '#F1F5F9',
+          50: '#F8FAFC'
+        },
+        panel: '#FCFDFE',
+        state: {
+          info: '#2563EB',
+          success: '#15803D',
+          warn: '#B45309',
+          danger: '#B91C1C'
         }
       },
-      boxShadow: {
-        soft: '0 10px 26px rgba(20, 68, 80, 0.12)',
-        panel: '0 16px 32px rgba(18, 52, 66, 0.16)'
-      },
       borderRadius: {
-        xl2: '1.1rem'
+        sm: '6px',
+        md: '8px'
+      },
+      boxShadow: {
+        pop: '0 1px 2px rgba(15, 23, 42, 0.08)'
+      },
+      transitionDuration: {
+        180: '180ms'
       }
     }
   },

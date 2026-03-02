@@ -12,26 +12,11 @@
 
 <script setup>
 const props = defineProps({
-  modelValue: {
-    type: [String, Number],
-    default: ''
-  },
-  options: {
-    type: Array,
-    default: () => []
-  },
-  placeholder: {
-    type: String,
-    default: ''
-  },
-  disabled: {
-    type: Boolean,
-    default: false
-  },
-  valueType: {
-    type: String,
-    default: 'string'
-  }
+  modelValue: { type: [String, Number], default: '' },
+  options: { type: Array, default: () => [] },
+  placeholder: { type: String, default: '' },
+  disabled: { type: Boolean, default: false },
+  valueType: { type: String, default: 'string' }
 })
 
 defineEmits(['update:modelValue'])

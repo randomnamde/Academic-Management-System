@@ -14,56 +14,37 @@
     </template>
 
     <template #filters>
-      <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item v-if="canFilterStudent" label="学生ID">
-          <el-input-number v-model="searchForm.studentId" :min="1" style="width: 140px" />
-        </el-form-item>
-        <el-form-item label="排课ID">
-          <el-select
-            v-model="searchForm.courseArrangementId"
-            clearable
-            filterable
-            style="width: 260px"
-            placeholder="请选择排课"
-          >
-            <el-option
-              v-for="item in arrangementOptions"
-              :key="item.id"
-              :label="formatArrangementLabel(item)"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="学期">
-          <el-input v-model="searchForm.semester" clearable placeholder="如 2024-2025-1" />
-        </el-form-item>
-        <el-form-item>
+      <div class="grid grid-cols-12 gap-2">
+        <el-input-number v-if="canFilterStudent" v-model="searchForm.studentId" :min="1" class="col-span-12 md:col-span-2" placeholder="学生ID" />
+        <el-select
+          v-model="searchForm.courseArrangementId"
+          clearable
+          filterable
+          placeholder="排课"
+          class="col-span-12 md:col-span-4"
+        >
+          <el-option v-for="item in arrangementOptions" :key="item.id" :label="formatArrangementLabel(item)" :value="item.id" />
+        </el-select>
+        <el-input v-model="searchForm.semester" clearable placeholder="学期，如 2024-2025-1" class="col-span-12 md:col-span-2" />
+        <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-4">
+          <AppButton variant="secondary" @click="handleReset">重置</AppButton>
           <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
-        </el-form-item>
-      </el-form>
+        </div>
+      </div>
     </template>
 
     <template #table>
-      <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="studentId" label="学生ID" width="90" />
-        <el-table-column prop="studentName" label="学生" width="120" />
-        <el-table-column prop="courseArrangementId" label="排课ID" width="120" show-overflow-tooltip />
-        <el-table-column prop="courseName" label="课程" width="140" />
-        <el-table-column prop="usualScore" label="平时" width="80" />
-        <el-table-column prop="midtermScore" label="期中" width="80" />
-        <el-table-column prop="finalScore" label="期末" width="80" />
-        <el-table-column prop="totalScore" label="总评" width="80" />
-        <el-table-column prop="gpa" label="GPA" width="80" />
-        <el-table-column prop="status" label="状态" width="100" />
-        <el-table-column v-if="canEditScore" label="操作" width="170" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <AppTable :columns="columns" :rows="tableData" :loading="loading" :density="tableDensity">
+        <template #cell-status="{ row }">
+          <AppBadge :type="statusBadgeType(row.status)">{{ row.status }}</AppBadge>
+        </template>
+        <template #cell-actions="{ row }">
+          <div v-if="canEditScore" class="flex justify-end gap-2">
+            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="openEdit(row)">编辑</button>
+            <button class="text-[12px] text-state-danger hover:opacity-80" @click="handleDelete(row)">删除</button>
+          </div>
+        </template>
+      </AppTable>
     </template>
 
     <template #pagination>
@@ -80,7 +61,7 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="isEdit ? '编辑成绩' : '新增成绩'" width="640px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="96px">
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="学生ID" prop="studentId">
@@ -89,60 +70,31 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="排课ID" prop="courseArrangementId">
-              <el-select
-                v-model="form.courseArrangementId"
-                filterable
-                style="width: 100%"
-                placeholder="请选择排课"
-              >
-                <el-option
-                  v-for="item in arrangementOptions"
-                  :key="item.id"
-                  :label="formatArrangementLabel(item)"
-                  :value="item.id"
-                />
+              <el-select v-model="form.courseArrangementId" filterable style="width: 100%" placeholder="请选择排课">
+                <el-option v-for="item in arrangementOptions" :key="item.id" :label="formatArrangementLabel(item)" :value="item.id" />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
+
         <el-row :gutter="16">
           <el-col :span="8">
             <el-form-item label="平时分">
-              <el-input-number
-                v-model="form.usualScore"
-                :min="0"
-                :max="100"
-                :precision="2"
-                :controls="false"
-                style="width: 100%"
-              />
+              <el-input-number v-model="form.usualScore" :min="0" :max="100" :precision="2" :controls="false" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="期中分">
-              <el-input-number
-                v-model="form.midtermScore"
-                :min="0"
-                :max="100"
-                :precision="2"
-                :controls="false"
-                style="width: 100%"
-              />
+              <el-input-number v-model="form.midtermScore" :min="0" :max="100" :precision="2" :controls="false" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="期末分">
-              <el-input-number
-                v-model="form.finalScore"
-                :min="0"
-                :max="100"
-                :precision="2"
-                :controls="false"
-                style="width: 100%"
-              />
+              <el-input-number v-model="form.finalScore" :min="0" :max="100" :precision="2" :controls="false" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
+
         <el-form-item label="状态">
           <el-select v-model="form.status" style="width: 100%">
             <el-option label="正常" value="NORMAL" />
@@ -150,10 +102,12 @@
             <el-option label="重修" value="RETAKE" />
           </el-select>
         </el-form-item>
+
         <el-form-item label="备注">
           <el-input v-model="form.remark" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
+
       <template #footer>
         <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
         <AppButton @click="submit">保存</AppButton>
@@ -168,6 +122,8 @@ import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import AppBadge from '@/components/ui/AppBadge.vue'
+import AppTable from '@/components/ui/AppTable.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { createScore, deleteScore, exportScoreReport, getScoreList, updateScore } from '@/api/score'
 import { getCourseArrangementOptions } from '@/api/courseArrangement'
@@ -176,9 +132,8 @@ import { canAction } from '@/permission/ability'
 const store = useStore()
 const role = computed(() => store.state.userInfo?.role || '')
 const permissions = computed(() => store.state.userInfo?.permissions || [])
-const canEditScore = computed(() =>
-  canAction(role.value, 'score:create', permissions.value)
-)
+const tableDensity = computed(() => store.getters.tableDensity)
+const canEditScore = computed(() => canAction(role.value, 'score:create', permissions.value))
 const canFilterStudent = computed(() => role.value !== 'STUDENT')
 
 const loading = ref(false)
@@ -187,6 +142,23 @@ const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
 const arrangementOptions = ref([])
+
+const columns = computed(() => {
+  const base = [
+    { key: 'studentId', title: '学生ID', width: 100 },
+    { key: 'studentName', title: '学生', width: 120 },
+    { key: 'courseName', title: '课程', width: 140 },
+    { key: 'semester', title: '学期', width: 130 },
+    { key: 'usualScore', title: '平时', width: 80, align: 'right' },
+    { key: 'midtermScore', title: '期中', width: 80, align: 'right' },
+    { key: 'finalScore', title: '期末', width: 80, align: 'right' },
+    { key: 'totalScore', title: '总评', width: 80, align: 'right' },
+    { key: 'gpa', title: 'GPA', width: 80, align: 'right' },
+    { key: 'status', title: '状态', width: 110, align: 'center' }
+  ]
+  if (canEditScore.value) base.push({ key: 'actions', title: '操作', width: 140, align: 'right' })
+  return base
+})
 
 const searchForm = reactive({
   studentId: null,
@@ -269,9 +241,7 @@ function handleSearch() {
 }
 
 function handleReset() {
-  if (canFilterStudent.value) {
-    searchForm.studentId = null
-  }
+  if (canFilterStudent.value) searchForm.studentId = null
   searchForm.courseArrangementId = null
   searchForm.semester = ''
   handleSearch()
@@ -301,6 +271,13 @@ function toNullableNumber(value) {
   return Number.isNaN(parsed) ? null : parsed
 }
 
+function statusBadgeType(status) {
+  if (status === 'NORMAL') return 'success'
+  if (status === 'MAKEUP') return 'warning'
+  if (status === 'RETAKE') return 'danger'
+  return 'info'
+}
+
 async function submit() {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
@@ -328,3 +305,10 @@ onMounted(async () => {
   await fetchList()
 })
 </script>
+
+<style scoped>
+.pagination {
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+</style>

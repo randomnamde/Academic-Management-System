@@ -1,4 +1,4 @@
-﻿const { defineConfig, devices } = require('@playwright/test')
+const { defineConfig, devices } = require('@playwright/test')
 
 const localChromePath = process.env.PLAYWRIGHT_CHROME_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 
@@ -14,7 +14,7 @@ module.exports = defineConfig({
     trace: 'on-first-retry'
   },
   webServer: {
-    command: 'npm run serve -- --port 3000',
+    command: 'npm run dev -- --port 3000',
     port: 3000,
     reuseExistingServer: true,
     timeout: 120 * 1000

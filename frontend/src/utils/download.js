@@ -21,7 +21,7 @@ function parseFileName(disposition, fallbackName) {
 
 export async function downloadWithAuth(path, params = {}, fallbackName = 'export.csv') {
   const token = Cookies.get('token')
-  const baseURL = process.env.VUE_APP_BASE_API || '/api'
+  const baseURL = import.meta.env.VITE_APP_BASE_API || '/api'
   const response = await axios.get(`${baseURL}${path}`, {
     params,
     responseType: 'blob',

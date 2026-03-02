@@ -8,6 +8,10 @@ const store = createStore({
     userInfo: JSON.parse(localStorage.getItem('userInfo') || '{}'),
     sidebar: {
       opened: localStorage.getItem('sidebar') !== 'false'
+    },
+    uiPreference: {
+      tableDensity: localStorage.getItem('ui:tableDensity') || 'compact',
+      sidebarCollapsed: localStorage.getItem('ui:sidebarCollapsed') === 'true'
     }
   },
   mutations: {
@@ -28,6 +32,13 @@ const store = createStore({
     TOGGLE_SIDEBAR(state) {
       state.sidebar.opened = !state.sidebar.opened
       localStorage.setItem('sidebar', state.sidebar.opened)
+      state.uiPreference.sidebarCollapsed = !state.sidebar.opened
+      localStorage.setItem('ui:sidebarCollapsed', String(state.uiPreference.sidebarCollapsed))
+    },
+    SET_TABLE_DENSITY(state, density) {
+      const next = density === 'comfortable' ? 'comfortable' : 'compact'
+      state.uiPreference.tableDensity = next
+      localStorage.setItem('ui:tableDensity', next)
     }
   },
   actions: {
@@ -56,7 +67,8 @@ const store = createStore({
   getters: {
     isLoggedIn: state => !!state.token,
     userRole: state => state.userInfo?.role,
-    username: state => state.userInfo?.username
+    username: state => state.userInfo?.username,
+    tableDensity: state => state.uiPreference.tableDensity
   }
 })
 

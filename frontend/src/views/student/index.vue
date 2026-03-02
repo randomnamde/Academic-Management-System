@@ -5,61 +5,40 @@
     </template>
 
     <template #filters>
-      <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="学号">
-          <el-input v-model="searchForm.studentNo" placeholder="请输入学号" clearable />
-        </el-form-item>
-        <el-form-item label="姓名">
-          <el-input v-model="searchForm.name" placeholder="请输入姓名" clearable />
-        </el-form-item>
-        <el-form-item label="班级">
-          <el-select v-model="searchForm.classId" placeholder="请选择班级" clearable style="width: 180px">
-            <el-option v-for="item in classList" :key="item.id" :label="item.className" :value="item.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 140px">
-            <el-option label="在读" value="ENROLLED" />
-            <el-option label="休学" value="SUSPENDED" />
-            <el-option label="毕业" value="GRADUATED" />
-            <el-option label="退学" value="DROPPED" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
+      <div class="grid grid-cols-12 gap-2">
+        <el-input v-model="searchForm.studentNo" clearable placeholder="学号" class="col-span-12 md:col-span-2" />
+        <el-input v-model="searchForm.name" clearable placeholder="姓名" class="col-span-12 md:col-span-2" />
+        <el-select v-model="searchForm.classId" clearable placeholder="班级" class="col-span-12 md:col-span-2">
+          <el-option v-for="item in classList" :key="item.id" :label="item.className" :value="item.id" />
+        </el-select>
+        <el-select v-model="searchForm.status" clearable placeholder="状态" class="col-span-12 md:col-span-2">
+          <el-option label="在读" value="ENROLLED" />
+          <el-option label="休学" value="SUSPENDED" />
+          <el-option label="毕业" value="GRADUATED" />
+          <el-option label="退学" value="DROPPED" />
+        </el-select>
+        <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-4">
+          <AppButton variant="secondary" @click="handleReset">重置</AppButton>
           <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
-        </el-form-item>
-      </el-form>
+        </div>
+      </div>
     </template>
 
     <template #table>
-      <el-table :data="studentList" v-loading="loading" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="studentNo" label="学号" width="130" />
-        <el-table-column prop="name" label="姓名" width="120" />
-        <el-table-column prop="gender" label="性别" width="80">
-          <template #default="{ row }">{{ row.gender === 'MALE' ? '男' : '女' }}</template>
-        </el-table-column>
-        <el-table-column label="班级" width="150">
-          <template #default="{ row }">
-            {{ row.className || getClassNameById(row.classId) || '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="phone" label="电话" width="140" />
-        <el-table-column prop="email" label="邮箱" min-width="180" />
-        <el-table-column prop="status" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-            <el-button type="success" link @click="handleViewScore(row)">成绩</el-button>
-            <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <AppTable :columns="columns" :rows="studentList" :loading="loading" :density="tableDensity">
+        <template #cell-gender="{ row }">{{ row.gender === 'MALE' ? '男' : '女' }}</template>
+        <template #cell-className="{ row }">{{ row.className || getClassNameById(row.classId) || '-' }}</template>
+        <template #cell-status="{ row }">
+          <AppBadge :type="statusBadgeType(row.status)">{{ getStatusText(row.status) }}</AppBadge>
+        </template>
+        <template #cell-actions="{ row }">
+          <div class="flex justify-end gap-2">
+            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="handleEdit(row)">编辑</button>
+            <button class="text-[12px] text-slatex-600 hover:text-slatex-900" @click="handleViewScore(row)">成绩</button>
+            <button class="text-[12px] text-state-danger hover:opacity-80" @click="handleDelete(row)">删除</button>
+          </div>
+        </template>
+      </AppTable>
     </template>
 
     <template #pagination>
@@ -71,13 +50,12 @@
         layout="total, sizes, prev, pager, next"
         @size-change="handleSizeChange"
         @current-change="handlePageChange"
-        class="pagination"
       />
     </template>
 
     <AppModal v-model="dialogVisible" :title="dialogTitle" width="760px">
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
-        <el-row :gutter="20">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="96px">
+        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="学号" prop="studentNo">
               <el-input v-model="form.studentNo" disabled placeholder="根据班级与入学日期自动生成" />
@@ -90,7 +68,7 @@
           </el-col>
         </el-row>
 
-        <el-row :gutter="20">
+        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="性别" prop="gender">
               <el-radio-group v-model="form.gender">
@@ -108,7 +86,7 @@
           </el-col>
         </el-row>
 
-        <el-row :gutter="20">
+        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="电话" prop="phone">
               <el-input v-model="form.phone" />
@@ -121,7 +99,7 @@
           </el-col>
         </el-row>
 
-        <el-row :gutter="20">
+        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="身份证号" prop="idCard">
               <el-input v-model="form.idCard" />
@@ -151,16 +129,21 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import AppBadge from '@/components/ui/AppBadge.vue'
+import AppTable from '@/components/ui/AppTable.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { createStudent, deleteStudent, getNextStudentNo, getStudentList, updateStudent } from '@/api/student'
 import { getClassList } from '@/api/clazz'
 
 const router = useRouter()
+const store = useStore()
+const tableDensity = computed(() => store.getters.tableDensity)
 
 const studentList = ref([])
 const classList = ref([])
@@ -168,6 +151,17 @@ const loading = ref(false)
 const page = ref(1)
 const size = ref(10)
 const total = ref(0)
+
+const columns = [
+  { key: 'studentNo', title: '学号', width: 140 },
+  { key: 'name', title: '姓名', width: 120 },
+  { key: 'gender', title: '性别', width: 80 },
+  { key: 'className', title: '班级', width: 160 },
+  { key: 'phone', title: '电话', width: 150 },
+  { key: 'email', title: '邮箱' },
+  { key: 'status', title: '状态', width: 110 },
+  { key: 'actions', title: '操作', width: 180, align: 'right' }
+]
 
 const searchForm = reactive({
   studentNo: '',
@@ -296,9 +290,7 @@ async function handleSubmit() {
   if (!valid) return
 
   const payload = { ...form }
-  if (!payload.password) {
-    delete payload.password
-  }
+  if (!payload.password) delete payload.password
 
   if (!isEdit.value && !payload.password) {
     ElMessage.error('新增学生必须填写密码')
@@ -319,30 +311,28 @@ async function handleSubmit() {
 
 async function refreshStudentNo() {
   if (!dialogVisible.value || isEdit.value || !form.classId) {
-    if (!isEdit.value) {
-      form.studentNo = ''
-    }
+    if (!isEdit.value) form.studentNo = ''
     return
   }
+
   try {
-    const res = await getNextStudentNo({
-      classId: form.classId,
-      enrollmentDate: form.enrollmentDate || undefined
-    })
+    const res = await getNextStudentNo({ classId: form.classId, enrollmentDate: form.enrollmentDate || undefined })
     form.studentNo = res.data || ''
   } catch (_e) {
     form.studentNo = ''
   }
 }
 
-function getStatusType(status) {
-  const map = { ENROLLED: 'success', SUSPENDED: 'warning', GRADUATED: 'info', DROPPED: 'danger' }
-  return map[status] || ''
-}
-
 function getStatusText(status) {
   const map = { ENROLLED: '在读', SUSPENDED: '休学', GRADUATED: '毕业', DROPPED: '退学' }
   return map[status] || status
+}
+
+function statusBadgeType(status) {
+  if (status === 'ENROLLED') return 'success'
+  if (status === 'SUSPENDED') return 'warning'
+  if (status === 'DROPPED') return 'danger'
+  return 'info'
 }
 
 function getClassNameById(classId) {
@@ -363,10 +353,3 @@ onMounted(async () => {
   await fetchList()
 })
 </script>
-
-<style scoped lang="scss">
-.pagination {
-  margin-top: 8px;
-  justify-content: flex-end;
-}
-</style>

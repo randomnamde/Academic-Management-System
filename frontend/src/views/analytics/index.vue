@@ -369,13 +369,13 @@ function renderAttendanceTrend(records) {
     xAxis: {
       type: 'category',
       data: labels,
-      axisLabel: { color: '#6a5d96' }
+      axisLabel: { color: '#4d6f80' }
     },
     yAxis: {
       type: 'value',
       minInterval: 1,
-      axisLabel: { color: '#6a5d96' },
-      splitLine: { lineStyle: { color: 'rgba(142, 119, 238, 0.15)' } }
+      axisLabel: { color: '#4d6f80' },
+      splitLine: { lineStyle: { color: 'rgba(93, 147, 155, 0.2)' } }
     },
     series: [
       {
@@ -385,7 +385,7 @@ function renderAttendanceTrend(records) {
         data: values,
         itemStyle: {
           borderRadius: [8, 8, 0, 0],
-          color: '#8a71ff'
+          color: '#1b8e88'
         }
       }
     ]
@@ -405,7 +405,7 @@ function renderScoreTrend(records) {
     xAxis: {
       type: 'category',
       data: labels,
-      axisLabel: { color: '#6a5d96' }
+      axisLabel: { color: '#4d6f80' }
     },
     yAxis: [
       {
@@ -413,8 +413,8 @@ function renderScoreTrend(records) {
         name: '分值',
         min: 0,
         max: 100,
-        axisLabel: { color: '#6a5d96' },
-        splitLine: { lineStyle: { color: 'rgba(142, 119, 238, 0.15)' } }
+        axisLabel: { color: '#4d6f80' },
+        splitLine: { lineStyle: { color: 'rgba(93, 147, 155, 0.2)' } }
       },
       {
         type: 'value',
@@ -430,8 +430,8 @@ function renderScoreTrend(records) {
         type: 'line',
         smooth: true,
         data: avg,
-        lineStyle: { color: '#7a65f0', width: 3 },
-        itemStyle: { color: '#7a65f0' }
+        lineStyle: { color: '#177c77', width: 3 },
+        itemStyle: { color: '#177c77' }
       },
       {
         name: '及格率',
@@ -439,8 +439,8 @@ function renderScoreTrend(records) {
         smooth: true,
         yAxisIndex: 1,
         data: pass,
-        lineStyle: { color: '#4f9dff', width: 2 },
-        itemStyle: { color: '#4f9dff' }
+        lineStyle: { color: '#3b8fa4', width: 2 },
+        itemStyle: { color: '#3b8fa4' }
       },
       {
         name: '优秀率',
@@ -448,8 +448,8 @@ function renderScoreTrend(records) {
         smooth: true,
         yAxisIndex: 1,
         data: excellent,
-        lineStyle: { color: '#9e7dff', width: 2 },
-        itemStyle: { color: '#9e7dff' }
+        lineStyle: { color: '#6e9f5f', width: 2 },
+        itemStyle: { color: '#6e9f5f' }
       }
     ]
   })
@@ -534,17 +534,19 @@ onBeforeUnmount(() => {
 
 .filter-card {
   border-radius: 18px;
+  border: 1px solid rgba(21, 88, 102, 0.17);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
 }
 
 .filter-header h2 {
   margin: 0;
   font-size: 26px;
-  color: #2c2055;
+  color: #173749;
 }
 
 .filter-header p {
   margin: 8px 0 14px;
-  color: #675b95;
+  color: #446173;
 }
 
 .filter-form {
@@ -566,8 +568,8 @@ onBeforeUnmount(() => {
 
 .kpi-card {
   border-radius: 16px;
-  border: 1px solid rgba(161, 140, 247, 0.28);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(244, 237, 255, 0.82));
+  border: 1px solid rgba(24, 97, 110, 0.2);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.94), rgba(238, 248, 247, 0.84));
 }
 
 .kpi-card :deep(.el-card__body) {
@@ -579,13 +581,13 @@ onBeforeUnmount(() => {
 
 .kpi-label {
   font-size: 13px;
-  color: #6f6498;
+  color: #4e6574;
 }
 
 .kpi-value {
   font-size: 30px;
   line-height: 1;
-  color: #2a1f50;
+  color: #163548;
 }
 
 .kpi-trend {
@@ -594,15 +596,15 @@ onBeforeUnmount(() => {
 }
 
 .kpi-trend.positive {
-  color: #0f9f59;
+  color: #2e7d4f;
 }
 
 .kpi-trend.negative {
-  color: #db4d4d;
+  color: #c35f4e;
 }
 
 .kpi-trend.neutral {
-  color: #766b9f;
+  color: #66808f;
 }
 
 .chart-grid {
@@ -614,6 +616,8 @@ onBeforeUnmount(() => {
 .chart-card,
 .risk-card {
   border-radius: 18px;
+  border: 1px solid rgba(21, 88, 102, 0.17);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
 }
 
 .chart-canvas {

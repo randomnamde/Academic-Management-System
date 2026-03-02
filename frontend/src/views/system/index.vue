@@ -397,12 +397,12 @@ onMounted(() => {
   gap: 16px;
   padding: 24px;
   border-radius: 20px;
-  border: 1px solid rgba(165, 143, 255, 0.25);
+  border: 1px solid rgba(20, 84, 101, 0.2);
   background:
-    radial-gradient(circle at 8% 12%, rgba(255, 255, 255, 0.42), transparent 38%),
-    radial-gradient(circle at 92% 4%, rgba(189, 171, 255, 0.22), transparent 36%),
-    linear-gradient(140deg, rgba(255, 255, 255, 0.86), rgba(244, 236, 255, 0.82));
-  box-shadow: 0 20px 40px rgba(78, 60, 145, 0.14);
+    radial-gradient(circle at 8% 12%, rgba(255, 255, 255, 0.46), transparent 38%),
+    radial-gradient(circle at 92% 4%, rgba(172, 221, 217, 0.24), transparent 36%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(239, 248, 247, 0.86));
+  box-shadow: 0 18px 34px rgba(22, 66, 79, 0.12);
 }
 
 .hero-kicker {
@@ -410,12 +410,12 @@ onMounted(() => {
   font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #8d79d0;
+  color: #4a7d8c;
 }
 
 .hero-title {
   margin: 10px 0 12px;
-  color: #2a1f4f;
+  color: #173749;
   font-size: 32px;
   line-height: 1.2;
   font-weight: 700;
@@ -424,7 +424,7 @@ onMounted(() => {
 .hero-description {
   margin: 0;
   max-width: 580px;
-  color: #5e5186;
+  color: #446173;
   line-height: 1.7;
   font-size: 14px;
 }
@@ -442,17 +442,17 @@ onMounted(() => {
   gap: 6px;
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid rgba(168, 143, 255, 0.24);
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(24, 97, 110, 0.2);
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .hero-chip span {
-  color: #6f5f9f;
+  color: #4c6878;
   font-size: 13px;
 }
 
 .hero-chip strong {
-  color: #2d2150;
+  color: #173a4c;
   font-size: 24px;
   font-weight: 700;
 }
@@ -465,8 +465,14 @@ onMounted(() => {
 
 .metric-card {
   border-radius: 16px;
-  border: 1px solid rgba(161, 138, 246, 0.22);
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.93), rgba(244, 237, 255, 0.82));
+  border: 1px solid rgba(24, 97, 110, 0.2);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.94), rgba(238, 248, 247, 0.84));
+  transition: transform var(--sms-motion-standard), box-shadow var(--sms-motion-standard);
+}
+
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 26px rgba(20, 74, 87, 0.16);
 }
 
 :deep(.metric-card .el-card__body) {
@@ -489,19 +495,19 @@ onMounted(() => {
 }
 
 .admin-card .metric-icon {
-  background: linear-gradient(135deg, #7c66ff, #5a47d8);
+  background: linear-gradient(135deg, #1f958e, #116c68);
 }
 
 .teacher-card .metric-icon {
-  background: linear-gradient(135deg, #a464ff, #7f4ed7);
+  background: linear-gradient(135deg, #2f8e9e, #2a6f93);
 }
 
 .student-card .metric-icon {
-  background: linear-gradient(135deg, #55a8ff, #4f77df);
+  background: linear-gradient(135deg, #3da293, #257f71);
 }
 
 .risk-card .metric-icon {
-  background: linear-gradient(135deg, #ff8f9e, #e56b8c);
+  background: linear-gradient(135deg, #d9806c, #b15f4e);
 }
 
 .metric-content {
@@ -511,13 +517,13 @@ onMounted(() => {
 }
 
 .metric-label {
-  color: #6f6296;
+  color: #4e6574;
   font-size: 13px;
 }
 
 .metric-value {
   margin-top: 4px;
-  color: #261c49;
+  color: #163548;
   font-size: 28px;
   line-height: 1;
 }
@@ -530,9 +536,9 @@ onMounted(() => {
 
 .panel-card {
   border-radius: 18px;
-  border: 1px solid rgba(166, 145, 247, 0.2);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.9), rgba(247, 241, 255, 0.82));
-  box-shadow: 0 12px 30px rgba(85, 65, 155, 0.1);
+  border: 1px solid rgba(21, 88, 102, 0.17);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
+  box-shadow: 0 10px 24px rgba(20, 68, 80, 0.1);
 }
 
 .panel-user {
@@ -548,7 +554,7 @@ onMounted(() => {
 }
 
 :deep(.panel-card .el-card__header) {
-  border-bottom: 1px solid rgba(171, 149, 255, 0.25);
+  border-bottom: 1px solid rgba(19, 87, 98, 0.15);
   padding: 14px 18px;
 }
 
@@ -583,7 +589,7 @@ onMounted(() => {
 }
 
 .status-text {
-  color: #6c5f96;
+  color: #5e7887;
   font-size: 12px;
 }
 
@@ -594,15 +600,15 @@ onMounted(() => {
   margin-bottom: 16px;
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid rgba(176, 155, 255, 0.22);
-  background: rgba(255, 255, 255, 0.72);
-  color: #594b88;
+  border: 1px solid rgba(20, 93, 105, 0.16);
+  background: rgba(238, 249, 248, 0.78);
+  color: #365969;
   line-height: 1.6;
 }
 
 .security-tip .el-icon {
   margin-top: 2px;
-  color: #775ef0;
+  color: #166f6b;
 }
 
 .log-grid :deep(.el-card__body) {

@@ -1,6 +1,6 @@
 ﻿<template>
   <div class="student-management">
-    <el-card>
+    <el-card class="workbench-card">
       <template #header>
         <div class="card-header">
           <span>学生管理</span>
@@ -336,23 +336,49 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .student-management {
-  padding: 20px;
+  padding: 4px 0 10px;
+}
+
+.workbench-card {
+  border-radius: 18px;
+  border: 1px solid rgba(21, 88, 102, 0.17);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
+  box-shadow: 0 10px 24px rgba(20, 68, 80, 0.1);
+}
+
+.workbench-card :deep(.el-card__header) {
+  border-bottom: 1px solid rgba(19, 87, 98, 0.15);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+}
+
+.card-header > span {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17384a;
+  letter-spacing: 0.01em;
 }
 
 .search-form {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .pagination {
-  margin-top: 20px;
+  margin-top: 16px;
   justify-content: flex-end;
+}
+
+@media (max-width: 992px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>

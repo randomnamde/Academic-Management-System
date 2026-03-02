@@ -245,9 +245,22 @@ watch(
 )
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .page-container {
-  padding: 20px;
+  padding: 4px 0 10px;
+}
+
+.page-container :deep(.el-card) {
+  border-radius: 18px;
+  border: 1px solid rgba(21, 88, 102, 0.17);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
+  box-shadow: 0 10px 24px rgba(20, 68, 80, 0.1);
+}
+
+.page-container :deep(.el-card__header) {
+  border-bottom: 1px solid rgba(19, 87, 98, 0.15);
+  font-weight: 700;
+  color: #17384a;
 }
 
 .user-info {
@@ -260,12 +273,13 @@ watch(
 .user-name {
   margin-top: 10px;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
+  color: #17384a;
 }
 
 .user-role {
   margin-top: 4px;
-  color: #909399;
+  color: #68818d;
 }
 
 .avatar-upload-row {
@@ -286,6 +300,12 @@ watch(
 
 .avatar-tip {
   font-size: 12px;
-  color: #909399;
+  color: #68818d;
+}
+
+@media (max-width: 992px) {
+  .page-container {
+    padding-top: 0;
+  }
 }
 </style>

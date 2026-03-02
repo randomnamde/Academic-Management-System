@@ -1,6 +1,6 @@
 ﻿<template>
   <div class="page-container">
-    <el-card>
+    <el-card class="leave-card">
       <template #header>
         <div class="header-row">
           <span>{{ pageTitle }}</span>
@@ -477,21 +477,45 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .page-container {
-  padding: 20px;
+  padding: 4px 0 10px;
+}
+
+.leave-card {
+  border-radius: 18px;
+  border: 1px solid rgba(21, 88, 102, 0.17);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
+  box-shadow: 0 12px 28px rgba(20, 68, 80, 0.1);
+}
+
+.leave-card :deep(.el-card__header) {
+  border-bottom: 1px solid rgba(19, 87, 98, 0.15);
+}
+
+.leave-card :deep(.el-card__body) {
+  padding-top: 14px;
 }
 
 .header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+}
+
+.header-row > span {
+  font-size: 18px;
+  font-weight: 700;
+  color: #17384a;
+  letter-spacing: 0.01em;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .search-form {
@@ -518,23 +542,23 @@ onMounted(() => {
 }
 
 :deep(.op-cell) {
-  background-color: #eee6ff !important;
+  background-color: rgba(219, 241, 239, 0.74) !important;
 }
 
 :deep(.el-table__fixed-right .op-cell) {
-  background-color: #eee6ff !important;
+  background-color: rgba(219, 241, 239, 0.74) !important;
 }
 
 :deep(.op-header-cell) {
-  background-color: #eee6ff !important;
+  background-color: rgba(210, 236, 233, 0.86) !important;
 }
 
 :deep(.el-table__fixed-right .op-header-cell) {
-  background-color: #eee6ff !important;
+  background-color: rgba(210, 236, 233, 0.86) !important;
 }
 
 :deep(.el-table__fixed-right-patch) {
-  background-color: #eee6ff !important;
+  background-color: rgba(210, 236, 233, 0.86) !important;
 }
 
 :deep(.op-actions .el-button + .el-button) {
@@ -545,6 +569,19 @@ onMounted(() => {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 6px;
-  background: #e2d3ff;
+  background: rgba(22, 110, 107, 0.16);
+  color: #1f4f5f;
+  font-weight: 700;
+}
+
+@media (max-width: 992px) {
+  .header-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
 }
 </style>

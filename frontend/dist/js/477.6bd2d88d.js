@@ -1,2 +1,0 @@
-"use strict";(self["webpackChunkstudent_management_frontend"]=self["webpackChunkstudent_management_frontend"]||[]).push([[477],{1477:function(n,e,t){t.r(e),t.d(e,{default:function(){return l}});var u=t(641);const a={class:"page-placeholder"};function r(n,e){return(0,u.uX)(),(0,u.CE)("div",a,[...e[0]||(e[0]=[(0,u.Lk)("h2",null,"404",-1),(0,u.Lk)("p",null,"Page not found.",-1)])])}var s=t(6262);const c={},d=(0,s.A)(c,[["render",r]]);var l=d}}]);
-//# sourceMappingURL=477.6bd2d88d.js.map

@@ -2,7 +2,7 @@
   <el-container class="main-layout">
     <el-aside
       v-if="!isMobile"
-      :width="isCollapse ? '72px' : '236px'"
+      :width="isCollapse ? '72px' : `${sidebarExpandedWidth}px`"
       class="sidebar"
       :class="{ collapsed: isCollapse }"
     >
@@ -145,7 +145,7 @@
       </div>
     </el-drawer>
 
-    <el-container>
+    <el-container class="workspace-shell">
       <el-header class="header">
         <div class="header-left">
           <el-icon class="collapse-btn" @click="handleMenuToggle">
@@ -250,6 +250,7 @@ const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726
 
 const mobileDrawerVisible = ref(false)
 const isMobile = ref(window.innerWidth < 992)
+const viewportWidth = ref(window.innerWidth)
 const notificationCount = ref(0)
 const latestAnnouncements = ref([])
 const noticeDetailVisible = ref(false)
@@ -266,6 +267,14 @@ const noticeDetail = ref({
 const userInfo = computed(() => store.state.userInfo || {})
 const sidebarOpened = computed(() => store.state.sidebar?.opened !== false)
 const isCollapse = computed(() => !sidebarOpened.value)
+const sidebarExpandedWidth = computed(() => {
+  const width = viewportWidth.value
+  if (width >= 1680) return 248
+  if (width >= 1440) return 236
+  if (width >= 1280) return 220
+  if (width >= 1120) return 206
+  return 192
+})
 const readAnnouncementStorageKey = computed(() => `announcement:read:${userInfo.value?.id || 'guest'}`)
 const role = computed(() => userInfo.value?.role || '')
 const permissions = computed(() => userInfo.value?.permissions || [])
@@ -334,6 +343,7 @@ const visibleBottomActions = computed(() =>
 )
 
 const handleResize = () => {
+  viewportWidth.value = window.innerWidth
   const mobile = window.innerWidth < 992
   isMobile.value = mobile
   if (!mobile) {
@@ -516,8 +526,10 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .main-layout {
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   overflow: hidden;
 }
@@ -526,13 +538,32 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
   border-right: 1px solid rgba(191, 214, 217, 0.2);
   background: linear-gradient(180deg, rgba(25, 53, 73, 0.95) 0%, rgba(20, 42, 61, 0.94) 100%);
   box-shadow: 12px 0 28px rgba(15, 30, 45, 0.28);
   backdrop-filter: blur(16px);
   transition: width var(--sms-motion-standard, 180ms) var(--sms-ease-standard, cubic-bezier(0.22, 1, 0.36, 1));
   z-index: 3;
+}
+
+.sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(201, 228, 232, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 228, 232, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 72%);
+}
+
+.workspace-shell {
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
 }
 
 .brand-zone {
@@ -851,6 +882,8 @@ onUnmounted(() => {
 }
 
 .main-content {
+  flex: 1;
+  min-height: 0;
   position: relative;
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(245, 251, 251, 0.88));
   border: 1px solid rgba(23, 79, 95, 0.2);

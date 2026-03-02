@@ -4,6 +4,7 @@
   "description": "Student Management System Frontend",
   "scripts": {
     "dev": "vite",
+    "serve": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .js,.vue",

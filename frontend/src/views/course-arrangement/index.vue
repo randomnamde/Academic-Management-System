@@ -1,50 +1,50 @@
-<template>
+﻿<template>
   <div class="page-container">
     <el-card class="workbench-card">
       <template #header>
         <div class="header-row">
-          <span>排课管理</span>
-          <el-button type="primary" @click="openCreate">新增排课</el-button>
+          <span>鎺掕绠＄悊</span>
+          <el-button type="primary" @click="openCreate">鏂板鎺掕</el-button>
         </div>
       </template>
 
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="课程ID">
+        <el-form-item label="璇剧▼ID">
           <el-input-number v-model="searchForm.courseId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="教师ID">
+        <el-form-item label="鏁欏笀ID">
           <el-input-number v-model="searchForm.teacherId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="班级ID">
+        <el-form-item label="鐝骇ID">
           <el-input-number v-model="searchForm.classId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="学期">
-          <el-input v-model="searchForm.semester" clearable placeholder="如 2024-2025-1" />
+        <el-form-item label="瀛︽湡">
+          <el-input v-model="searchForm.semester" clearable placeholder="濡?2024-2025-1" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button type="primary" @click="handleSearch">鏌ヨ</el-button>
+          <el-button @click="handleReset">閲嶇疆</el-button>
         </el-form-item>
       </el-form>
 
       <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="#" width="60" />
-        <el-table-column prop="courseName" label="课程" min-width="130" />
-        <el-table-column prop="teacherName" label="教师" width="120" />
-        <el-table-column prop="className" label="班级" width="120" />
-        <el-table-column prop="semester" label="学期" width="130" />
-        <el-table-column prop="schedule" label="时间安排" min-width="150" />
-        <el-table-column prop="room" label="教室" width="100" />
-        <el-table-column label="人数" width="120">
+        <el-table-column type="index" label="序号" width="60" />
+        <el-table-column prop="courseName" label="璇剧▼" min-width="130" />
+        <el-table-column prop="teacherName" label="鏁欏笀" width="120" />
+        <el-table-column prop="className" label="鐝骇" width="120" />
+        <el-table-column prop="semester" label="瀛︽湡" width="130" />
+        <el-table-column prop="schedule" label="鏃堕棿瀹夋帓" min-width="150" />
+        <el-table-column prop="room" label="鏁欏" width="100" />
+        <el-table-column label="浜烘暟" width="120">
           <template #default="{ row }">{{ row.enrolledCount || 0 }}/{{ row.capacity || 0 }}</template>
         </el-table-column>
-        <el-table-column label="状态" width="90">
-          <template #default="{ row }">{{ row.status === 1 ? '启用' : '停用' }}</template>
+        <el-table-column label="鐘舵€? width="90">
+          <template #default="{ row }">{{ row.status === 1 ? '鍚敤' : '鍋滅敤' }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="鎿嶄綔" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="primary" @click="openEdit(row)">缂栬緫</el-button>
+            <el-button link type="danger" @click="handleDelete(row)">鍒犻櫎</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -61,21 +61,21 @@
       />
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑排课' : '新增排课'" width="700px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '缂栬緫鎺掕' : '鏂板鎺掕'" width="700px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="8">
-            <el-form-item label="课程ID" prop="courseId">
+            <el-form-item label="璇剧▼ID" prop="courseId">
               <el-input-number v-model="form.courseId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="教师ID" prop="teacherId">
+            <el-form-item label="鏁欏笀ID" prop="teacherId">
               <el-input-number v-model="form.teacherId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="班级ID" prop="classId">
+            <el-form-item label="鐝骇ID" prop="classId">
               <el-input-number v-model="form.classId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
@@ -83,40 +83,40 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="学期" prop="semester">
-              <el-input v-model="form.semester" placeholder="如 2024-2025-1" />
+            <el-form-item label="瀛︽湡" prop="semester">
+              <el-input v-model="form.semester" placeholder="濡?2024-2025-1" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="教室">
+            <el-form-item label="鏁欏">
               <el-input v-model="form.room" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="时间安排" prop="schedule">
-          <el-input v-model="form.schedule" placeholder="如 周一 08:00-09:40" />
+        <el-form-item label="鏃堕棿瀹夋帓" prop="schedule">
+          <el-input v-model="form.schedule" placeholder="濡?鍛ㄤ竴 08:00-09:40" />
         </el-form-item>
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="容量" prop="capacity">
+            <el-form-item label="瀹归噺" prop="capacity">
               <el-input-number v-model="form.capacity" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="状态">
+            <el-form-item label="鐘舵€?>
               <el-radio-group v-model="form.status">
-                <el-radio :label="1">启用</el-radio>
-                <el-radio :label="0">停用</el-radio>
+                <el-radio :label="1">鍚敤</el-radio>
+                <el-radio :label="0">鍋滅敤</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submit">保存</el-button>
+        <el-button @click="dialogVisible = false">鍙栨秷</el-button>
+        <el-button type="primary" @click="submit">淇濆瓨</el-button>
       </template>
     </el-dialog>
   </div>
@@ -161,12 +161,12 @@ const form = reactive({
 })
 
 const rules = {
-  courseId: [{ required: true, message: '请输入课程ID', trigger: 'change' }],
-  teacherId: [{ required: true, message: '请输入教师ID', trigger: 'change' }],
-  classId: [{ required: true, message: '请输入班级ID', trigger: 'change' }],
-  semester: [{ required: true, message: '请输入学期', trigger: 'blur' }],
-  schedule: [{ required: true, message: '请输入时间安排', trigger: 'blur' }],
-  capacity: [{ required: true, message: '请输入容量', trigger: 'change' }]
+  courseId: [{ required: true, message: '璇疯緭鍏ヨ绋婭D', trigger: 'change' }],
+  teacherId: [{ required: true, message: '璇疯緭鍏ユ暀甯圛D', trigger: 'change' }],
+  classId: [{ required: true, message: '璇疯緭鍏ョ彮绾D', trigger: 'change' }],
+  semester: [{ required: true, message: '璇疯緭鍏ュ鏈?, trigger: 'blur' }],
+  schedule: [{ required: true, message: '璇疯緭鍏ユ椂闂村畨鎺?, trigger: 'blur' }],
+  capacity: [{ required: true, message: '璇疯緭鍏ュ閲?, trigger: 'change' }]
 }
 
 function resetForm() {
@@ -244,10 +244,10 @@ async function submit() {
 
   if (isEdit.value) {
     await updateCourseArrangement(form.id, payload)
-    ElMessage.success('修改成功')
+    ElMessage.success('淇敼鎴愬姛')
   } else {
     await createCourseArrangement(payload)
-    ElMessage.success('新增成功')
+    ElMessage.success('鏂板鎴愬姛')
   }
 
   dialogVisible.value = false
@@ -255,9 +255,9 @@ async function submit() {
 }
 
 async function handleDelete(row) {
-  await ElMessageBox.confirm('确认删除该排课吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm('纭鍒犻櫎璇ユ帓璇惧悧锛?, '鎻愮ず', { type: 'warning' })
   await deleteCourseArrangement(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success('鍒犻櫎鎴愬姛')
   fetchList()
 }
 
@@ -310,3 +310,4 @@ onMounted(fetchList)
   }
 }
 </style>
+

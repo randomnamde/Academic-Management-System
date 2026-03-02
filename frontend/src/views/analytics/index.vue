@@ -1,47 +1,47 @@
-<template>
+﻿<template>
   <div class="analytics-page">
     <el-card class="filter-card">
       <div class="filter-header">
-        <h2>分析中心</h2>
-        <p>按时间与维度查看出勤趋势、成绩质量与风险学生分布。</p>
+        <h2>鍒嗘瀽涓績</h2>
+        <p>鎸夋椂闂翠笌缁村害鏌ョ湅鍑哄嫟瓒嬪娍銆佹垚缁╄川閲忎笌椋庨櫓瀛︾敓鍒嗗竷銆?/p>
       </div>
       <el-form :inline="true" class="filter-form">
-        <el-form-item label="时间范围">
+        <el-form-item label="鏃堕棿鑼冨洿">
           <el-date-picker
             v-model="dateRange"
             type="daterange"
             unlink-panels
             value-format="YYYY-MM-DD"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
+            start-placeholder="寮€濮嬫棩鏈?
+            end-placeholder="缁撴潫鏃ユ湡"
           />
         </el-form-item>
-        <el-form-item label="学期">
-          <el-input v-model="filters.semester" clearable placeholder="如 2026-2027-1" />
+        <el-form-item label="瀛︽湡">
+          <el-input v-model="filters.semester" clearable placeholder="濡?2026-2027-1" />
         </el-form-item>
-        <el-form-item v-if="userRole !== 'STUDENT'" label="班级ID">
+        <el-form-item v-if="userRole !== 'STUDENT'" label="鐝骇ID">
           <el-input-number v-model="filters.classId" :min="1" controls-position="right" />
         </el-form-item>
-        <el-form-item v-if="userRole === 'ADMIN'" label="教师ID">
+        <el-form-item v-if="userRole === 'ADMIN'" label="鏁欏笀ID">
           <el-input-number v-model="filters.teacherId" :min="1" controls-position="right" />
         </el-form-item>
-        <el-form-item label="粒度">
+        <el-form-item label="绮掑害">
           <el-select v-model="filters.granularity" style="width: 120px">
-            <el-option label="按天" value="day" />
-            <el-option label="按周" value="week" />
-            <el-option label="按月" value="month" />
+            <el-option label="鎸夊ぉ" value="day" />
+            <el-option label="鎸夊懆" value="week" />
+            <el-option label="鎸夋湀" value="month" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="loading" @click="refreshAll">刷新分析</el-button>
-          <el-button @click="resetFilters">重置</el-button>
+          <el-button type="primary" :loading="loading" @click="refreshAll">鍒锋柊鍒嗘瀽</el-button>
+          <el-button @click="resetFilters">閲嶇疆</el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
     <section class="kpi-grid" :class="{ 'kpi-grid-student': isStudent }">
       <el-card v-if="!isStudent" class="kpi-card">
-        <span class="kpi-label">学生规模</span>
+        <span class="kpi-label">瀛︾敓瑙勬ā</span>
         <strong class="kpi-value">{{ overview.studentCount }}</strong>
       </el-card>
       <el-card class="kpi-card">
@@ -49,14 +49,14 @@
         <strong class="kpi-value">{{ overview.pendingApprovalCount }}</strong>
       </el-card>
       <el-card class="kpi-card">
-        <span class="kpi-label">出勤率</span>
+        <span class="kpi-label">鍑哄嫟鐜?/span>
         <strong class="kpi-value">{{ formatPercent(overview.attendanceRate) }}</strong>
         <span class="kpi-trend" :class="trendClass(overview.attendanceRateChange)">
           {{ formatDelta(overview.attendanceRateChange) }}
         </span>
       </el-card>
       <el-card class="kpi-card">
-        <span class="kpi-label">审批平均时长(小时)</span>
+        <span class="kpi-label">瀹℃壒骞冲潎鏃堕暱(灏忔椂)</span>
         <strong class="kpi-value">{{ formatNumber(overview.approvalAvgHours) }}</strong>
         <span class="kpi-trend" :class="trendClass(-overview.approvalAvgHoursChange)">
           {{ formatDelta(overview.approvalAvgHoursChange) }}
@@ -75,7 +75,7 @@
       <el-card class="chart-card">
         <template #header>
           <div class="card-header">
-            <span>异常考勤趋势</span>
+            <span>寮傚父鑰冨嫟瓒嬪娍</span>
           </div>
         </template>
         <div ref="attendanceTrendRef" class="chart-canvas"></div>
@@ -83,7 +83,7 @@
       <el-card class="chart-card">
         <template #header>
           <div class="card-header">
-            <span>成绩质量趋势</span>
+            <span>鎴愮哗璐ㄩ噺瓒嬪娍</span>
           </div>
         </template>
         <div ref="scoreTrendRef" class="chart-canvas"></div>
@@ -93,56 +93,56 @@
     <el-card class="risk-card">
       <template #header>
         <div class="card-header">
-          <span>风险学生榜单</span>
+          <span>椋庨櫓瀛︾敓姒滃崟</span>
           <el-radio-group v-model="riskType" size="small" @change="handleRiskTypeChange">
-            <el-radio-button label="low_score">低分风险</el-radio-button>
-            <el-radio-button label="abnormal_attendance">异常考勤</el-radio-button>
-            <el-radio-button label="approval_overdue">审批超时</el-radio-button>
+            <el-radio-button label="low_score">浣庡垎椋庨櫓</el-radio-button>
+            <el-radio-button label="abnormal_attendance">寮傚父鑰冨嫟</el-radio-button>
+            <el-radio-button label="approval_overdue">瀹℃壒瓒呮椂</el-radio-button>
           </el-radio-group>
         </div>
       </template>
 
       <el-table :data="riskRecords" v-loading="riskLoading" stripe>
-        <el-table-column type="index" label="#" width="60" />
-        <el-table-column v-if="!isStudent" prop="studentNo" label="学号" width="140" />
-        <el-table-column v-if="!isStudent" prop="studentName" label="姓名" width="120" />
-        <el-table-column v-if="!isStudent" prop="className" label="班级" min-width="140" />
-        <el-table-column v-if="!isStudent" prop="riskCount" label="风险次数" width="120" />
-        <el-table-column v-if="!isStudent" label="风险值" width="140">
+        <el-table-column type="index" label="序号" width="60" />
+        <el-table-column v-if="!isStudent" prop="studentNo" label="瀛﹀彿" width="140" />
+        <el-table-column v-if="!isStudent" prop="studentName" label="濮撳悕" width="120" />
+        <el-table-column v-if="!isStudent" prop="className" label="鐝骇" min-width="140" />
+        <el-table-column v-if="!isStudent" prop="riskCount" label="椋庨櫓娆℃暟" width="120" />
+        <el-table-column v-if="!isStudent" label="椋庨櫓鍊? width="140">
           <template #default="{ row }">{{ formatNumber(row.riskValue) }}</template>
         </el-table-column>
 
         <template v-if="isStudent && riskType === 'low_score'">
-          <el-table-column prop="courseName" label="课程" min-width="180" />
-          <el-table-column label="最低分" width="120">
+          <el-table-column prop="courseName" label="璇剧▼" min-width="180" />
+          <el-table-column label="鏈€浣庡垎" width="120">
             <template #default="{ row }">{{ formatNumber(row.score) }}</template>
           </el-table-column>
-          <el-table-column prop="riskCount" label="低分次数" width="120" />
+          <el-table-column prop="riskCount" label="浣庡垎娆℃暟" width="120" />
         </template>
 
         <template v-if="isStudent && riskType === 'abnormal_attendance'">
-          <el-table-column label="日期" width="140">
+          <el-table-column label="鏃ユ湡" width="140">
             <template #default="{ row }">{{ row.attendanceDate || '-' }}</template>
           </el-table-column>
-          <el-table-column prop="courseName" label="课程" min-width="180" />
-          <el-table-column label="考勤状态" width="120">
+          <el-table-column prop="courseName" label="璇剧▼" min-width="180" />
+          <el-table-column label="鑰冨嫟鐘舵€? width="120">
             <template #default="{ row }">{{ formatAttendanceStatus(row.attendanceStatus) }}</template>
           </el-table-column>
         </template>
 
         <template v-if="isStudent && riskType === 'approval_overdue'">
-          <el-table-column prop="leaveRequestId" label="审批单号" width="120" />
-          <el-table-column label="提交时间" min-width="180">
+          <el-table-column prop="leaveRequestId" label="瀹℃壒鍗曞彿" width="120" />
+          <el-table-column label="鎻愪氦鏃堕棿" min-width="180">
             <template #default="{ row }">{{ formatDateTime(row.submitTime) }}</template>
           </el-table-column>
-          <el-table-column label="超时状态" width="120">
+          <el-table-column label="瓒呮椂鐘舵€? width="120">
             <template #default="{ row }">
               <el-tag :type="row.overdue ? 'danger' : 'info'" size="small">
-                {{ row.overdue ? '已超时' : '未超时' }}
+                {{ row.overdue ? '宸茶秴鏃? : '鏈秴鏃? }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="超时小时" width="120">
+          <el-table-column label="瓒呮椂灏忔椂" width="120">
             <template #default="{ row }">{{ formatNumber(row.overdueHours) }}</template>
           </el-table-column>
         </template>
@@ -182,8 +182,8 @@ const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const userRole = userInfo?.role || 'STUDENT'
 const isAdmin = userRole === 'ADMIN'
 const isStudent = userRole === 'STUDENT'
-const pendingKpiLabel = isStudent ? '我的待办审批' : '待处理审批'
-const lowScoreKpiLabel = isStudent ? '低分课程统计数' : '低分风险人数'
+const pendingKpiLabel = isStudent ? '鎴戠殑寰呭姙瀹℃壒' : '寰呭鐞嗗鎵?
+const lowScoreKpiLabel = isStudent ? '浣庡垎璇剧▼缁熻鏁? : '浣庡垎椋庨櫓浜烘暟'
 
 const today = new Date()
 const thirtyDaysAgo = new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000)
@@ -245,8 +245,8 @@ function formatNumber(value) {
 }
 
 function formatAttendanceStatus(status) {
-  if (status === 'ABSENT') return '缺勤'
-  if (status === 'LATE') return '迟到'
+  if (status === 'ABSENT') return '缂哄嫟'
+  if (status === 'LATE') return '杩熷埌'
   return status || '-'
 }
 
@@ -336,7 +336,7 @@ async function refreshAll() {
       fetchRiskStudents()
     ])
   } catch (_e) {
-    ElMessage.error('获取分析数据失败')
+    ElMessage.error('鑾峰彇鍒嗘瀽鏁版嵁澶辫触')
   } finally {
     loading.value = false
   }
@@ -379,7 +379,7 @@ function renderAttendanceTrend(records) {
     },
     series: [
       {
-        name: '异常考勤',
+        name: '寮傚父鑰冨嫟',
         type: 'bar',
         barWidth: 18,
         data: values,
@@ -400,7 +400,7 @@ function renderScoreTrend(records) {
   const excellent = records.map((item) => Number(item.excellentRate || 0))
   scoreTrendChart.setOption({
     tooltip: { trigger: 'axis' },
-    legend: { data: ['均分', '及格率', '优秀率'], top: 0 },
+    legend: { data: ['鍧囧垎', '鍙婃牸鐜?, '浼樼鐜?], top: 0 },
     grid: { top: 36, left: 40, right: 20, bottom: 30 },
     xAxis: {
       type: 'category',
@@ -410,7 +410,7 @@ function renderScoreTrend(records) {
     yAxis: [
       {
         type: 'value',
-        name: '分值',
+        name: '鍒嗗€?,
         min: 0,
         max: 100,
         axisLabel: { color: '#4d6f80' },
@@ -418,7 +418,7 @@ function renderScoreTrend(records) {
       },
       {
         type: 'value',
-        name: '百分比',
+        name: '鐧惧垎姣?,
         min: 0,
         max: 100,
         axisLabel: { formatter: '{value}%' }
@@ -426,7 +426,7 @@ function renderScoreTrend(records) {
     ],
     series: [
       {
-        name: '均分',
+        name: '鍧囧垎',
         type: 'line',
         smooth: true,
         data: avg,
@@ -434,7 +434,7 @@ function renderScoreTrend(records) {
         itemStyle: { color: '#177c77' }
       },
       {
-        name: '及格率',
+        name: '鍙婃牸鐜?,
         type: 'line',
         smooth: true,
         yAxisIndex: 1,
@@ -443,7 +443,7 @@ function renderScoreTrend(records) {
         itemStyle: { color: '#3b8fa4' }
       },
       {
-        name: '优秀率',
+        name: '浼樼鐜?,
         type: 'line',
         smooth: true,
         yAxisIndex: 1,
@@ -657,3 +657,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+

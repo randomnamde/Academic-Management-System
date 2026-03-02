@@ -1,23 +1,22 @@
-<template>
+﻿<template>
   <div class="system-page">
     <section class="hero-panel">
       <div class="hero-content">
         <p class="hero-kicker">System Console</p>
-        <h2 class="hero-title">系统设置与安全中心</h2>
+        <h2 class="hero-title">绯荤粺璁剧疆涓庡畨鍏ㄤ腑蹇?/h2>
         <p class="hero-description">
-          统一管理系统账号状态、密码安全和操作审计，保障日常教务管理稳定运行。
-        </p>
+          缁熶竴绠＄悊绯荤粺璐﹀彿鐘舵€併€佸瘑鐮佸畨鍏ㄥ拰鎿嶄綔瀹¤锛屼繚闅滄棩甯告暀鍔＄鐞嗙ǔ瀹氳繍琛屻€?        </p>
         <div class="hero-chip-list">
           <div class="hero-chip">
-            <span>系统用户总数</span>
+            <span>绯荤粺鐢ㄦ埛鎬绘暟</span>
             <strong>{{ total }}</strong>
           </div>
           <div class="hero-chip">
-            <span>当前页启用用户</span>
+            <span>褰撳墠椤靛惎鐢ㄧ敤鎴?/span>
             <strong>{{ enabledUserCount }}</strong>
           </div>
           <div class="hero-chip">
-            <span>审计日志总数</span>
+            <span>瀹¤鏃ュ織鎬绘暟</span>
             <strong>{{ logTotal }}</strong>
           </div>
         </div>
@@ -29,7 +28,7 @@
             <el-icon><UserFilled /></el-icon>
           </div>
           <div class="metric-content">
-            <span class="metric-label">管理员</span>
+            <span class="metric-label">绠＄悊鍛?/span>
             <strong class="metric-value">{{ adminCount }}</strong>
           </div>
         </el-card>
@@ -39,7 +38,7 @@
             <el-icon><Avatar /></el-icon>
           </div>
           <div class="metric-content">
-            <span class="metric-label">教师</span>
+            <span class="metric-label">鏁欏笀</span>
             <strong class="metric-value">{{ teacherCount }}</strong>
           </div>
         </el-card>
@@ -49,7 +48,7 @@
             <el-icon><School /></el-icon>
           </div>
           <div class="metric-content">
-            <span class="metric-label">学生</span>
+            <span class="metric-label">瀛︾敓</span>
             <strong class="metric-value">{{ studentCount }}</strong>
           </div>
         </el-card>
@@ -59,7 +58,7 @@
             <el-icon><WarningFilled /></el-icon>
           </div>
           <div class="metric-content">
-            <span class="metric-label">当前页失败日志</span>
+            <span class="metric-label">褰撳墠椤靛け璐ユ棩蹇?/span>
             <strong class="metric-value">{{ failedLogCount }}</strong>
           </div>
         </el-card>
@@ -70,46 +69,46 @@
       <el-card class="panel-card panel-user">
         <template #header>
           <div class="card-header">
-            <span>系统用户管理</span>
+            <span>绯荤粺鐢ㄦ埛绠＄悊</span>
           </div>
         </template>
 
         <el-form :inline="true" :model="searchForm" class="search-form">
-          <el-form-item label="用户名">
-            <el-input v-model="searchForm.username" clearable placeholder="请输入用户名" />
+          <el-form-item label="鐢ㄦ埛鍚?>
+            <el-input v-model="searchForm.username" clearable placeholder="璇疯緭鍏ョ敤鎴峰悕" />
           </el-form-item>
-          <el-form-item label="角色">
+          <el-form-item label="瑙掕壊">
             <el-select v-model="searchForm.role" clearable style="width: 140px">
-              <el-option label="管理员" value="ADMIN" />
-              <el-option label="教师" value="TEACHER" />
-              <el-option label="学生" value="STUDENT" />
+              <el-option label="绠＄悊鍛? value="ADMIN" />
+              <el-option label="鏁欏笀" value="TEACHER" />
+              <el-option label="瀛︾敓" value="STUDENT" />
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
+            <el-button type="primary" @click="handleSearch">鏌ヨ</el-button>
+            <el-button @click="handleReset">閲嶇疆</el-button>
           </el-form-item>
         </el-form>
 
         <el-table :data="tableData" v-loading="loading" stripe>
-          <el-table-column type="index" label="#" width="60" />
-          <el-table-column prop="username" label="用户名" width="140" />
-          <el-table-column prop="realName" label="姓名" width="130" />
-          <el-table-column label="角色" width="110">
+          <el-table-column type="index" label="序号" width="60" />
+          <el-table-column prop="username" label="鐢ㄦ埛鍚? width="140" />
+          <el-table-column prop="realName" label="濮撳悕" width="130" />
+          <el-table-column label="瑙掕壊" width="110">
             <template #default="{ row }">
               <el-tag :type="getRoleTagType(row.role)" effect="light">{{ getRoleLabel(row.role) }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="phone" label="电话" width="140" />
-          <el-table-column prop="email" label="邮箱" min-width="220" />
-          <el-table-column label="状态" width="110">
+          <el-table-column prop="phone" label="鐢佃瘽" width="140" />
+          <el-table-column prop="email" label="閭" min-width="220" />
+          <el-table-column label="鐘舵€? width="110">
             <template #default="{ row }">
               <div class="status-cell">
                 <el-switch
                   :model-value="row.status === 1"
                   @change="(val) => handleStatusChange(row, val)"
                 />
-                <span class="status-text">{{ row.status === 1 ? '启用' : '停用' }}</span>
+                <span class="status-text">{{ row.status === 1 ? '鍚敤' : '鍋滅敤' }}</span>
               </div>
             </template>
           </el-table-column>
@@ -130,26 +129,26 @@
       <el-card class="panel-card panel-security">
         <template #header>
           <div class="card-header">
-            <span>账号安全</span>
+            <span>璐﹀彿瀹夊叏</span>
           </div>
         </template>
 
         <div class="security-tip">
           <el-icon><Lock /></el-icon>
-          <span>建议定期更新密码，并避免使用与其他平台重复的弱口令。</span>
+          <span>寤鸿瀹氭湡鏇存柊瀵嗙爜锛屽苟閬垮厤浣跨敤涓庡叾浠栧钩鍙伴噸澶嶇殑寮卞彛浠ゃ€?/span>
         </div>
 
         <el-form ref="pwdFormRef" :model="passwordForm" :rules="pwdRules" label-width="80px">
-          <el-form-item label="旧密码" prop="oldPassword">
+          <el-form-item label="鏃у瘑鐮? prop="oldPassword">
             <el-input v-model="passwordForm.oldPassword" type="password" show-password />
           </el-form-item>
-          <el-form-item label="新密码" prop="newPassword">
+          <el-form-item label="鏂板瘑鐮? prop="newPassword">
             <el-input v-model="passwordForm.newPassword" type="password" show-password />
           </el-form-item>
-          <el-form-item label="确认" prop="confirmPassword">
+          <el-form-item label="纭" prop="confirmPassword">
             <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
           </el-form-item>
-          <el-button type="primary" @click="submitPassword" :loading="pwdLoading">保存密码</el-button>
+          <el-button type="primary" @click="submitPassword" :loading="pwdLoading">淇濆瓨瀵嗙爜</el-button>
         </el-form>
       </el-card>
     </section>
@@ -158,45 +157,45 @@
       <el-card class="panel-card panel-log">
         <template #header>
           <div class="card-header">
-            <span>操作审计日志</span>
+            <span>鎿嶄綔瀹¤鏃ュ織</span>
           </div>
         </template>
 
         <el-form :inline="true" :model="logSearchForm" class="search-form">
-          <el-form-item label="用户ID">
+          <el-form-item label="鐢ㄦ埛ID">
             <el-input-number v-model="logSearchForm.userId" :min="1" style="width: 130px" />
           </el-form-item>
-          <el-form-item label="状态">
+          <el-form-item label="鐘舵€?>
             <el-select v-model="logSearchForm.status" clearable style="width: 140px">
-              <el-option label="成功" :value="1" />
-              <el-option label="失败" :value="0" />
+              <el-option label="鎴愬姛" :value="1" />
+              <el-option label="澶辫触" :value="0" />
             </el-select>
           </el-form-item>
-          <el-form-item label="操作">
+          <el-form-item label="鎿嶄綔">
             <el-input v-model="logSearchForm.operation" clearable placeholder="Controller#method" />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="handleLogSearch">查询</el-button>
-            <el-button @click="handleLogReset">重置</el-button>
+            <el-button type="primary" @click="handleLogSearch">鏌ヨ</el-button>
+            <el-button @click="handleLogReset">閲嶇疆</el-button>
           </el-form-item>
         </el-form>
 
         <el-table :data="logTableData" v-loading="logLoading" stripe>
-          <el-table-column type="index" label="#" width="60" />
-          <el-table-column prop="userId" label="用户ID" width="100" />
-          <el-table-column prop="operation" label="操作" min-width="220" />
-          <el-table-column prop="method" label="请求" min-width="220" />
+          <el-table-column type="index" label="序号" width="60" />
+          <el-table-column prop="userId" label="鐢ㄦ埛ID" width="100" />
+          <el-table-column prop="operation" label="鎿嶄綔" min-width="220" />
+          <el-table-column prop="method" label="璇锋眰" min-width="220" />
           <el-table-column prop="ip" label="IP" width="150" />
-          <el-table-column prop="duration" label="耗时(ms)" width="110" />
-          <el-table-column label="状态" width="90">
+          <el-table-column prop="duration" label="鑰楁椂(ms)" width="110" />
+          <el-table-column label="鐘舵€? width="90">
             <template #default="{ row }">
               <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-                {{ row.status === 1 ? '成功' : '失败' }}
+                {{ row.status === 1 ? '鎴愬姛' : '澶辫触' }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="errorMsg" label="错误信息" min-width="180" show-overflow-tooltip />
-          <el-table-column prop="createTime" label="时间" width="180" />
+          <el-table-column prop="errorMsg" label="閿欒淇℃伅" min-width="180" show-overflow-tooltip />
+          <el-table-column prop="createTime" label="鏃堕棿" width="180" />
         </el-table>
 
         <el-pagination
@@ -258,14 +257,14 @@ const studentCount = computed(() => tableData.value.filter(item => item.role ===
 const failedLogCount = computed(() => logTableData.value.filter(item => item.status === 0).length)
 
 const pwdRules = {
-  oldPassword: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],
-  newPassword: [{ required: true, message: '请输入新密码', trigger: 'blur' }],
+  oldPassword: [{ required: true, message: '璇疯緭鍏ユ棫瀵嗙爜', trigger: 'blur' }],
+  newPassword: [{ required: true, message: '璇疯緭鍏ユ柊瀵嗙爜', trigger: 'blur' }],
   confirmPassword: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
+    { required: true, message: '璇风‘璁ゆ柊瀵嗙爜', trigger: 'blur' },
     {
       validator: (_rule, value, callback) => {
         if (value !== passwordForm.newPassword) {
-          callback(new Error('两次密码不一致'))
+          callback(new Error('涓ゆ瀵嗙爜涓嶄竴鑷?))
           return
         }
         callback()
@@ -304,9 +303,9 @@ function handleReset() {
 
 function getRoleLabel(role) {
   const roleMap = {
-    ADMIN: '管理员',
-    TEACHER: '教师',
-    STUDENT: '学生'
+    ADMIN: '绠＄悊鍛?,
+    TEACHER: '鏁欏笀',
+    STUDENT: '瀛︾敓'
   }
   return roleMap[role] || role
 }
@@ -320,7 +319,7 @@ function getRoleTagType(role) {
 
 async function handleStatusChange(row, enabled) {
   await updateUserStatus(row.id, enabled ? 1 : 0)
-  ElMessage.success('状态已更新')
+  ElMessage.success('鐘舵€佸凡鏇存柊')
   fetchList()
 }
 
@@ -334,7 +333,7 @@ async function submitPassword() {
       oldPassword: passwordForm.oldPassword,
       newPassword: passwordForm.newPassword
     })
-    ElMessage.success('密码已更新')
+    ElMessage.success('瀵嗙爜宸叉洿鏂?)
     passwordForm.oldPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
@@ -675,3 +674,4 @@ onMounted(() => {
   }
 }
 </style>
+

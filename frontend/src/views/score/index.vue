@@ -49,7 +49,7 @@
       </el-form>
 
       <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="#" width="60" />
+        <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="studentId" label="学生ID" width="90" />
         <el-table-column prop="studentName" label="学生" width="120" />
         <el-table-column prop="courseArrangementId" label="排课ID" width="120" show-overflow-tooltip />
@@ -384,3 +384,4 @@ onMounted(async () => {
   }
 }
 </style>
+

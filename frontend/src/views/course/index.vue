@@ -29,7 +29,7 @@
       </el-form>
 
       <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="#" width="60" />
+        <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="courseCode" label="课程代码" width="120" />
         <el-table-column prop="courseName" label="课程名称" />
         <el-table-column prop="credit" label="学分" width="80" />
@@ -297,3 +297,4 @@ onMounted(fetchList)
   }
 }
 </style>
+

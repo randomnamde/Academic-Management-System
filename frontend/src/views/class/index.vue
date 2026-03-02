@@ -22,7 +22,7 @@
       </el-form>
 
       <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="#" width="60" />
+        <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="classCode" label="班级代码" width="120" />
         <el-table-column prop="className" label="班级名称" width="180" />
         <el-table-column prop="grade" label="年级" width="100" />
@@ -279,3 +279,4 @@ onMounted(fetchList)
   }
 }
 </style>
+

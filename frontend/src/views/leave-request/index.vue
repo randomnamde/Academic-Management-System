@@ -39,7 +39,7 @@
       </el-tabs>
 
       <el-table :data="currentRows" v-loading="loading" stripe>
-        <el-table-column type="index" label="#" width="60" />
+        <el-table-column type="index" label="序号" width="60" />
         <el-table-column v-if="!isStudent" prop="studentName" label="学生" width="120" />
         <el-table-column v-if="!isStudent" prop="className" label="班级" width="120" />
         <el-table-column prop="courseName" label="课程" width="150" />
@@ -585,3 +585,4 @@ onMounted(() => {
   }
 }
 </style>
+

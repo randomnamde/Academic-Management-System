@@ -33,7 +33,7 @@
       </el-form>
 
       <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="#" width="60" />
+        <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="title" label="标题" min-width="220" />
         <el-table-column prop="type" label="类型" width="100" />
         <el-table-column prop="targetRole" label="目标角色" width="110" />
@@ -364,3 +364,4 @@ onMounted(fetchList)
   }
 }
 </style>
+

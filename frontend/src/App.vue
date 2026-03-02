@@ -42,14 +42,14 @@ const getRootTransition = (path) => (path === '/login' ? 'auth-fade' : 'app-pop'
 .auth-fade-enter-from,
 .auth-fade-leave-to {
   opacity: 0;
-  filter: blur(8px);
+  filter: blur(2px);
 }
 
 .app-pop-enter-from,
 .app-pop-leave-to {
   opacity: 0;
-  transform: scale(0.985) translateY(14px);
-  filter: blur(4px);
+  transform: translateY(8px);
+  filter: blur(2px);
 }
 
 @media (prefers-reduced-motion: reduce) {

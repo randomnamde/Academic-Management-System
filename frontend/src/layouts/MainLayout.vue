@@ -24,7 +24,7 @@
           router
           class="main-menu"
           background-color="transparent"
-          text-color="#d8cffd"
+          text-color="#d3e8ea"
           active-text-color="#ffffff"
         >
           <el-menu-item-group
@@ -98,7 +98,7 @@
             router
             class="main-menu mobile-menu"
             background-color="transparent"
-            text-color="#d8cffd"
+            text-color="#d3e8ea"
             active-text-color="#ffffff"
           >
             <el-menu-item-group
@@ -516,7 +516,8 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .main-layout {
-  height: 100vh;
+  height: 100%;
+  min-height: 100vh;
   position: relative;
   overflow: hidden;
 }
@@ -526,38 +527,37 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border-right: 1px solid var(--sms-border-strong, rgba(177, 158, 255, 0.3));
-  background:
-    linear-gradient(180deg, rgba(28, 20, 54, 0.95) 0%, rgba(20, 14, 42, 0.9) 100%);
-  box-shadow: 16px 0 36px rgba(14, 8, 31, 0.46);
+  border-right: 1px solid rgba(191, 214, 217, 0.2);
+  background: linear-gradient(180deg, rgba(25, 53, 73, 0.95) 0%, rgba(20, 42, 61, 0.94) 100%);
+  box-shadow: 12px 0 28px rgba(15, 30, 45, 0.28);
   backdrop-filter: blur(16px);
   transition: width var(--sms-motion-standard, 180ms) var(--sms-ease-standard, cubic-bezier(0.22, 1, 0.36, 1));
   z-index: 3;
 }
 
 .brand-zone {
-  height: 70px;
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(182, 162, 255, 0.2);
+  height: 76px;
+  padding: 14px 14px;
+  border-bottom: 1px solid rgba(172, 206, 214, 0.22);
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .brand-zone.mobile {
-  padding: 14px 12px;
+  padding: 16px 12px;
 }
 
 .brand-mark {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: linear-gradient(135deg, rgba(139, 112, 255, 0.95), rgba(186, 147, 255, 0.9));
-  box-shadow: 0 10px 24px rgba(132, 98, 248, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  background: linear-gradient(135deg, #1c9a94, #116f6a);
+  box-shadow: 0 8px 18px rgba(12, 76, 74, 0.36);
   font-size: 20px;
 }
 
@@ -567,16 +567,16 @@ onUnmounted(() => {
 
 .brand-copy h1 {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
-  color: #f9f6ff;
-  letter-spacing: 0.02em;
+  color: #eff8f9;
+  letter-spacing: 0.01em;
 }
 
 .brand-copy p {
   margin: 2px 0 0;
   font-size: 12px;
-  color: rgba(221, 208, 255, 0.78);
+  color: rgba(196, 221, 224, 0.82);
 }
 
 .sidebar-nav-root {
@@ -593,10 +593,10 @@ onUnmounted(() => {
 :deep(.menu-group .el-menu-item-group__title) {
   padding: 8px 12px 6px !important;
   font-size: 11px;
-  font-weight: 600;
-  color: rgba(194, 177, 247, 0.75);
+  font-weight: 700;
+  color: rgba(169, 201, 207, 0.72);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
 }
 
 :deep(.el-menu-item) {
@@ -613,14 +613,13 @@ onUnmounted(() => {
 }
 
 :deep(.el-menu-item:hover) {
-  background: rgba(150, 123, 245, 0.2);
-  transform: translateY(-1px);
+  background: rgba(94, 159, 167, 0.2);
 }
 
 :deep(.el-menu-item.is-active) {
   color: #fff;
-  background: linear-gradient(90deg, rgba(125, 99, 236, 0.92), rgba(168, 124, 251, 0.9));
-  box-shadow: 0 10px 24px rgba(107, 79, 207, 0.34);
+  background: linear-gradient(90deg, rgba(25, 138, 132, 0.92), rgba(18, 109, 103, 0.92));
+  box-shadow: 0 8px 22px rgba(15, 84, 82, 0.28);
 }
 
 :deep(.el-menu-item.is-active::before) {
@@ -631,12 +630,12 @@ onUnmounted(() => {
   width: 3px;
   height: 28px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(229, 219, 255, 0.4));
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(220, 244, 242, 0.35));
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
 }
 
 :deep(.el-menu-item:focus-visible) {
-  outline: 2px solid rgba(219, 205, 255, 0.9);
+  outline: 2px solid rgba(188, 232, 228, 0.95);
   outline-offset: 1px;
 }
 
@@ -671,7 +670,7 @@ onUnmounted(() => {
 
 .sidebar-bottom-tools {
   padding: 10px 8px 12px;
-  border-top: 1px solid rgba(176, 156, 255, 0.18);
+  border-top: 1px solid rgba(172, 207, 213, 0.2);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -680,10 +679,10 @@ onUnmounted(() => {
 .tool-button {
   width: 100%;
   height: 40px;
-  border: 1px solid rgba(176, 156, 255, 0.2);
+  border: 1px solid rgba(162, 204, 210, 0.24);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(233, 223, 255, 0.9);
+  background: rgba(240, 250, 250, 0.08);
+  color: rgba(215, 236, 239, 0.96);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -695,8 +694,7 @@ onUnmounted(() => {
 }
 
 .tool-button:hover {
-  transform: translateY(-1px);
-  background: rgba(175, 147, 252, 0.22);
+  background: rgba(90, 155, 164, 0.28);
 }
 
 .tool-icon {
@@ -710,9 +708,8 @@ onUnmounted(() => {
 }
 
 :deep(.mobile-sidebar-drawer .el-drawer) {
-  background:
-    linear-gradient(180deg, rgba(28, 20, 54, 0.98) 0%, rgba(20, 14, 42, 0.96) 100%);
-  border-right: 1px solid rgba(177, 158, 255, 0.3);
+  background: linear-gradient(180deg, rgba(25, 53, 73, 0.99) 0%, rgba(20, 42, 61, 0.96) 100%);
+  border-right: 1px solid rgba(191, 214, 217, 0.24);
 }
 
 :deep(.mobile-sidebar-drawer .el-drawer__body) {
@@ -729,11 +726,11 @@ onUnmounted(() => {
 }
 
 .header {
-  background: linear-gradient(90deg, rgba(37, 27, 69, 0.82), rgba(54, 39, 98, 0.68));
-  border: 1px solid rgba(172, 154, 255, 0.24);
-  box-shadow: 0 12px 30px rgba(28, 18, 58, 0.34);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.86), rgba(246, 252, 252, 0.84));
+  border: 1px solid rgba(18, 69, 86, 0.18);
+  box-shadow: 0 10px 22px rgba(26, 56, 68, 0.14);
   backdrop-filter: blur(12px);
-  color: #f5f1ff;
+  color: #1b3240;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -748,31 +745,30 @@ onUnmounted(() => {
 }
 
 .header-left :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
-  color: #fdfbff;
+  color: #173340;
   font-weight: 600;
 }
 
 .header-left :deep(.el-breadcrumb__inner) {
-  color: rgba(225, 214, 255, 0.88);
+  color: rgba(50, 84, 102, 0.88);
 }
 
 .header-left :deep(.el-breadcrumb__separator) {
-  color: rgba(204, 188, 247, 0.76);
+  color: rgba(73, 116, 136, 0.6);
 }
 
 .collapse-btn {
   font-size: 20px;
   cursor: pointer;
   margin-right: 15px;
-  color: #d6c7ff;
+  color: #2e5a6e;
   transition:
     transform var(--sms-motion-micro, 120ms) var(--sms-ease-standard, cubic-bezier(0.22, 1, 0.36, 1)),
     color var(--sms-motion-micro, 120ms) var(--sms-ease-standard, cubic-bezier(0.22, 1, 0.36, 1));
 }
 
 .collapse-btn:hover {
-  color: #bfa6ff;
-  transform: scale(1.08);
+  color: #137b76;
 }
 
 .header-right {
@@ -783,12 +779,12 @@ onUnmounted(() => {
 
 .message-badge {
   cursor: pointer;
-  color: #e0d5ff;
+  color: #2f5768;
 }
 
 :deep(.el-badge__content) {
-  background-color: #7e67f6;
-  border-color: #7e67f6;
+  background-color: #147874;
+  border-color: #147874;
 }
 
 .user-info {
@@ -796,22 +792,22 @@ onUnmounted(() => {
   align-items: center;
   cursor: pointer;
   gap: 8px;
-  background: rgba(158, 132, 255, 0.16);
-  border: 1px solid rgba(181, 158, 255, 0.3);
+  background: rgba(224, 242, 241, 0.74);
+  border: 1px solid rgba(16, 94, 103, 0.24);
   border-radius: 999px;
   padding: 6px 12px;
   transition: all var(--sms-motion-standard, 180ms) var(--sms-ease-standard, cubic-bezier(0.22, 1, 0.36, 1));
 }
 
 .user-info:hover {
-  background: rgba(167, 144, 255, 0.24);
-  box-shadow: 0 8px 20px rgba(116, 90, 211, 0.32);
+  background: rgba(204, 235, 233, 0.88);
+  box-shadow: 0 6px 16px rgba(16, 79, 78, 0.22);
 }
 
 .notice-popover .notice-title-row {
   font-weight: 600;
   margin-bottom: 10px;
-  color: #4b3b85;
+  color: #274354;
 }
 
 .notice-list {
@@ -826,19 +822,19 @@ onUnmounted(() => {
 }
 
 .notice-item:hover {
-  background: rgba(157, 131, 255, 0.12);
+  background: rgba(19, 123, 118, 0.08);
 }
 
 .notice-item-title {
   font-size: 14px;
-  color: #2f2558;
+  color: #2a495a;
   line-height: 1.4;
 }
 
 .notice-item-time {
   margin-top: 4px;
   font-size: 12px;
-  color: #8f86b1;
+  color: #7b8d97;
 }
 
 .notice-footer {
@@ -850,17 +846,16 @@ onUnmounted(() => {
 .notice-detail-content {
   white-space: pre-wrap;
   line-height: 1.8;
-  color: #3a315d;
+  color: #304a58;
   min-height: 80px;
 }
 
 .main-content {
   position: relative;
-  background:
-    linear-gradient(165deg, rgba(250, 247, 255, 0.95) 0%, rgba(241, 234, 255, 0.9) 100%);
-  border: 1px solid rgba(183, 166, 255, 0.34);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(245, 251, 251, 0.88));
+  border: 1px solid rgba(23, 79, 95, 0.2);
   border-radius: 18px;
-  box-shadow: 0 16px 34px rgba(58, 43, 110, 0.2);
+  box-shadow: 0 16px 34px rgba(32, 67, 82, 0.15);
   padding: 20px;
   overflow-y: auto;
   margin: 12px;
@@ -872,7 +867,7 @@ onUnmounted(() => {
   inset: 0;
   border-radius: 18px;
   pointer-events: none;
-  background: radial-gradient(circle at 4% 6%, rgba(176, 150, 255, 0.3), transparent 32%);
+  background: radial-gradient(circle at 6% 8%, rgba(145, 210, 204, 0.26), transparent 34%);
 }
 
 .panel-switch-enter-active,

@@ -167,7 +167,6 @@ const registerForm = reactive({
   role: 'STUDENT'
 })
 
-let transparentStyleTimer = null
 let runtimeMetricsTimer = null
 
 const runtimeMetrics = reactive({
@@ -175,34 +174,6 @@ const runtimeMetrics = reactive({
   gatewayConcurrency: '--',
   syncDelayMs: '--'
 })
-
-const forceTransparentInputs = () => {
-  const root = document.querySelector('.login-container')
-  if (!root) return
-
-  root.querySelectorAll('.el-input__wrapper, .el-select__wrapper').forEach((node) => {
-    node.style.setProperty('background', 'transparent', 'important')
-    node.style.setProperty('background-color', 'transparent', 'important')
-    node.style.setProperty('box-shadow', 'none', 'important')
-    node.style.setProperty('outline', 'none', 'important')
-  })
-
-  root.querySelectorAll('input').forEach((node) => {
-    node.style.setProperty('background', 'transparent', 'important')
-    node.style.setProperty('background-color', 'transparent', 'important')
-    node.style.setProperty('background-image', 'none', 'important')
-    node.style.setProperty('box-shadow', 'none', 'important')
-    node.style.setProperty('-webkit-box-shadow', '0 0 0 1000px rgba(0, 0, 0, 0) inset', 'important')
-    node.style.setProperty('-webkit-background-clip', 'text', 'important')
-    node.style.setProperty('background-clip', 'text', 'important')
-    node.style.setProperty('-webkit-text-fill-color', '#efe8ff', 'important')
-    node.style.setProperty('caret-color', '#efe8ff', 'important')
-    node.style.setProperty('border', 'none', 'important')
-    node.style.setProperty('outline', 'none', 'important')
-    node.style.setProperty('appearance', 'none', 'important')
-    node.style.setProperty('-webkit-appearance', 'none', 'important')
-  })
-}
 
 const validateConfirmPassword = (_rule, value, callback) => {
   if (value !== registerForm.password) {
@@ -294,18 +265,12 @@ const fetchRuntimeMetrics = async () => {
 onMounted(() => {
   fetchRuntimeMetrics()
   runtimeMetricsTimer = window.setInterval(fetchRuntimeMetrics, 10000)
-  forceTransparentInputs()
-  transparentStyleTimer = window.setInterval(forceTransparentInputs, 350)
 })
 
 onBeforeUnmount(() => {
   if (runtimeMetricsTimer) {
     window.clearInterval(runtimeMetricsTimer)
     runtimeMetricsTimer = null
-  }
-  if (transparentStyleTimer) {
-    window.clearInterval(transparentStyleTimer)
-    transparentStyleTimer = null
   }
 })
 </script>
@@ -316,33 +281,28 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 24px;
   position: relative;
   overflow: hidden;
 
   &::before {
     content: '';
     position: absolute;
-    inset: 5% 6%;
-    background:
-      radial-gradient(circle at 8% 14%, rgba(154, 130, 255, 0.24), transparent 36%),
-      radial-gradient(circle at 88% 84%, rgba(198, 167, 255, 0.22), transparent 42%);
-    filter: blur(8px);
+    inset: 8% 5%;
+    background: radial-gradient(circle at 50% 50%, rgba(181, 226, 222, 0.26), transparent 70%);
     pointer-events: none;
-    animation: breatheGlow 10s ease-in-out infinite alternate;
   }
 }
 
 .grid-overlay {
   position: absolute;
-  inset: -30% -10% -20%;
+  inset: 0;
   background-image:
-    linear-gradient(rgba(176, 156, 255, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(176, 156, 255, 0.12) 1px, transparent 1px);
-  background-size: 38px 38px;
-  transform: perspective(900px) rotateX(72deg);
-  transform-origin: top center;
-  opacity: 0.35;
+    linear-gradient(rgba(18, 82, 97, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 82, 97, 0.07) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(circle at 50% 44%, rgba(0, 0, 0, 0.66), transparent 82%);
+  opacity: 0.48;
   pointer-events: none;
 }
 
@@ -350,17 +310,17 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(to bottom, transparent 0%, rgba(193, 164, 255, 0.14) 52%, transparent 100%);
-  mix-blend-mode: screen;
-  animation: scanMove 8s linear infinite;
-  opacity: 0.35;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(192, 223, 220, 0.2), rgba(255, 255, 255, 0));
+  opacity: 0.32;
+  transform: translateY(-100%);
+  animation: scanMove 9s linear infinite;
 }
 
 .login-shell {
-  width: min(1080px, 100%);
+  width: min(1120px, 100%);
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 24px;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 26px;
   z-index: 2;
   align-items: stretch;
 }
@@ -369,19 +329,18 @@ onBeforeUnmount(() => {
   position: relative;
   border-radius: 24px;
   padding: 34px 32px;
-  border: 1px solid rgba(174, 156, 255, 0.28);
-  background: linear-gradient(170deg, rgba(31, 24, 58, 0.8), rgba(27, 20, 50, 0.62));
-  backdrop-filter: blur(8px);
-  box-shadow: inset 0 0 0 1px rgba(220, 209, 255, 0.08), 0 24px 42px rgba(26, 17, 50, 0.4);
+  border: 1px solid rgba(18, 74, 94, 0.22);
+  background: linear-gradient(158deg, rgba(245, 252, 251, 0.94), rgba(234, 245, 244, 0.88));
+  box-shadow: 0 20px 36px rgba(21, 61, 72, 0.14);
 }
 
 .intro-panel::before,
 .intro-panel::after {
   content: '';
   position: absolute;
-  width: 54px;
-  height: 54px;
-  border: 2px solid rgba(191, 171, 255, 0.75);
+  width: 62px;
+  height: 62px;
+  border: 2px solid rgba(21, 106, 112, 0.36);
 }
 
 .intro-panel::before {
@@ -406,34 +365,34 @@ onBeforeUnmount(() => {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.16em;
-  color: rgba(221, 211, 255, 0.9);
-  border: 1px solid rgba(191, 171, 255, 0.4);
+  color: rgba(28, 77, 87, 0.9);
+  border: 1px solid rgba(19, 95, 103, 0.24);
   border-radius: 999px;
   padding: 8px 14px;
   margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.76);
 }
 
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #b594ff;
-  box-shadow: 0 0 14px rgba(181, 148, 255, 0.8);
+  background: #137b76;
+  box-shadow: 0 0 0 4px rgba(19, 123, 118, 0.2);
 }
 
 .intro-panel h1 {
   margin: 0;
-  color: #f7f2ff;
-  font-size: clamp(28px, 4vw, 42px);
+  color: #123042;
+  font-size: clamp(30px, 4vw, 44px);
   line-height: 1.15;
-  letter-spacing: 0.04em;
-  text-shadow: 0 0 22px rgba(178, 150, 255, 0.26);
-  font-family: 'Bahnschrift', 'Segoe UI Variable', 'Avenir Next', sans-serif;
+  letter-spacing: 0.02em;
+  font-family: var(--sms-font-display, 'IBM Plex Serif', serif);
 }
 
 .intro-panel > p {
   margin: 12px 0 24px;
-  color: rgba(214, 202, 245, 0.78);
+  color: rgba(46, 89, 101, 0.74);
   letter-spacing: 0.08em;
   font-size: 13px;
   text-transform: uppercase;
@@ -448,12 +407,13 @@ onBeforeUnmount(() => {
 .data-item {
   padding: 16px 14px;
   border-radius: 14px;
-  border: 1px solid rgba(188, 171, 255, 0.24);
-  background: rgba(57, 43, 93, 0.46);
+  border: 1px solid rgba(22, 98, 106, 0.22);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 8px 14px rgba(22, 65, 80, 0.08);
 }
 
 .data-item span {
-  color: rgba(216, 203, 247, 0.76);
+  color: #5a6e7a;
   font-size: 12px;
 }
 
@@ -461,221 +421,126 @@ onBeforeUnmount(() => {
   display: block;
   margin-top: 6px;
   font-size: 20px;
-  color: #ffffff;
+  color: #173548;
 }
 
 .login-card {
   width: min(460px, 100%);
-  border-radius: 20px;
-  border: 1px solid rgba(176, 160, 255, 0.28);
-  box-shadow: 0 26px 52px rgba(31, 20, 58, 0.44);
-  backdrop-filter: blur(16px);
-  background: linear-gradient(160deg, rgba(35, 26, 66, 0.84) 0%, rgba(41, 30, 74, 0.78) 100%);
+  border-radius: 22px;
+  border: 1px solid rgba(18, 75, 92, 0.2);
+  box-shadow: 0 22px 40px rgba(18, 53, 66, 0.16);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.94) 0%, rgba(240, 249, 248, 0.9) 100%);
   position: relative;
   z-index: 1;
   justify-self: end;
-  --el-fill-color-blank: transparent;
-  --el-fill-color-light: transparent;
-  --el-bg-color: transparent;
-  --el-input-bg-color: transparent;
-  --el-input-focus-border-color: transparent;
 
   :deep(.el-card__header) {
-    border-bottom: 1px solid rgba(181, 163, 255, 0.24);
+    border-bottom: 1px solid rgba(20, 87, 95, 0.16);
   }
 
   :deep(.el-card__body) {
-    color: #efe9ff;
+    color: #173648;
   }
 
   :deep(.el-form-item__label) {
-    color: #e7dcff;
+    color: #305361;
+    font-weight: 600;
   }
 
   :deep(.el-tabs__item) {
-    color: rgba(216, 203, 247, 0.78);
+    color: rgba(70, 100, 112, 0.88);
   }
 
   :deep(.el-tabs__item.is-active) {
-    color: #c4adff;
+    color: #137b76;
     font-weight: 700;
   }
 
   :deep(.el-tabs__active-bar) {
-    background-color: #b79aff;
-    box-shadow: 0 0 16px rgba(183, 154, 255, 0.45);
+    background-color: #137b76;
   }
 
   :deep(.el-form-item) {
     margin-bottom: 18px;
   }
 
-  :deep(.el-input),
-  :deep(.el-select) {
-    --el-fill-color-blank: transparent !important;
-    --el-fill-color-light: transparent !important;
-    --el-bg-color: transparent !important;
-    --el-input-bg-color: transparent !important;
-    --el-input-focus-border-color: transparent !important;
-    background: transparent !important;
-    background-color: transparent !important;
-  }
-
   :deep(.el-input__wrapper),
   :deep(.el-select__wrapper) {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: 1px solid rgba(206, 188, 255, 0.36);
-    backdrop-filter: blur(12px) saturate(130%);
-    box-shadow: none !important;
-    outline: none !important;
+    background: rgba(255, 255, 255, 0.84);
+    border: 1px solid rgba(34, 97, 110, 0.22);
+    box-shadow: none;
     transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
   }
 
   :deep(.el-input__wrapper:hover),
   :deep(.el-select__wrapper:hover) {
-    border-color: rgba(206, 188, 255, 0.36);
-    background: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
+    border-color: rgba(20, 107, 113, 0.32);
+    background: #ffffff;
   }
 
   :deep(.el-input__wrapper.is-focus),
   :deep(.el-select__wrapper.is-focused) {
-    border-color: transparent !important;
-    background: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
+    border-color: rgba(19, 123, 118, 0.55);
+    box-shadow: 0 0 0 3px rgba(19, 123, 118, 0.14);
+    background: #ffffff;
   }
 
   :deep(.el-input__inner),
   :deep(.el-select__placeholder),
   :deep(.el-input__icon),
   :deep(.el-select__icon) {
-    background: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
-    color: #efe8ff !important;
-    -webkit-text-fill-color: #efe8ff;
-    text-shadow: 0 0 10px rgba(195, 171, 255, 0.25);
+    color: #204354;
   }
 
   :deep(.el-input__inner::placeholder) {
-    color: rgba(234, 225, 255, 0.65);
-  }
-
-  :deep(input),
-  :deep(input:hover),
-  :deep(input:focus),
-  :deep(input:active) {
-    background: transparent !important;
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-  }
-
-  :deep(.el-input__inner::selection) {
-    background: transparent;
-    color: #efe8ff;
-  }
-
-  :deep(.el-input__inner::-moz-selection) {
-    background: transparent;
-    color: #efe8ff;
-  }
-
-  :deep(.el-input__inner:focus),
-  :deep(.el-input__inner:active) {
-    background: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
-  }
-
-  :deep(input:-webkit-autofill),
-  :deep(input:-webkit-autofill:hover),
-  :deep(input:-webkit-autofill:focus),
-  :deep(input:-webkit-autofill:active),
-  :deep(.el-input__inner:-webkit-autofill),
-  :deep(.el-input__inner:-webkit-autofill:hover),
-  :deep(.el-input__inner:-webkit-autofill:focus),
-  :deep(.el-input__inner:-webkit-autofill:active) {
-    -webkit-text-fill-color: #efe8ff !important;
-    caret-color: #efe8ff;
-    border-radius: 10px;
-    -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
-    box-shadow: 0 0 0 1000px transparent inset !important;
-    -webkit-background-clip: padding-box !important;
-    background-clip: padding-box !important;
-    transition: background-color 9999s ease-in-out 0s;
-  }
-
-  :deep(.el-input__inner:-moz-autofill) {
-    color: #efe8ff !important;
-    caret-color: #efe8ff;
-    box-shadow: 0 0 0 1000px transparent inset !important;
+    color: #7c919a;
   }
 
   :deep(.el-button--primary) {
     border: none;
-    background: linear-gradient(90deg, #7f68f8 0%, #a283ff 100%);
+    background: linear-gradient(90deg, #116f6a 0%, #1b8e88 100%);
   }
 
   :deep(.el-button--success) {
     border: none;
-    background: linear-gradient(90deg, #8d70fb 0%, #b294ff 100%);
+    background: linear-gradient(90deg, #2f7e52 0%, #3e9967 100%);
   }
 
   .login-header {
     text-align: center;
 
     .logo-icon {
-      color: #c2abff;
+      color: #137b76;
       margin-bottom: 10px;
-      filter: drop-shadow(0 0 12px rgba(194, 171, 255, 0.4));
+      filter: drop-shadow(0 8px 16px rgba(19, 123, 118, 0.2));
     }
 
     h2 {
       margin: 0;
       font-size: 24px;
-      color: #fbf8ff;
-      letter-spacing: 1px;
+      color: #133547;
+      letter-spacing: 0.5px;
+      font-family: var(--sms-font-display, 'IBM Plex Serif', serif);
     }
 
     p {
       margin: 5px 0 0;
       font-size: 14px;
-      color: rgba(223, 211, 251, 0.78);
+      color: rgba(58, 96, 109, 0.82);
     }
   }
 
   .login-footer {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px solid rgba(173, 156, 255, 0.2);
+    border-top: 1px solid rgba(20, 87, 95, 0.16);
     text-align: center;
     font-size: 12px;
-    color: rgba(223, 211, 251, 0.72);
+    color: rgba(60, 95, 104, 0.72);
 
     p {
       margin: 5px 0;
     }
-  }
-}
-
-@keyframes breatheGlow {
-  0%,
-  100% {
-    opacity: 0.65;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.95;
-    transform: scale(1.04);
   }
 }
 
@@ -711,6 +576,12 @@ onBeforeUnmount(() => {
 
   .login-card {
     border-radius: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanline {
+    animation: none;
   }
 }
 </style>

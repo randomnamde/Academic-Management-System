@@ -648,7 +648,7 @@ const renderGenderChart = () => {
                 { offset: 1, color: 'rgba(154, 128, 245, 0.012)' }
               ]),
               shadowBlur: 4,
-              shadowColor: 'rgba(130, 102, 224, 0.035)'
+              shadowColor: 'rgba(18, 98, 102, 0.045)'
             }
           }
         ]
@@ -664,7 +664,7 @@ const renderGenderChart = () => {
           borderWidth: 2,
           shadowBlur: 8,
           shadowOffsetY: 4,
-          shadowColor: 'rgba(95, 74, 173, 0.1)'
+          shadowColor: 'rgba(21, 89, 99, 0.12)'
         },
         label: { show: false },
         labelLine: { show: false },
@@ -687,8 +687,8 @@ const renderGenderChart = () => {
             name: '男生',
             itemStyle: {
               color: new graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#b9a7ff' },
-                { offset: 1, color: '#7d63f3' }
+                { offset: 0, color: '#c2e4e1' },
+                { offset: 1, color: '#1d8a84' }
               ])
             }
           },
@@ -697,8 +697,8 @@ const renderGenderChart = () => {
             name: '女生',
             itemStyle: {
               color: new graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#e0c7ff' },
-                { offset: 1, color: '#a683ff' }
+                { offset: 0, color: '#d8ece9' },
+                { offset: 1, color: '#3a9a95' }
               ])
             }
           }
@@ -716,10 +716,10 @@ const renderGenderChart = () => {
             itemStyle: {
               color: new graphic.RadialGradient(0.5, 0.45, 0.9, [
                 { offset: 0, color: 'rgba(255, 255, 255, 0.8)' },
-                { offset: 1, color: 'rgba(187, 166, 255, 0.22)' }
+                { offset: 1, color: 'rgba(110, 181, 173, 0.22)' }
               ]),
               shadowBlur: 6,
-              shadowColor: 'rgba(157, 128, 247, 0.08)'
+              shadowColor: 'rgba(17, 89, 84, 0.1)'
             }
           }
         ]
@@ -736,7 +736,7 @@ const renderGenderChart = () => {
           {
             type: 'ellipse',
             shape: { cx: 0, cy: 98, rx: 124, ry: 22 },
-            style: { fill: 'rgba(120, 97, 214, 0.018)' }
+            style: { fill: 'rgba(15, 88, 98, 0.032)' }
           },
           {
             type: 'ellipse',
@@ -763,11 +763,11 @@ const renderCourseChart = () => {
       type: 'category',
       data: ['必修课', '选修课', '实践课'],
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: 'rgba(136, 118, 198, 0.45)' } }
+      axisLine: { lineStyle: { color: 'rgba(71, 118, 136, 0.45)' } }
     },
     yAxis: {
       type: 'value',
-      splitLine: { lineStyle: { color: 'rgba(157, 131, 255, 0.16)' } }
+      splitLine: { lineStyle: { color: 'rgba(94, 143, 150, 0.16)' } }
     },
     series: [
       {
@@ -778,7 +778,7 @@ const renderCourseChart = () => {
         symbolOffset: [0, 7],
         z: 1,
         itemStyle: {
-          color: 'rgba(110, 88, 214, 0.16)'
+          color: 'rgba(46, 132, 139, 0.16)'
         }
       },
       {
@@ -788,18 +788,18 @@ const renderCourseChart = () => {
         z: 2,
         showBackground: true,
         backgroundStyle: {
-          color: 'rgba(145, 121, 232, 0.04)',
+          color: 'rgba(59, 142, 150, 0.08)',
           borderRadius: [8, 8, 0, 0]
         },
         itemStyle: {
           color: new graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#d4c2ff' },
-            { offset: 0.5, color: '#a186ff' },
-            { offset: 1, color: '#7860f2' }
+            { offset: 0, color: '#cde9e6' },
+            { offset: 0.5, color: '#68b0ac' },
+            { offset: 1, color: '#1a7f79' }
           ]),
           borderRadius: [8, 8, 0, 0],
           shadowBlur: 6,
-          shadowColor: 'rgba(111, 84, 216, 0.1)',
+          shadowColor: 'rgba(24, 95, 102, 0.16)',
           shadowOffsetY: 3
         }
       },
@@ -813,8 +813,8 @@ const renderCourseChart = () => {
         z: 3,
         itemStyle: {
           color: new graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#efe5ff' },
-            { offset: 1, color: '#ad90ff' }
+            { offset: 0, color: '#ecf7f6' },
+            { offset: 1, color: '#58aaa4' }
           ])
         }
       }
@@ -836,8 +836,8 @@ const renderCourseChart = () => {
         },
         style: {
           fill: new graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(187, 166, 255, 0.03)' },
-            { offset: 1, color: 'rgba(121, 97, 223, 0.008)' }
+            { offset: 0, color: 'rgba(133, 199, 194, 0.04)' },
+            { offset: 1, color: 'rgba(26, 102, 108, 0.01)' }
           ])
         }
       }
@@ -860,11 +860,11 @@ const renderTrendChart = () => {
       type: 'category',
       data: xData,
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: 'rgba(136, 118, 198, 0.45)' } }
+      axisLine: { lineStyle: { color: 'rgba(71, 118, 136, 0.45)' } }
     },
     yAxis: {
       type: 'value',
-      splitLine: { lineStyle: { color: 'rgba(157, 131, 255, 0.16)' } },
+      splitLine: { lineStyle: { color: 'rgba(94, 143, 150, 0.16)' } },
       minInterval: 1
     },
     series: [
@@ -874,12 +874,12 @@ const renderTrendChart = () => {
         smooth: true,
         showSymbol: true,
         data: yData,
-        lineStyle: { width: 3, color: '#7e67f6' },
-        itemStyle: { color: '#7e67f6' },
+        lineStyle: { width: 3, color: '#177c77' },
+        itemStyle: { color: '#177c77' },
         areaStyle: {
           color: new graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(126, 103, 246, 0.25)' },
-            { offset: 1, color: 'rgba(126, 103, 246, 0.02)' }
+            { offset: 0, color: 'rgba(23, 124, 119, 0.24)' },
+            { offset: 1, color: 'rgba(23, 124, 119, 0.02)' }
           ])
         }
       }
@@ -1054,12 +1054,12 @@ onBeforeUnmount(() => {
   gap: 16px;
   padding: 24px;
   border-radius: 20px;
-  border: 1px solid rgba(165, 143, 255, 0.25);
+  border: 1px solid rgba(20, 84, 101, 0.2);
   background:
-    radial-gradient(circle at 8% 12%, rgba(255, 255, 255, 0.42), transparent 38%),
-    radial-gradient(circle at 92% 4%, rgba(189, 171, 255, 0.22), transparent 36%),
-    linear-gradient(140deg, rgba(255, 255, 255, 0.86), rgba(244, 236, 255, 0.82));
-  box-shadow: 0 20px 40px rgba(78, 60, 145, 0.14);
+    radial-gradient(circle at 8% 12%, rgba(255, 255, 255, 0.46), transparent 38%),
+    radial-gradient(circle at 92% 4%, rgba(172, 221, 217, 0.24), transparent 36%),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(239, 248, 247, 0.86));
+  box-shadow: 0 18px 34px rgba(22, 66, 79, 0.12);
 }
 
 .hero-kicker {
@@ -1067,12 +1067,12 @@ onBeforeUnmount(() => {
   font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #8d79d0;
+  color: #4a7d8c;
 }
 
 .hero-title {
   margin: 10px 0 12px;
-  color: #2a1f4f;
+  color: #173749;
   font-size: 32px;
   line-height: 1.2;
   font-weight: 700;
@@ -1081,7 +1081,7 @@ onBeforeUnmount(() => {
 .hero-description {
   margin: 0;
   max-width: 580px;
-  color: #5e5186;
+  color: #446173;
   line-height: 1.7;
   font-size: 14px;
 }
@@ -1099,17 +1099,17 @@ onBeforeUnmount(() => {
   gap: 6px;
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid rgba(168, 143, 255, 0.24);
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(24, 97, 110, 0.2);
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .hero-chip span {
-  color: #6f5f9f;
+  color: #4c6878;
   font-size: 13px;
 }
 
 .hero-chip strong {
-  color: #2d2150;
+  color: #173a4c;
   font-size: 24px;
   font-weight: 700;
 }
@@ -1123,14 +1123,14 @@ onBeforeUnmount(() => {
 .metric-card {
   cursor: pointer;
   border-radius: 16px;
-  border: 1px solid rgba(161, 138, 246, 0.22);
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.93), rgba(244, 237, 255, 0.82));
+  border: 1px solid rgba(24, 97, 110, 0.2);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.94), rgba(238, 248, 247, 0.84));
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .metric-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 18px 32px rgba(83, 61, 170, 0.18);
+  box-shadow: 0 16px 30px rgba(20, 74, 87, 0.18);
 }
 
 .metric-card.disabled {
@@ -1139,7 +1139,7 @@ onBeforeUnmount(() => {
 
 .metric-card.disabled:hover {
   transform: none;
-  box-shadow: 0 12px 30px rgba(85, 65, 155, 0.1);
+  box-shadow: 0 10px 22px rgba(20, 66, 81, 0.12);
 }
 
 :deep(.metric-card .el-card__body) {
@@ -1162,19 +1162,19 @@ onBeforeUnmount(() => {
 }
 
 .student-icon {
-  background: linear-gradient(135deg, #7c66ff, #5a47d8);
+  background: linear-gradient(135deg, #1f958e, #116c68);
 }
 
 .teacher-icon {
-  background: linear-gradient(135deg, #a464ff, #7f4ed7);
+  background: linear-gradient(135deg, #2f8e9e, #2a6f93);
 }
 
 .course-icon {
-  background: linear-gradient(135deg, #55a8ff, #4f77df);
+  background: linear-gradient(135deg, #3da293, #257f71);
 }
 
 .class-icon {
-  background: linear-gradient(135deg, #42b8d2, #3f87bc);
+  background: linear-gradient(135deg, #4b9cb4, #2f6f95);
 }
 
 .metric-content {
@@ -1184,13 +1184,13 @@ onBeforeUnmount(() => {
 }
 
 .metric-label {
-  color: #6f6296;
+  color: #4e6574;
   font-size: 13px;
 }
 
 .metric-value {
   margin-top: 4px;
-  color: #261c49;
+  color: #163548;
   font-size: 28px;
   line-height: 1;
 }
@@ -1203,9 +1203,9 @@ onBeforeUnmount(() => {
 
 .panel-card {
   border-radius: 18px;
-  border: 1px solid rgba(166, 145, 247, 0.2);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.9), rgba(247, 241, 255, 0.82));
-  box-shadow: 0 12px 30px rgba(85, 65, 155, 0.1);
+  border: 1px solid rgba(21, 88, 102, 0.17);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 248, 0.84));
+  box-shadow: 0 10px 24px rgba(20, 68, 80, 0.1);
 }
 
 .panel-gender,
@@ -1231,7 +1231,7 @@ onBeforeUnmount(() => {
 }
 
 :deep(.panel-card .el-card__header) {
-  border-bottom: 1px solid rgba(171, 149, 255, 0.25);
+  border-bottom: 1px solid rgba(19, 87, 98, 0.15);
   padding: 14px 18px;
 }
 
@@ -1251,8 +1251,8 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   background:
     radial-gradient(circle at 14% 12%, rgba(255, 255, 255, 0.55), transparent 45%),
-    linear-gradient(150deg, rgba(255, 255, 255, 0.65), rgba(236, 226, 255, 0.46));
-  border: 1px solid rgba(180, 160, 255, 0.18);
+    linear-gradient(150deg, rgba(255, 255, 255, 0.68), rgba(231, 245, 243, 0.5));
+  border: 1px solid rgba(19, 93, 103, 0.15);
 }
 
 .chart-trend {
@@ -1275,8 +1275,8 @@ onBeforeUnmount(() => {
 
 .personal-item {
   border-radius: 12px;
-  border: 1px solid rgba(175, 154, 255, 0.2);
-  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(20, 93, 105, 0.16);
+  background: rgba(255, 255, 255, 0.74);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -1284,12 +1284,12 @@ onBeforeUnmount(() => {
 }
 
 .personal-item span {
-  color: #5e4f8d;
+  color: #4e6777;
   font-size: 14px;
 }
 
 .personal-item strong {
-  color: #2b204f;
+  color: #17384a;
   font-size: 24px;
   line-height: 1;
 }
@@ -1300,8 +1300,8 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   border-radius: 12px;
-  border: 1px solid rgba(175, 154, 255, 0.2);
-  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(20, 93, 105, 0.16);
+  background: rgba(255, 255, 255, 0.74);
   padding: 14px;
 }
 
@@ -1312,17 +1312,17 @@ onBeforeUnmount(() => {
 
 .ops-item.clickable:hover {
   transform: translateY(-2px);
-  border-color: rgba(130, 104, 238, 0.45);
-  box-shadow: 0 10px 20px rgba(99, 71, 194, 0.15);
+  border-color: rgba(19, 123, 118, 0.5);
+  box-shadow: 0 10px 20px rgba(19, 91, 86, 0.16);
 }
 
 .ops-label {
-  color: #5e4f8d;
+  color: #4e6777;
   font-size: 14px;
 }
 
 .ops-value {
-  color: #2b204f;
+  color: #17384a;
   font-size: 24px;
 }
 
@@ -1358,8 +1358,8 @@ onBeforeUnmount(() => {
   gap: 10px;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid rgba(176, 155, 255, 0.22);
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(20, 93, 105, 0.16);
+  background: rgba(255, 255, 255, 0.78);
 }
 
 .todo-main {
@@ -1376,7 +1376,7 @@ onBeforeUnmount(() => {
 }
 
 .todo-title {
-  color: #32265e;
+  color: #214456;
   font-size: 14px;
   line-height: 1.45;
   word-break: break-word;
@@ -1391,7 +1391,7 @@ onBeforeUnmount(() => {
 
 .todo-time {
   font-size: 12px;
-  color: #8a7aa7;
+  color: #79909b;
 }
 
 .todo-actions {
@@ -1410,13 +1410,13 @@ onBeforeUnmount(() => {
 }
 
 :deep(.el-link--primary) {
-  color: #6d55ef;
+  color: #146f6b;
 }
 
 .detail-content {
   white-space: pre-wrap;
   line-height: 1.8;
-  color: #3a315d;
+  color: #2f4c5b;
   min-height: 80px;
 }
 

@@ -1,32 +1,34 @@
 :root {
-  --sms-font: 'Segoe UI Variable', 'Avenir Next', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  --sms-violet: #8f7cff;
-  --sms-violet-deep: #6f5de7;
-  --sms-violet-soft: #cfc2ff;
-  --sms-text: #2c2250;
-  --sms-text-soft: #6e6397;
-  --sms-text-muted: #9489b8;
-  --sms-surface: rgba(248, 246, 255, 0.86);
-  --sms-surface-2: rgba(255, 255, 255, 0.72);
-  --sms-surface-3: rgba(246, 239, 255, 0.9);
-  --sms-border: rgba(170, 152, 255, 0.28);
-  --sms-border-strong: rgba(150, 130, 236, 0.4);
-  --sms-shadow: 0 14px 30px rgba(51, 37, 96, 0.15);
-  --sms-shadow-strong: 0 20px 36px rgba(42, 28, 85, 0.25);
+  --sms-font: 'IBM Plex Sans', 'Source Han Sans SC', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --sms-font-display: 'IBM Plex Serif', 'Source Han Serif SC', 'Noto Serif SC', 'Songti SC', serif;
+  --sms-accent: #137b76;
+  --sms-accent-soft: #d9efed;
+  --sms-accent-deep: #0e5956;
+  --sms-success: #2e7d4f;
+  --sms-text: #152635;
+  --sms-text-soft: #415567;
+  --sms-text-muted: #6d7d8a;
+  --sms-surface: rgba(255, 255, 255, 0.86);
+  --sms-surface-2: rgba(248, 252, 252, 0.82);
+  --sms-surface-3: rgba(241, 248, 247, 0.9);
+  --sms-border: rgba(21, 58, 79, 0.14);
+  --sms-border-strong: rgba(13, 67, 80, 0.24);
+  --sms-shadow: 0 12px 30px rgba(19, 41, 52, 0.11);
+  --sms-shadow-strong: 0 18px 40px rgba(18, 40, 52, 0.18);
   --sms-radius-sm: 10px;
   --sms-radius-md: 16px;
-  --sms-radius-lg: 20px;
+  --sms-radius-lg: 22px;
   --sms-motion-micro: 120ms;
   --sms-motion-standard: 180ms;
   --sms-motion-panel: 240ms;
-  --sms-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
-  --el-color-primary: #7f68f8;
-  --el-color-primary-light-3: #9f8efd;
-  --el-color-primary-light-5: #b8adff;
-  --el-color-primary-light-7: #d7d1ff;
-  --el-color-primary-light-8: #e5e1ff;
-  --el-color-primary-light-9: #f0eeff;
-  --el-color-primary-dark-2: #6651dd;
+  --sms-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --el-color-primary: #137b76;
+  --el-color-primary-light-3: #3b968f;
+  --el-color-primary-light-5: #68afa9;
+  --el-color-primary-light-7: #99cdc9;
+  --el-color-primary-light-8: #bee1de;
+  --el-color-primary-light-9: #e4f3f2;
+  --el-color-primary-dark-2: #0e615d;
 }
 
 * {
@@ -50,22 +52,22 @@ body {
 }
 
 ::selection {
-  color: #22163f;
-  background: rgba(175, 157, 255, 0.58);
+  color: #0d2927;
+  background: rgba(89, 176, 170, 0.38);
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #af9dff, #8f7cff);
+  background: linear-gradient(180deg, #7ebdb8, #3b8883);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(102, 78, 179, 0.12);
+  background: rgba(19, 97, 102, 0.12);
 }
 
 .el-card {
@@ -86,9 +88,9 @@ body {
 .el-table {
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.72);
-  --el-table-header-bg-color: rgba(244, 241, 255, 0.9);
-  --el-table-row-hover-bg-color: rgba(146, 123, 255, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  --el-table-header-bg-color: rgba(235, 246, 245, 0.85);
+  --el-table-row-hover-bg-color: rgba(19, 123, 118, 0.08);
 }
 
 .el-table tr {
@@ -108,107 +110,28 @@ body {
 
 .el-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(114, 91, 211, 0.2);
+  box-shadow: 0 10px 18px rgba(23, 88, 83, 0.2);
 }
 
 .el-button--primary,
 .el-button--success {
   border: none;
-  color: #fdfcff;
+  color: #f4fcfb;
 }
 
 .el-button--primary {
-  background: linear-gradient(90deg, #7f68f8 0%, #9f84ff 100%);
+  background: linear-gradient(90deg, #116f6a 0%, #1f918b 100%);
 }
 
 .el-button--success {
-  background: linear-gradient(90deg, #8a6bff 0%, #b091ff 100%);
+  background: linear-gradient(90deg, #2d7a50 0%, #3d9564 100%);
 }
 
 .page-placeholder {
   padding: 24px;
-  border-radius: 12px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(171, 153, 255, 0.25);
-}
-
-/* Login autofill/focus hard override: keep transparent in all states */
-.login-container .el-input,
-.login-container .el-select {
-  --el-fill-color-blank: transparent !important;
-  --el-fill-color-light: transparent !important;
-  --el-bg-color: transparent !important;
-  --el-input-bg-color: transparent !important;
-  --el-input-focus-border-color: transparent !important;
-}
-
-.login-container .el-input__wrapper,
-.login-container .el-input__wrapper:hover,
-.login-container .el-input__wrapper.is-focus,
-.login-container .el-select__wrapper,
-.login-container .el-select__wrapper:hover,
-.login-container .el-select__wrapper.is-focused {
-  background: transparent !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
-  outline: none !important;
-  overflow: hidden !important;
-}
-
-.login-container .el-input__inner,
-.login-container .el-input__inner:hover,
-.login-container .el-input__inner:focus,
-.login-container .el-input__inner:active {
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  -webkit-text-fill-color: #efe8ff !important;
-}
-
-.login-container input:-webkit-autofill,
-.login-container input:-webkit-autofill:hover,
-.login-container input:-webkit-autofill:focus,
-.login-container input:-webkit-autofill:active {
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  -webkit-text-fill-color: #efe8ff !important;
-  -webkit-box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0) inset !important;
-  box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0) inset !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  transition: background-color 9999s ease-in-out 0s;
-}
-
-.login-container input:-internal-autofill-selected {
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  -webkit-text-fill-color: #efe8ff !important;
-}
-
-.login-container .el-input__inner::selection,
-.login-container .el-input__inner::-moz-selection {
-  background: transparent !important;
-}
-
-.login-container .login-card .el-form .el-input .el-input__wrapper .el-input__inner,
-.login-container .login-card .el-form .el-input .el-input__wrapper .el-input__inner:focus,
-.login-container .login-card .el-form .el-input .el-input__wrapper .el-input__inner:active,
-.login-container .login-card .el-form .el-input .el-input__wrapper .el-input__inner:-webkit-autofill,
-.login-container .login-card .el-form .el-input .el-input__wrapper .el-input__inner:-webkit-autofill:focus {
-  background: transparent !important;
-  background-color: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  -webkit-box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0) inset !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
+  border: 1px solid rgba(19, 67, 86, 0.18);
 }
 
 @media (max-width: 768px) {

@@ -5,14 +5,14 @@
     <div class="grid h-full" :style="gridStyle">
       <aside
         class="layout-sidebar hidden h-screen border-r md:flex md:flex-col"
-        :style="{ width: isCollapsed ? '78px' : '252px' }"
+        :style="{ width: isCollapsed ? '96px' : '252px' }"
       >
-        <div class="sidebar-brand sidebar-divider-bottom flex h-16 items-center px-4">
+        <div class="sidebar-brand sidebar-divider-bottom" :class="isCollapsed ? 'is-collapsed' : 'is-expanded'">
           <div class="brand-mark inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--accent-700)]">
             <Shield class="h-4 w-4" />
           </div>
-          <h1 v-if="!isCollapsed" class="ml-2 text-[13px] font-semibold tracking-tight text-primary-900">Academic Management System</h1>
-          <span v-else class="text-[12px] font-semibold text-primary-900">AMS</span>
+          <h1 v-if="!isCollapsed" class="sidebar-brand-text text-[13px] font-semibold tracking-tight text-primary-900">Academic Management System</h1>
+          <span v-else class="sidebar-brand-short text-[12px] font-semibold text-primary-900">AMS</span>
         </div>
 
         <nav class="flex-1 overflow-y-auto px-2 py-3">
@@ -38,7 +38,7 @@
                 :key="item.path"
                 :to="item.path"
                 class="menu-link touch-target"
-                :class="isActive(item.path) ? 'is-active' : ''"
+                :class="[isActive(item.path) ? 'is-active' : '', isCollapsed ? 'is-collapsed-item' : '']"
                 :title="isCollapsed ? item.title : ''"
               >
                 <span class="menu-rail" aria-hidden="true"></span>
@@ -49,12 +49,12 @@
           </section>
         </nav>
 
-        <div class="sidebar-divider-top p-2">
-          <button class="menu-link touch-target" @click="handleCommand('profile')">
+        <div class="sidebar-divider-top sidebar-account p-2">
+          <button class="menu-link sidebar-account-action touch-target" @click="handleCommand('profile')">
             <User class="h-4 w-4" />
             <span v-if="!isCollapsed" class="menu-label">个人中心</span>
           </button>
-          <button class="menu-link touch-target is-danger mt-1" @click="handleCommand('logout')">
+          <button class="menu-link sidebar-account-action touch-target is-danger mt-1" @click="handleCommand('logout')">
             <LogOut class="h-4 w-4" />
             <span v-if="!isCollapsed" class="menu-label">退出登录</span>
           </button>
@@ -192,14 +192,14 @@
       <div v-if="mobileMenuVisible" class="fixed inset-0 z-40 md:hidden">
         <div class="absolute inset-0 bg-slatex-900/45" @click="mobileMenuVisible = false"></div>
         <div class="layout-sidebar absolute left-0 top-0 h-full w-72 border-r p-2">
-          <div class="sidebar-divider-bottom mb-2 flex h-12 items-center justify-between px-2">
-            <div class="flex items-center gap-1.5">
+          <div class="mobile-sidebar-brand sidebar-divider-bottom mb-2">
+            <div class="mobile-sidebar-brand-main">
               <div class="brand-mark inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--accent-700)]">
                 <Shield class="h-3.5 w-3.5" />
               </div>
-              <h1 class="text-[13px] font-semibold tracking-tight text-primary-900">Academic Management System</h1>
+              <h1 class="sidebar-brand-text text-[13px] font-semibold tracking-tight text-primary-900">Academic Management System</h1>
             </div>
-            <button class="rounded-md px-2 py-1 text-[12px] text-slatex-600 hover:bg-neutralx-100 touch-target" @click="mobileMenuVisible = false">关闭</button>
+            <button class="mobile-sidebar-close rounded-md px-2 py-1 text-[12px] text-slatex-600 hover:bg-neutralx-100 touch-target" @click="mobileMenuVisible = false">关闭</button>
           </div>
           <section v-for="group in visibleMenuGroups" :key="`mobile-${group.key}`" class="mb-4">
             <button
@@ -426,7 +426,7 @@ const ensureActiveGroupExpanded = () => {
 }
 
 const gridStyle = computed(() => ({
-  gridTemplateColumns: viewportWidth.value < 768 ? '1fr' : `${isCollapsed.value ? 78 : 252}px minmax(0, 1fr)`
+  gridTemplateColumns: viewportWidth.value < 768 ? '1fr' : `${isCollapsed.value ? 96 : 252}px minmax(0, 1fr)`
 }))
 
 const parseSafe = (value, fallback) => {
@@ -651,6 +651,39 @@ onUnmounted(() => {
 .brand-mark {
   border: 1px solid color-mix(in srgb, var(--accent-500) 32%, var(--panel-border));
   background: color-mix(in srgb, var(--surface-base) 84%, transparent);
+  flex-shrink: 0;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+}
+
+.sidebar-brand.is-expanded {
+  justify-content: center;
+  gap: 8px;
+  padding-inline: 10px;
+}
+
+.sidebar-brand.is-collapsed {
+  justify-content: center;
+  gap: 6px;
+  padding-inline: 6px;
+}
+
+.sidebar-brand-text {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.sidebar-brand-short {
+  display: inline-block;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .sidebar-divider-bottom {
@@ -727,6 +760,15 @@ onUnmounted(() => {
   transition: all 180ms ease;
 }
 
+.menu-link.is-collapsed-item {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.menu-link.is-collapsed-item .menu-rail {
+  display: none;
+}
+
 .menu-link:hover {
   background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
   color: var(--text-primary);
@@ -767,6 +809,42 @@ onUnmounted(() => {
   white-space: nowrap;
   font-size: 13px;
   font-weight: 500;
+}
+
+.sidebar-account {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar-account-action {
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.mobile-sidebar-brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 44px 0 10px;
+}
+
+.mobile-sidebar-brand-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mobile-sidebar-close {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .layout-header {

@@ -226,3 +226,70 @@ CREATE INDEX idx_score_arrangement_total ON score(course_arrangement_id, total_s
 CREATE INDEX idx_attendance_status_scope_date ON attendance(status, course_arrangement_id, attendance_date);
 CREATE INDEX idx_leave_pending_create ON leave_request(status, create_time);
 CREATE INDEX idx_leave_arrangement_pending ON leave_request(course_arrangement_id, status, create_time);
+
+-- ===== 2026-03 College + Multi-role + Leave Workflow extension =====
+CREATE TABLE IF NOT EXISTS college (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    college_code VARCHAR(32) NOT NULL UNIQUE,
+    college_name VARCHAR(100) NOT NULL,
+    description VARCHAR(255),
+    status TINYINT DEFAULT 1,
+    admin_user_id BIGINT UNIQUE,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_college_code (college_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='College table';
+
+CREATE TABLE IF NOT EXISTS sys_user_role (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    role_code VARCHAR(50) NOT NULL,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_user_role (user_id, role_code),
+    INDEX idx_user_role_user_id (user_id),
+    CONSTRAINT fk_user_role_user FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User role relation table';
+
+CREATE TABLE IF NOT EXISTS leave_request_approval (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    leave_request_id BIGINT NOT NULL,
+    node_code VARCHAR(50),
+    approver_user_id BIGINT,
+    approver_teacher_id BIGINT,
+    decision VARCHAR(20),
+    remark VARCHAR(255),
+    operate_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_leave_approval_request (leave_request_id),
+    CONSTRAINT fk_leave_approval_request FOREIGN KEY (leave_request_id) REFERENCES leave_request(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Leave approval records';
+
+CREATE TABLE IF NOT EXISTS leave_request_cc (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    leave_request_id BIGINT NOT NULL,
+    receiver_user_id BIGINT NOT NULL,
+    receiver_teacher_id BIGINT,
+    read_flag TINYINT DEFAULT 0,
+    read_time DATETIME,
+    remark VARCHAR(255),
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_leave_cc_receiver (receiver_user_id, read_flag),
+    CONSTRAINT fk_leave_cc_request FOREIGN KEY (leave_request_id) REFERENCES leave_request(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Leave CC records';
+
+CREATE TABLE IF NOT EXISTS sys_config (
+    config_key VARCHAR(64) PRIMARY KEY,
+    config_value VARCHAR(255),
+    description VARCHAR(255),
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='System key-value configs';
+
+ALTER TABLE teacher ADD COLUMN IF NOT EXISTS college_id BIGINT NULL;
+ALTER TABLE class ADD COLUMN IF NOT EXISTS college_id BIGINT NULL;
+ALTER TABLE leave_request ADD COLUMN IF NOT EXISTS workflow_type VARCHAR(20) NULL;
+ALTER TABLE leave_request ADD COLUMN IF NOT EXISTS current_node VARCHAR(50) NULL;
+ALTER TABLE leave_request ADD COLUMN IF NOT EXISTS final_status VARCHAR(20) NULL;
+
+CREATE INDEX idx_teacher_college_id ON teacher(college_id);
+CREATE INDEX idx_class_college_id ON class(college_id);
+CREATE INDEX idx_leave_node_status ON leave_request(current_node, status);

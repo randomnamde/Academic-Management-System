@@ -1,17 +1,19 @@
 package com.student.security;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.student.entity.Class;
 import com.student.entity.CourseArrangement;
 import com.student.entity.Student;
-import com.student.entity.SysUser;
 import com.student.exception.BusinessException;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.student.mapper.ClassMapper;
 import com.student.mapper.CourseArrangementMapper;
+import com.student.mapper.StudentMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +24,8 @@ public class DataScopeService {
 
     private final CurrentUserService currentUserService;
     private final CourseArrangementMapper courseArrangementMapper;
+    private final StudentMapper studentMapper;
+    private final ClassMapper classMapper;
 
     public Long resolveScopedStudentId(Authentication authentication, Long requestedStudentId) {
         if (currentUserService.isStudent(authentication)) {
@@ -68,7 +72,50 @@ public class DataScopeService {
     }
 
     public boolean isStudent(Authentication authentication) {
-        return currentUserService.getCurrentUser(authentication).getRole() == SysUser.Role.STUDENT;
+        return currentUserService.isStudent(authentication);
+    }
+
+    public Long resolveScopedCollegeId(Authentication authentication) {
+        return currentUserService.resolveManagedCollegeId(authentication);
+    }
+
+    public void assertCollegeScope(Authentication authentication, Long collegeId) {
+        Long scopedCollegeId = resolveScopedCollegeId(authentication);
+        if (scopedCollegeId != null && collegeId != null && !scopedCollegeId.equals(collegeId)) {
+            throw new BusinessException(403, "Forbidden");
+        }
+    }
+
+    public Set<Long> resolveCollegeClassIds(Authentication authentication) {
+        Long scopedCollegeId = resolveScopedCollegeId(authentication);
+        if (scopedCollegeId == null) {
+            return Set.of();
+        }
+        List<Class> classes = classMapper.selectList(
+                new LambdaQueryWrapper<Class>().eq(Class::getCollegeId, scopedCollegeId));
+        Set<Long> ids = new HashSet<>();
+        for (Class clazz : classes) {
+            if (clazz.getId() != null) {
+                ids.add(clazz.getId());
+            }
+        }
+        return ids;
+    }
+
+    public Set<Long> resolveCollegeStudentIds(Authentication authentication) {
+        Set<Long> classIds = resolveCollegeClassIds(authentication);
+        if (classIds.isEmpty()) {
+            return Set.of();
+        }
+        List<Student> students = studentMapper.selectList(
+                new LambdaQueryWrapper<Student>().in(Student::getClassId, classIds));
+        Set<Long> ids = new HashSet<>();
+        for (Student student : students) {
+            if (student.getId() != null) {
+                ids.add(student.getId());
+            }
+        }
+        return ids;
     }
 
     public StudentArrangementScope resolveStudentArrangementScope(Authentication authentication) {
@@ -144,3 +191,4 @@ public class DataScopeService {
         }
     }
 }
+

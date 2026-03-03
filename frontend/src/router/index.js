@@ -72,6 +72,17 @@ const routes = [
         }
       },
       {
+        path: 'college',
+        name: 'College',
+        component: () => import('@/views/college/index.vue'),
+        meta: {
+          title: '学院管理',
+          icon: 'School',
+          roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'ADMIN'],
+          menuGroup: 'teaching'
+        }
+      },
+      {
         path: 'course-arrangement',
         name: 'CourseArrangement',
         component: () => import('@/views/course-arrangement/index.vue'),
@@ -157,12 +168,43 @@ const router = createRouter({
   routes
 })
 
+const ROLE_ALIAS = {
+  ADMIN: ['ADMIN', 'SCHOOL_ADMIN', 'COLLEGE_ADMIN'],
+  SCHOOL_ADMIN: ['SCHOOL_ADMIN', 'ADMIN'],
+  COLLEGE_ADMIN: ['COLLEGE_ADMIN', 'ADMIN'],
+  TEACHER: ['TEACHER', 'HOMEROOM_TEACHER', 'COURSE_TEACHER'],
+  HOMEROOM_TEACHER: ['HOMEROOM_TEACHER', 'TEACHER'],
+  COURSE_TEACHER: ['COURSE_TEACHER', 'TEACHER'],
+  STUDENT: ['STUDENT']
+}
+
+const expandRoles = (roles = []) => {
+  const set = new Set()
+  roles.forEach((role) => {
+    const key = String(role || '').toUpperCase()
+    if (!key) return
+    ;(ROLE_ALIAS[key] || [key]).forEach((item) => set.add(item))
+  })
+  return set
+}
+
 router.beforeEach((to, from, next) => {
   NProgress.start()
 
   const token = Cookies.get('token')
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-  const userRole = userInfo?.role
+  const userRole = userInfo?.primaryRole || userInfo?.role
+  const roleList = []
+  if (Array.isArray(userInfo?.roles) && userInfo.roles.length) {
+    roleList.push(...userInfo.roles)
+  }
+  if (userRole) {
+    roleList.push(userRole)
+  }
+  if (userInfo?.role) {
+    roleList.push(userInfo.role)
+  }
+  const expandedRoles = expandRoles(roleList)
 
   if (to.meta.public) {
     next()
@@ -170,7 +212,7 @@ router.beforeEach((to, from, next) => {
     next('/login')
   } else if (to.name && !['Layout', 'NotFound'].includes(String(to.name)) && !canRoute(userRole, String(to.name), userInfo?.permissions || [])) {
     next('/403')
-  } else if (to.meta.roles && !to.meta.roles.includes(userRole)) {
+  } else if (to.meta.roles && !to.meta.roles.some((allowed) => expandedRoles.has(String(allowed || '').toUpperCase()))) {
     next('/403')
   } else {
     next()

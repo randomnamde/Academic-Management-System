@@ -9,8 +9,10 @@ import com.student.entity.LeaveRequest;
 import com.student.entity.Score;
 import com.student.entity.Student;
 import com.student.entity.SysUser;
+import com.student.entity.Class;
 import com.student.mapper.CourseArrangementMapper;
 import com.student.security.CurrentUserService;
+import com.student.security.DataScopeService;
 import com.student.service.AttendanceService;
 import com.student.service.ClassService;
 import com.student.service.CourseService;
@@ -43,6 +45,7 @@ public class DashboardController {
     private static final BigDecimal LOW_SCORE_THRESHOLD = new BigDecimal("60");
 
     private final CurrentUserService currentUserService;
+    private final DataScopeService dataScopeService;
     private final AttendanceService attendanceService;
     private final LeaveRequestService leaveRequestService;
     private final ScoreService scoreService;
@@ -55,6 +58,9 @@ public class DashboardController {
     @GetMapping("/overview")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResultVO<DashboardOverviewDTO> getOverview(Authentication authentication) {
+        if (currentUserService.isCollegeAdmin(authentication)) {
+            return ResultVO.success(buildCollegeOverview(authentication));
+        }
         SysUser currentUser = currentUserService.getCurrentUser(authentication);
         SysUser.Role role = currentUser.getRole();
 
@@ -120,6 +126,68 @@ public class DashboardController {
         overview.setLowScoreWarningCount(countLowScore(role, studentId, arrangementIdList));
         overview.setAbnormalTrend(buildTrend(role, studentId, arrangementIdList));
         return ResultVO.success(overview);
+    }
+
+    private DashboardOverviewDTO buildCollegeOverview(Authentication authentication) {
+        Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+        Set<Long> arrangementIds = new HashSet<>();
+        Set<Long> courseIds = new HashSet<>();
+        Set<Long> teacherIds = new HashSet<>();
+
+        if (!classIds.isEmpty()) {
+            List<Class> classes = classService.lambdaQuery().in(Class::getId, classIds).list();
+            for (Class clazz : classes) {
+                if (clazz.getTeacherId() != null) {
+                    teacherIds.add(clazz.getTeacherId());
+                }
+            }
+            List<CourseArrangement> arrangements = courseArrangementMapper.selectList(
+                    new LambdaQueryWrapper<CourseArrangement>().in(CourseArrangement::getClassId, classIds));
+            for (CourseArrangement arrangement : arrangements) {
+                if (arrangement.getId() != null) {
+                    arrangementIds.add(arrangement.getId());
+                }
+                if (arrangement.getCourseId() != null) {
+                    courseIds.add(arrangement.getCourseId());
+                }
+                if (arrangement.getTeacherId() != null) {
+                    teacherIds.add(arrangement.getTeacherId());
+                }
+            }
+        }
+
+        DashboardOverviewDTO overview = new DashboardOverviewDTO();
+        overview.setRole("COLLEGE_ADMIN");
+        overview.setStudentCount(classIds.isEmpty() ? 0L : studentService.lambdaQuery().in(Student::getClassId, classIds).count());
+        overview.setTeacherCount((long) teacherIds.size());
+        overview.setCourseCount((long) courseIds.size());
+        overview.setClassCount((long) classIds.size());
+
+        DashboardOverviewDTO.GenderStatistics genderStatistics = new DashboardOverviewDTO.GenderStatistics();
+        if (!classIds.isEmpty()) {
+            genderStatistics.setMale(studentService.lambdaQuery()
+                    .in(Student::getClassId, classIds)
+                    .eq(Student::getGender, Student.Gender.MALE)
+                    .count());
+            genderStatistics.setFemale(studentService.lambdaQuery()
+                    .in(Student::getClassId, classIds)
+                    .eq(Student::getGender, Student.Gender.FEMALE)
+                    .count());
+        } else {
+            genderStatistics.setMale(0L);
+            genderStatistics.setFemale(0L);
+        }
+        overview.setGenderStatistics(genderStatistics);
+        overview.setCourseCategoryStatistics(buildCourseCategoryStatistics(courseIds));
+
+        Long collegeId = currentUserService.resolveManagedCollegeId(authentication);
+        overview.setPendingApprovalCount((long) leaveRequestService.getPendingRequestsForCollege(collegeId).size());
+
+        List<Long> arrangementIdList = arrangementIds.isEmpty() ? List.of() : new ArrayList<>(arrangementIds);
+        overview.setAbnormalTodayCount(countAbnormalByDate(LocalDate.now(), SysUser.Role.TEACHER, null, arrangementIdList));
+        overview.setLowScoreWarningCount(countLowScore(SysUser.Role.TEACHER, null, arrangementIdList));
+        overview.setAbnormalTrend(buildTrend(SysUser.Role.TEACHER, null, arrangementIdList));
+        return overview;
     }
 
     private void fillScopeStatistics(DashboardOverviewDTO overview,

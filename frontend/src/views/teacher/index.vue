@@ -144,7 +144,7 @@ import {
 } from '@/api/teacher'
 
 const store = useStore()
-const role = computed(() => store.state.userInfo?.role || '')
+const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const isStudent = computed(() => role.value === 'STUDENT')
 
 const loading = ref(false)

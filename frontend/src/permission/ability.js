@@ -1,11 +1,12 @@
 const ROLE_ROUTE_MAP = {
-  ADMIN: new Set([
+  SCHOOL_ADMIN: new Set([
     'Dashboard',
     'Analytics',
     'Student',
     'Teacher',
     'Class',
     'Course',
+    'College',
     'CourseArrangement',
     'Score',
     'Attendance',
@@ -18,7 +19,35 @@ const ROLE_ROUTE_MAP = {
     'RBACPermissions',
     'RBACAudit'
   ]),
-  TEACHER: new Set([
+  COLLEGE_ADMIN: new Set([
+    'Dashboard',
+    'Analytics',
+    'Student',
+    'Teacher',
+    'Class',
+    'Course',
+    'College',
+    'CourseArrangement',
+    'Score',
+    'Attendance',
+    'LeaveRequest',
+    'Announcement',
+    'Profile'
+  ]),
+  HOMEROOM_TEACHER: new Set([
+    'Dashboard',
+    'Analytics',
+    'Student',
+    'Class',
+    'Course',
+    'CourseArrangement',
+    'Score',
+    'Attendance',
+    'LeaveRequest',
+    'Announcement',
+    'Profile'
+  ]),
+  COURSE_TEACHER: new Set([
     'Dashboard',
     'Analytics',
     'Student',
@@ -46,7 +75,7 @@ const ROLE_ROUTE_MAP = {
 }
 
 const ROLE_ACTION_MAP = {
-  ADMIN: new Set([
+  SCHOOL_ADMIN: new Set([
     'score:create',
     'score:update',
     'score:delete',
@@ -59,7 +88,7 @@ const ROLE_ACTION_MAP = {
     'announcement:publish',
     'leave:approve'
   ]),
-  TEACHER: new Set([
+  COLLEGE_ADMIN: new Set([
     'score:create',
     'score:update',
     'score:delete',
@@ -71,11 +100,41 @@ const ROLE_ACTION_MAP = {
     'announcement:delete',
     'announcement:publish',
     'leave:approve'
+  ]),
+  HOMEROOM_TEACHER: new Set([
+    'score:create',
+    'score:update',
+    'score:delete',
+    'attendance:create',
+    'attendance:update',
+    'attendance:delete',
+    'announcement:create',
+    'announcement:update',
+    'announcement:delete',
+    'announcement:publish',
+    'leave:approve'
+  ]),
+  COURSE_TEACHER: new Set([
+    'score:create',
+    'score:update',
+    'score:delete',
+    'attendance:create',
+    'attendance:update',
+    'attendance:delete',
+    'announcement:create',
+    'announcement:update',
+    'announcement:delete',
+    'announcement:publish'
   ]),
   STUDENT: new Set([])
 }
 
-const normalizeRole = (role) => (role || '').toUpperCase()
+const normalizeRole = (role) => {
+  const key = (role || '').toUpperCase()
+  if (key === 'ADMIN') return 'SCHOOL_ADMIN'
+  if (key === 'TEACHER') return 'COURSE_TEACHER'
+  return key
+}
 
 const normalizePermissions = (permissions) =>
   Array.isArray(permissions) ? new Set(permissions.filter((item) => typeof item === 'string')) : new Set()
@@ -99,3 +158,4 @@ export const canAction = (role, actionCode, permissions = []) => {
   if (permissionSet.has('*:*') || permissionSet.has('*')) return true
   return permissionSet.has(actionCode)
 }
+

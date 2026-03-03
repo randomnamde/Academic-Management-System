@@ -4,6 +4,7 @@ import com.student.entity.SysUser;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class LoginVO {
@@ -21,6 +22,10 @@ public class LoginVO {
     private String email;
     
     private SysUser.Role role;
+
+    private String primaryRole;
+
+    private Set<String> roles;
     
     private String token;
 

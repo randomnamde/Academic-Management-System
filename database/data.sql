@@ -61,3 +61,49 @@ INSERT INTO attendance (student_id, course_arrangement_id, attendance_date, stat
 (1, 2, '2024-01-08', 'PRESENT', '07:58:00', NULL),
 (2, 1, '2024-01-08', 'PRESENT', '07:50:00', NULL),
 (2, 2, '2024-01-08', 'LATE', '08:15:00', '交通拥堵');
+
+-- ===== 2026-03 College + Multi-role + Leave Workflow seed =====
+INSERT INTO college (id, college_code, college_name, description, status, admin_user_id)
+VALUES (1, 'CS', 'Computer Science College', 'Default seeded college', 1, 1)
+ON DUPLICATE KEY UPDATE college_name = VALUES(college_name), admin_user_id = VALUES(admin_user_id);
+
+UPDATE teacher SET college_id = 1 WHERE college_id IS NULL;
+UPDATE class SET college_id = 1 WHERE college_id IS NULL;
+
+INSERT IGNORE INTO sys_user_role (user_id, role_code) VALUES
+(1, 'SCHOOL_ADMIN'),
+(2, 'COURSE_TEACHER'),
+(2, 'HOMEROOM_TEACHER'),
+(3, 'STUDENT');
+
+INSERT INTO sys_user_role (user_id, role_code)
+SELECT t.user_id, 'COURSE_TEACHER'
+FROM teacher t
+WHERE t.user_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM sys_user_role ur
+    WHERE ur.user_id = t.user_id AND ur.role_code = 'COURSE_TEACHER'
+  );
+
+INSERT INTO sys_user_role (user_id, role_code)
+SELECT t.user_id, 'HOMEROOM_TEACHER'
+FROM class c
+JOIN teacher t ON c.teacher_id = t.id
+WHERE t.user_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM sys_user_role ur
+    WHERE ur.user_id = t.user_id AND ur.role_code = 'HOMEROOM_TEACHER'
+  );
+
+INSERT INTO sys_user_role (user_id, role_code)
+SELECT s.user_id, 'STUDENT'
+FROM student s
+WHERE s.user_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM sys_user_role ur
+    WHERE ur.user_id = s.user_id AND ur.role_code = 'STUDENT'
+  );
+
+INSERT INTO sys_config (config_key, config_value, description)
+VALUES ('currentSemester', '2024-2025-1', 'Current semester for workflow and notifications')
+ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), description = VALUES(description);

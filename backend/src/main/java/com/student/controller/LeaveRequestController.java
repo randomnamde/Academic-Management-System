@@ -3,15 +3,11 @@ package com.student.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.dto.LeaveRequestDTO;
 import com.student.entity.LeaveRequest;
-import com.student.entity.Student;
-import com.student.entity.SysUser;
-import com.student.entity.Teacher;
-import com.student.exception.BusinessException;
-import com.student.mapper.TeacherMapper;
+import com.student.entity.LeaveRequestCc;
+import com.student.security.CurrentUserService;
 import com.student.security.DataScopeService;
+import com.student.security.RoleCode;
 import com.student.service.LeaveRequestService;
-import com.student.service.StudentService;
-import com.student.service.SysUserService;
 import com.student.vo.ResultVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +16,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/leave-request")
@@ -27,23 +25,21 @@ import java.util.List;
 public class LeaveRequestController {
 
     private final LeaveRequestService leaveRequestService;
-    private final SysUserService sysUserService;
-    private final StudentService studentService;
-    private final TeacherMapper teacherMapper;
+    private final CurrentUserService currentUserService;
     private final DataScopeService dataScopeService;
 
     @PostMapping
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasAnyRole('STUDENT')")
     public ResultVO<Void> submit(@RequestBody @Validated LeaveRequestDTO leaveRequestDTO, Authentication authentication) {
-        leaveRequestDTO.setStudentId(getCurrentStudentId(authentication));
+        leaveRequestDTO.setStudentId(currentUserService.getCurrentStudentId(authentication));
         leaveRequestService.submitLeaveRequest(leaveRequestDTO);
         return ResultVO.success();
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasAnyRole('STUDENT')")
     public ResultVO<Void> update(@PathVariable Long id, @RequestBody @Validated LeaveRequestDTO leaveRequestDTO, Authentication authentication) {
-        Long studentId = getCurrentStudentId(authentication);
+        Long studentId = currentUserService.getCurrentStudentId(authentication);
         validateStudentOwnsRequest(id, studentId);
         leaveRequestDTO.setId(id);
         leaveRequestDTO.setStudentId(studentId);
@@ -52,69 +48,115 @@ public class LeaveRequestController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasAnyRole('STUDENT')")
     public ResultVO<Void> cancel(@PathVariable Long id, Authentication authentication) {
-        validateStudentOwnsRequest(id, getCurrentStudentId(authentication));
+        validateStudentOwnsRequest(id, currentUserService.getCurrentStudentId(authentication));
         leaveRequestService.cancelLeaveRequest(id);
         return ResultVO.success();
     }
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'ADMIN', 'TEACHER')")
     public ResultVO<Void> approve(@PathVariable Long id,
                                   @RequestParam boolean approved,
                                   @RequestParam(required = false) String remark,
                                   Authentication authentication) {
-        LeaveRequest leaveRequest = leaveRequestService.getById(id);
-        if (leaveRequest == null) {
-            throw new BusinessException("Leave request not found");
+        Long approverUserId = currentUserService.getCurrentUser(authentication).getId();
+        Long approverTeacherId = null;
+        if (currentUserService.isTeacher(authentication)) {
+            approverTeacherId = currentUserService.getCurrentTeacherId(authentication);
         }
-        dataScopeService.assertTeacherOwnsArrangement(authentication, leaveRequest.getCourseArrangementId());
-        Long approverId = getApproverId(authentication);
-        leaveRequestService.approveLeaveRequest(id, approved, remark, approverId);
+        Set<RoleCode> roles = currentUserService.getCurrentRoleCodes(authentication);
+        leaveRequestService.approveLeaveRequest(id, approved, remark, approverUserId, approverTeacherId, roles);
         return ResultVO.success();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT', 'ADMIN', 'TEACHER')")
     public ResultVO<LeaveRequest> getById(@PathVariable Long id, Authentication authentication) {
         LeaveRequest leaveRequest = leaveRequestService.getLeaveRequestById(id);
         if (leaveRequest == null) {
-            throw new BusinessException("Leave request not found");
+            return ResultVO.error(404, "Leave request not found");
         }
-        SysUser currentUser = getCurrentUser(authentication);
-        if (currentUser.getRole() == SysUser.Role.STUDENT && !getCurrentStudentId(authentication).equals(leaveRequest.getStudentId())) {
-            throw new BusinessException("No permission to view this leave request");
+        if (currentUserService.isStudent(authentication)
+                && !currentUserService.getCurrentStudentId(authentication).equals(leaveRequest.getStudentId())) {
+            return ResultVO.error(403, "Forbidden");
         }
-        dataScopeService.assertTeacherOwnsArrangement(authentication, leaveRequest.getCourseArrangementId());
+        if (currentUserService.isCollegeAdmin(authentication)) {
+            Set<Long> scopedStudentIds = dataScopeService.resolveCollegeStudentIds(authentication);
+            if (!scopedStudentIds.contains(leaveRequest.getStudentId())) {
+                return ResultVO.error(403, "Forbidden");
+            }
+        }
+        if (!currentUserService.isAdmin(authentication)
+                && !currentUserService.isCollegeAdmin(authentication)
+                && currentUserService.isTeacher(authentication)) {
+            Long teacherId = currentUserService.getCurrentTeacherId(authentication);
+            Page<LeaveRequest> scopedPage = leaveRequestService.getLeaveRequestPage(
+                    1, 20, leaveRequest.getStudentId(), teacherId, null);
+            boolean canView = scopedPage.getRecords().stream().anyMatch(item -> id.equals(item.getId()));
+            if (!canView) {
+                Long userId = currentUserService.getCurrentUser(authentication).getId();
+                canView = leaveRequestService.getCcList(userId).stream().anyMatch(item -> id.equals(item.getLeaveRequestId()));
+            }
+            if (!canView) {
+                return ResultVO.error(403, "Forbidden");
+            }
+        }
         return ResultVO.success(leaveRequest);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT', 'ADMIN', 'TEACHER')")
     public ResultVO<Page<LeaveRequest>> list(@RequestParam(defaultValue = "1") Integer page,
                                              @RequestParam(defaultValue = "10") Integer size,
                                              @RequestParam(required = false) Long studentId,
                                              @RequestParam(required = false) LeaveRequest.Status status,
                                              Authentication authentication) {
-        SysUser currentUser = getCurrentUser(authentication);
         Long scopedStudentId = studentId;
-        if (currentUser.getRole() == SysUser.Role.STUDENT) {
-            scopedStudentId = getCurrentStudentId(authentication);
+        if (currentUserService.isStudent(authentication)) {
+            scopedStudentId = currentUserService.getCurrentStudentId(authentication);
         }
-        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        if (currentUserService.isCollegeAdmin(authentication)) {
+            Set<Long> studentIds = new HashSet<>(dataScopeService.resolveCollegeStudentIds(authentication));
+            if (scopedStudentId != null) {
+                if (!studentIds.contains(scopedStudentId)) {
+                    Page<LeaveRequest> emptyPage = new Page<>(page, size, 0);
+                    emptyPage.setRecords(List.of());
+                    return ResultVO.success(emptyPage);
+                }
+                studentIds = Set.of(scopedStudentId);
+            }
+            Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPageByStudentIds(page, size, studentIds, status);
+            return ResultVO.success(result);
+        }
+        Long scopedTeacherId = null;
+        if (currentUserService.hasRole(authentication, RoleCode.HOMEROOM_TEACHER)
+                || currentUserService.hasRole(authentication, RoleCode.COURSE_TEACHER)) {
+            scopedTeacherId = currentUserService.getCurrentTeacherId(authentication);
+        }
         Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(page, size, scopedStudentId, scopedTeacherId, status);
         return ResultVO.success(result);
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT', 'ADMIN', 'TEACHER')")
     public ResultVO<List<LeaveRequest>> getByStudentId(@PathVariable Long studentId, Authentication authentication) {
-        SysUser currentUser = getCurrentUser(authentication);
-        if (currentUser.getRole() == SysUser.Role.STUDENT && !getCurrentStudentId(authentication).equals(studentId)) {
-            throw new BusinessException("No permission to view other students leave requests");
+        if (currentUserService.isStudent(authentication)
+                && !currentUserService.getCurrentStudentId(authentication).equals(studentId)) {
+            return ResultVO.error(403, "Forbidden");
         }
-        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        if (currentUserService.isCollegeAdmin(authentication)) {
+            Set<Long> scopedStudentIds = dataScopeService.resolveCollegeStudentIds(authentication);
+            if (!scopedStudentIds.contains(studentId)) {
+                return ResultVO.error(403, "Forbidden");
+            }
+        }
+        Long scopedTeacherId = null;
+        if (currentUserService.hasRole(authentication, RoleCode.HOMEROOM_TEACHER)
+                || currentUserService.hasRole(authentication, RoleCode.COURSE_TEACHER)) {
+            scopedTeacherId = currentUserService.getCurrentTeacherId(authentication);
+        }
         if (scopedTeacherId != null) {
             Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(1, 10000, studentId, scopedTeacherId, null);
             return ResultVO.success(result.getRecords());
@@ -124,63 +166,45 @@ public class LeaveRequestController {
     }
 
     @GetMapping("/pending")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'ADMIN', 'TEACHER')")
     public ResultVO<List<LeaveRequest>> getPending(Authentication authentication) {
-        SysUser currentUser = getCurrentUser(authentication);
-        if (currentUser.getRole() == SysUser.Role.ADMIN) {
+        if (currentUserService.isAdmin(authentication)) {
             Page<LeaveRequest> page = leaveRequestService.getLeaveRequestPage(1, 200, null, null, LeaveRequest.Status.PENDING);
             return ResultVO.success(page.getRecords());
         }
-
-        Long teacherId = getCurrentTeacherId(authentication);
-        List<LeaveRequest> leaveRequests = leaveRequestService.getPendingRequestsForTeacher(teacherId);
-        return ResultVO.success(leaveRequests);
+        if (currentUserService.isCollegeAdmin(authentication)) {
+            Long collegeId = currentUserService.resolveManagedCollegeId(authentication);
+            return ResultVO.success(leaveRequestService.getPendingRequestsForCollege(collegeId));
+        }
+        if (currentUserService.hasRole(authentication, RoleCode.HOMEROOM_TEACHER)) {
+            Long teacherId = currentUserService.getCurrentTeacherId(authentication);
+            return ResultVO.success(leaveRequestService.getPendingRequestsForTeacher(teacherId));
+        }
+        return ResultVO.success(List.of());
     }
 
-    private SysUser getCurrentUser(Authentication authentication) {
-        if (authentication == null || authentication.getName() == null) {
-            throw new BusinessException("Unauthorized");
-        }
-        SysUser user = sysUserService.getByUsername(authentication.getName());
-        if (user == null) {
-            throw new BusinessException("User not found");
-        }
-        return user;
+    @GetMapping("/cc")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'ADMIN', 'TEACHER')")
+    public ResultVO<List<LeaveRequestCc>> getCc(Authentication authentication) {
+        Long userId = currentUserService.getCurrentUser(authentication).getId();
+        return ResultVO.success(leaveRequestService.getCcList(userId));
     }
 
-    private Long getCurrentStudentId(Authentication authentication) {
-        SysUser user = getCurrentUser(authentication);
-        Student student = studentService.getStudentByUserId(user.getId());
-        if (student == null) {
-            throw new BusinessException("Student profile not found");
-        }
-        return student.getId();
-    }
-
-    private Long getCurrentTeacherId(Authentication authentication) {
-        SysUser user = getCurrentUser(authentication);
-        Teacher teacher = teacherMapper.selectByUserId(user.getId());
-        if (teacher == null) {
-            throw new BusinessException("Teacher profile not found");
-        }
-        return teacher.getId();
-    }
-
-    private Long getApproverId(Authentication authentication) {
-        SysUser user = getCurrentUser(authentication);
-        if (user.getRole() == SysUser.Role.TEACHER) {
-            return getCurrentTeacherId(authentication);
-        }
-        return user.getId();
+    @PutMapping("/cc/{id}/read")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'ADMIN', 'TEACHER')")
+    public ResultVO<Void> readCc(@PathVariable Long id, Authentication authentication) {
+        Long userId = currentUserService.getCurrentUser(authentication).getId();
+        leaveRequestService.markCcRead(id, userId);
+        return ResultVO.success();
     }
 
     private void validateStudentOwnsRequest(Long requestId, Long studentId) {
         LeaveRequest leaveRequest = leaveRequestService.getById(requestId);
         if (leaveRequest == null) {
-            throw new BusinessException("Leave request not found");
+            throw new com.student.exception.BusinessException("Leave request not found");
         }
         if (!studentId.equals(leaveRequest.getStudentId())) {
-            throw new BusinessException("No permission to modify this leave request");
+            throw new com.student.exception.BusinessException("No permission to modify this leave request");
         }
     }
 }

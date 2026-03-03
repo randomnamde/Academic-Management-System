@@ -48,16 +48,7 @@
           <p class="mt-1 text-[13px] text-slatex-500">欢迎回来，请登录你的账户</p>
         </header>
 
-        <AppTabs v-model="activeTab" :items="tabs" id-prefix="auth" aria-label="登录注册切换" />
-
-        <form
-          v-if="activeTab === 'login'"
-          id="auth-panel-login"
-          role="tabpanel"
-          aria-labelledby="auth-tab-login"
-          class="mt-4 space-y-3"
-          @submit.prevent="handleLogin"
-        >
+        <form class="mt-4 space-y-3" @submit.prevent="handleLogin">
           <div>
             <label for="login-username" class="mb-1 block text-[13px] font-medium text-slatex-700">用户名</label>
             <AppInput id="login-username" v-model="loginForm.username" name="username" autocomplete="username" placeholder="请输入用户名" />
@@ -68,57 +59,9 @@
           </div>
           <AppButton tone="accent" block :loading="loading" native-type="submit">登录系统</AppButton>
         </form>
-
-        <form
-          v-else
-          id="auth-panel-register"
-          role="tabpanel"
-          aria-labelledby="auth-tab-register"
-          class="mt-4 space-y-3"
-          @submit.prevent="handleRegister"
-        >
-          <div>
-            <label for="register-username" class="mb-1 block text-[13px] font-medium text-slatex-700">用户名</label>
-            <AppInput
-              id="register-username"
-              v-model="registerForm.username"
-              name="registerUsername"
-              autocomplete="username"
-              placeholder="请输入用户名"
-            />
-          </div>
-          <div>
-            <label for="register-real-name" class="mb-1 block text-[13px] font-medium text-slatex-700">真实姓名</label>
-            <AppInput id="register-real-name" v-model="registerForm.realName" name="realName" autocomplete="name" placeholder="请输入真实姓名" />
-          </div>
-          <div>
-            <label for="register-password" class="mb-1 block text-[13px] font-medium text-slatex-700">密码</label>
-            <AppInput
-              id="register-password"
-              v-model="registerForm.password"
-              name="registerPassword"
-              type="password"
-              autocomplete="new-password"
-              placeholder="请输入密码"
-            />
-          </div>
-          <div>
-            <label for="register-confirm-password" class="mb-1 block text-[13px] font-medium text-slatex-700">确认密码</label>
-            <AppInput
-              id="register-confirm-password"
-              v-model="registerForm.confirmPassword"
-              name="confirmPassword"
-              type="password"
-              autocomplete="new-password"
-              placeholder="请再次输入密码"
-            />
-          </div>
-          <div>
-            <label for="register-role" class="mb-1 block text-[13px] font-medium text-slatex-700">角色</label>
-            <AppSelect id="register-role" v-model="registerForm.role" name="role" :options="[{ label: '学生', value: 'STUDENT' }]" />
-          </div>
-          <AppButton tone="neutral" variant="primary" block :loading="loading" native-type="submit">完成注册</AppButton>
-        </form>
+        <div class="import-notice mt-3 rounded-md border p-3 text-[12px] text-slatex-600">
+          账号注册已关闭。用户由学校管理员通过批量导入统一创建与分配角色。
+        </div>
 
         <footer class="mt-5 border-t border-neutralx-200 pt-3 text-center text-[11px] text-slatex-500">
           <p>测试账号</p>
@@ -137,28 +80,13 @@ import { ElMessage } from 'element-plus'
 import { School } from 'lucide-vue-next'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppInput from '@/components/ui/AppInput.vue'
-import AppSelect from '@/components/ui/AppSelect.vue'
-import AppTabs from '@/components/ui/AppTabs.vue'
-import { getRuntimeMetrics, register } from '@/api/user'
+import { getRuntimeMetrics } from '@/api/user'
 
 const store = useStore()
 const router = useRouter()
 
-const tabs = [
-  { label: '登录', value: 'login' },
-  { label: '注册', value: 'register' }
-]
-
-const activeTab = ref('login')
 const loading = ref(false)
 const loginForm = reactive({ username: '', password: '' })
-const registerForm = reactive({
-  username: '',
-  password: '',
-  confirmPassword: '',
-  realName: '',
-  role: 'STUDENT'
-})
 
 const runtimeMetrics = reactive({
   nodeStatus: '--',
@@ -192,34 +120,6 @@ function validateLogin() {
   return true
 }
 
-function validateRegister() {
-  if (!registerForm.username.trim()) {
-    ElMessage.error('请输入用户名')
-    return false
-  }
-  if (registerForm.username.trim().length < 3 || registerForm.username.trim().length > 20) {
-    ElMessage.error('用户名长度需在 3-20 之间')
-    return false
-  }
-  if (!registerForm.realName.trim()) {
-    ElMessage.error('请输入真实姓名')
-    return false
-  }
-  if (!registerForm.password.trim()) {
-    ElMessage.error('请输入密码')
-    return false
-  }
-  if (registerForm.password.length < 6 || registerForm.password.length > 20) {
-    ElMessage.error('密码长度需在 6-20 之间')
-    return false
-  }
-  if (registerForm.confirmPassword !== registerForm.password) {
-    ElMessage.error('两次输入的密码不一致')
-    return false
-  }
-  return true
-}
-
 async function handleLogin() {
   if (!validateLogin()) return
 
@@ -230,28 +130,6 @@ async function handleLogin() {
     router.push('/dashboard')
   } catch (error) {
     ElMessage.error(error.message || '登录失败')
-  } finally {
-    loading.value = false
-  }
-}
-
-async function handleRegister() {
-  if (!validateRegister()) return
-
-  loading.value = true
-  try {
-    await register({
-      username: registerForm.username.trim(),
-      password: registerForm.password,
-      realName: registerForm.realName.trim(),
-      role: registerForm.role
-    })
-    ElMessage.success('注册成功，请登录')
-    activeTab.value = 'login'
-    registerForm.password = ''
-    registerForm.confirmPassword = ''
-  } catch (error) {
-    ElMessage.error(error.message || '注册失败')
   } finally {
     loading.value = false
   }
@@ -387,6 +265,11 @@ onBeforeUnmount(() => {
   border: 1px solid color-mix(in srgb, var(--accent-500) 32%, transparent);
   background: color-mix(in srgb, var(--accent-500) 14%, transparent);
   color: var(--accent-700);
+}
+
+.import-notice {
+  border-color: color-mix(in srgb, var(--panel-border) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 86%, transparent);
 }
 </style>
 

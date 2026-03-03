@@ -31,6 +31,8 @@ public class TeacherDTO {
 
     private String department;
 
+    private Long collegeId;
+
     private LocalDate hireDate;
 
     private String password;

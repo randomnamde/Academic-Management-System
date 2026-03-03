@@ -3,6 +3,8 @@ package com.student.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.dto.AttendanceDTO;
 import com.student.entity.Attendance;
+import com.student.entity.CourseArrangement;
+import com.student.mapper.CourseArrangementMapper;
 import com.student.security.CurrentUserService;
 import com.student.security.DataScopeService;
 import com.student.service.AttendanceService;
@@ -28,10 +30,12 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
     private final CurrentUserService currentUserService;
     private final DataScopeService dataScopeService;
+    private final CourseArrangementMapper courseArrangementMapper;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResultVO<Void> record(@RequestBody @Validated AttendanceDTO attendanceDTO, Authentication authentication) {
+        assertCollegeAdminArrangementScope(authentication, attendanceDTO.getCourseArrangementId());
         dataScopeService.assertTeacherOwnsArrangement(authentication, attendanceDTO.getCourseArrangementId());
         attendanceService.recordAttendance(attendanceDTO);
         return ResultVO.success();
@@ -46,6 +50,8 @@ public class AttendanceController {
         if (existing == null) {
             return ResultVO.error(404, "Attendance record not found");
         }
+        assertCollegeAdminArrangementScope(authentication, existing.getCourseArrangementId());
+        assertCollegeAdminArrangementScope(authentication, attendanceDTO.getCourseArrangementId());
         dataScopeService.assertTeacherOwnsArrangement(authentication, existing.getCourseArrangementId());
         dataScopeService.assertTeacherOwnsArrangement(authentication, attendanceDTO.getCourseArrangementId());
         attendanceDTO.setId(id);
@@ -60,6 +66,7 @@ public class AttendanceController {
         if (existing == null) {
             return ResultVO.error(404, "Attendance record not found");
         }
+        assertCollegeAdminArrangementScope(authentication, existing.getCourseArrangementId());
         dataScopeService.assertTeacherOwnsArrangement(authentication, existing.getCourseArrangementId());
         attendanceService.deleteAttendance(id);
         return ResultVO.success();
@@ -72,6 +79,7 @@ public class AttendanceController {
         if (attendance == null) {
             return ResultVO.error(404, "Attendance record not found");
         }
+        assertCollegeAdminArrangementScope(authentication, attendance.getCourseArrangementId());
         if (currentUserService.isStudent(authentication)) {
             Long studentId = currentUserService.getCurrentStudentId(authentication);
             if (!studentId.equals(attendance.getStudentId())) {
@@ -92,6 +100,7 @@ public class AttendanceController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate attendanceDate,
             @RequestParam(required = false) Attendance.Status status,
             Authentication authentication) {
+        assertCollegeAdminArrangementScope(authentication, courseArrangementId);
         Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
@@ -141,11 +150,29 @@ public class AttendanceController {
     @PostMapping("/batch")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResultVO<Void> batchRecord(@RequestBody List<AttendanceDTO> attendanceDTOList, Authentication authentication) {
+        for (AttendanceDTO item : attendanceDTOList) {
+            assertCollegeAdminArrangementScope(authentication, item.getCourseArrangementId());
+        }
         dataScopeService.assertTeacherOwnsArrangements(
                 authentication,
                 attendanceDTOList.stream().map(AttendanceDTO::getCourseArrangementId).toList());
         attendanceService.batchRecordAttendance(attendanceDTOList);
         return ResultVO.success();
+    }
+
+    private void assertCollegeAdminArrangementScope(Authentication authentication, Long arrangementId) {
+        Long scopedCollegeId = dataScopeService.resolveScopedCollegeId(authentication);
+        if (scopedCollegeId == null || arrangementId == null) {
+            return;
+        }
+        CourseArrangement arrangement = courseArrangementMapper.selectById(arrangementId);
+        if (arrangement == null) {
+            return;
+        }
+        java.util.Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+        if (!classIds.contains(arrangement.getClassId())) {
+            throw new com.student.exception.BusinessException(403, "Forbidden");
+        }
     }
 
     @PostMapping("/check-in")

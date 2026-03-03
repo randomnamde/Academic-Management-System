@@ -7,6 +7,7 @@ import com.student.dto.AnalyticsOverviewDTO;
 import com.student.dto.RiskStudentDTO;
 import com.student.dto.TrendPointDTO;
 import com.student.entity.Attendance;
+import com.student.entity.Class;
 import com.student.entity.Course;
 import com.student.entity.CourseArrangement;
 import com.student.entity.LeaveRequest;
@@ -17,6 +18,7 @@ import com.student.exception.BusinessException;
 import com.student.mapper.CourseMapper;
 import com.student.mapper.CourseArrangementMapper;
 import com.student.mapper.StudentMapper;
+import com.student.mapper.ClassMapper;
 import com.student.security.CurrentUserService;
 import com.student.service.AnalyticsService;
 import com.student.service.AttendanceService;
@@ -60,6 +62,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private final CourseMapper courseMapper;
     private final CourseArrangementMapper courseArrangementMapper;
     private final StudentMapper studentMapper;
+    private final ClassMapper classMapper;
 
     @Override
     public AnalyticsOverviewDTO getOverview(AnalyticsFilterDTO filter, Authentication authentication) {
@@ -663,13 +666,19 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         SysUser currentUser = currentUserService.getCurrentUser(authentication);
         if (currentUser.getRole() == SysUser.Role.STUDENT) {
             Student student = currentUserService.getCurrentStudent(authentication);
-            return new UserScope(currentUser.getRole(), student.getId(), null, student.getClassId());
+            return new UserScope(currentUser.getRole(), student.getId(), null, student.getClassId(), null);
         }
         if (currentUser.getRole() == SysUser.Role.TEACHER) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
-            return new UserScope(currentUser.getRole(), null, teacherId, null);
+            return new UserScope(currentUser.getRole(), null, teacherId, null, null);
         }
-        return new UserScope(currentUser.getRole(), null, null, null);
+        Long managedCollegeId = null;
+        try {
+            managedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        } catch (Exception ignored) {
+            managedCollegeId = null;
+        }
+        return new UserScope(currentUser.getRole(), null, null, null, managedCollegeId);
     }
 
     private ArrangementScope resolveArrangementScope(AnalyticsFilterDTO filter, UserScope scope) {
@@ -689,6 +698,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         boolean enabled;
         if (scope.role() == SysUser.Role.ADMIN) {
             enabled = teacherId != null || classId != null || StringUtils.hasText(semester);
+            if (scope.collegeId() != null) {
+                enabled = true;
+            }
         } else if (scope.role() == SysUser.Role.TEACHER) {
             enabled = true;
         } else {
@@ -704,6 +716,18 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
         if (classId != null) {
             query.eq(CourseArrangement::getClassId, classId);
+        }
+        if (scope.collegeId() != null) {
+            List<Class> classes = classMapper.selectList(
+                    new LambdaQueryWrapper<Class>().eq(Class::getCollegeId, scope.collegeId()));
+            Set<Long> classIds = classes.stream()
+                    .map(Class::getId)
+                    .filter(id -> id != null)
+                    .collect(java.util.stream.Collectors.toSet());
+            if (classIds.isEmpty()) {
+                return new ArrangementScope(true, Set.of());
+            }
+            query.in(CourseArrangement::getClassId, classIds);
         }
         if (StringUtils.hasText(semester)) {
             query.eq(CourseArrangement::getSemester, semester.trim());
@@ -828,7 +852,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
-    private record UserScope(SysUser.Role role, Long studentId, Long teacherId, Long classId) {
+    private record UserScope(SysUser.Role role, Long studentId, Long teacherId, Long classId, Long collegeId) {
     }
 
     private record ArrangementScope(boolean enabled, Set<Long> arrangementIds) {

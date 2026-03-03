@@ -174,7 +174,7 @@ const route = useRoute()
 const loading = ref(false)
 const riskLoading = ref(false)
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-const userRole = userInfo?.role || 'STUDENT'
+const userRole = userInfo?.primaryRole || userInfo?.role || 'STUDENT'
 const isAdmin = userRole === 'ADMIN'
 const isStudent = userRole === 'STUDENT'
 const pendingKpiLabel = isStudent ? '我的待办审批' : '待处理审批'

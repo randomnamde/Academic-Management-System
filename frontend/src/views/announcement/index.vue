@@ -176,7 +176,7 @@ import {
 import { canAction } from '@/permission/ability'
 
 const store = useStore()
-const role = computed(() => store.state.userInfo?.role || '')
+const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const permissions = computed(() => store.state.userInfo?.permissions || [])
 const canManageAnnouncement = computed(() =>
   canAction(role.value, 'announcement:create', permissions.value) ||

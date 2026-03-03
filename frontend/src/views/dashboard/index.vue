@@ -236,7 +236,7 @@ const detail = ref({
 })
 
 const userInfo = computed(() => store.state.userInfo || {})
-const userRole = computed(() => userInfo.value.role || 'STUDENT')
+const userRole = computed(() => userInfo.value.primaryRole || userInfo.value.role || 'STUDENT')
 const isStudent = computed(() => userRole.value === 'STUDENT')
 const isTeacher = computed(() => userRole.value === 'TEACHER')
 

@@ -31,11 +31,12 @@
       <el-tabs v-if="canApprove" v-model="activeTab" @tab-change="handleTabChange">
         <el-tab-pane label="待审批" name="pending" />
         <el-tab-pane label="全部记录" name="all" />
+        <el-tab-pane v-if="canViewCc" label="抄送给我" name="cc" />
       </el-tabs>
     </template>
 
     <template #table>
-      <el-table :data="currentRows" v-loading="loading" stripe>
+      <el-table v-if="activeTab !== 'cc'" :data="currentRows" v-loading="loading" stripe>
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column v-if="!isStudent" prop="studentName" label="学生" width="120" />
         <el-table-column v-if="!isStudent" prop="className" label="班级" width="120" />
@@ -52,6 +53,12 @@
           <template #default="{ row }">
             <el-tag :type="getStatusTagType(row.status)">{{ getStatusText(row.status) }}</el-tag>
           </template>
+        </el-table-column>
+        <el-table-column prop="workflowType" label="流程" width="100">
+          <template #default="{ row }">{{ getWorkflowTypeText(row.workflowType) }}</template>
+        </el-table-column>
+        <el-table-column prop="currentNode" label="当前节点" width="160">
+          <template #default="{ row }">{{ getNodeText(row.currentNode) }}</template>
         </el-table-column>
         <el-table-column prop="createTime" label="提交时间" width="170">
           <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
@@ -95,6 +102,28 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <el-table v-else :data="ccData" v-loading="loading" stripe>
+        <el-table-column type="index" label="序号" width="60" />
+        <el-table-column prop="leaveRequestId" label="请假单ID" width="120" />
+        <el-table-column prop="remark" label="抄送说明" min-width="260" />
+        <el-table-column prop="createTime" label="抄送时间" width="180">
+          <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
+        </el-table-column>
+        <el-table-column prop="readFlag" label="状态" width="120">
+          <template #default="{ row }">
+            <el-tag :type="Number(row.readFlag) === 1 ? 'success' : 'warning'">
+              {{ Number(row.readFlag) === 1 ? '已读' : '未读' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="180" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="openDetailById(row.leaveRequestId)">查看请假详情</el-button>
+            <el-button v-if="Number(row.readFlag) !== 1" link type="success" @click="markCcReadRow(row)">标记已读</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
     </template>
 
     <template #pagination>
@@ -115,12 +144,13 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="排课编号" prop="courseArrangementId">
+            <el-form-item label="排课编号（可选）" prop="courseArrangementId">
               <el-select
                 v-model="form.courseArrangementId"
+                clearable
                 filterable
                 style="width: 100%"
-                placeholder="请选择排课"
+                placeholder="可选：不选则按请假时段与班级流程处理"
               >
                 <el-option
                   v-for="item in arrangementOptions"
@@ -189,6 +219,8 @@
         <el-descriptions-item label="状态">
           <el-tag :type="getStatusTagType(detail.status)">{{ getStatusText(detail.status) }}</el-tag>
         </el-descriptions-item>
+        <el-descriptions-item label="流程类型">{{ getWorkflowTypeText(detail.workflowType) }}</el-descriptions-item>
+        <el-descriptions-item label="当前节点">{{ getNodeText(detail.currentNode) }}</el-descriptions-item>
         <el-descriptions-item label="开始时间">{{ formatDateTime(detail.startTime) }}</el-descriptions-item>
         <el-descriptions-item label="结束时间">{{ formatDateTime(detail.endTime) }}</el-descriptions-item>
         <el-descriptions-item label="审批人">{{ detail.approverName || '-' }}</el-descriptions-item>
@@ -217,19 +249,22 @@ import {
   approveLeaveRequest,
   cancelLeaveRequest,
   exportLeaveRequestReport,
+  getLeaveCcList,
   getLeaveRequestDetail,
   getLeaveRequestList,
   getPendingLeaveRequests,
+  markLeaveCcRead,
   submitLeaveRequest,
   updateLeaveRequest
 } from '@/api/leaveRequest'
 
 const store = useStore()
 
-const role = computed(() => store.state.userInfo?.role || '')
+const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const permissions = computed(() => store.state.userInfo?.permissions || [])
 const isStudent = computed(() => role.value === 'STUDENT')
 const canApprove = computed(() => canAction(role.value, 'leave:approve', permissions.value))
+const canViewCc = computed(() => !isStudent.value)
 const pageTitle = computed(() => {
   if (isStudent.value) return '请假申请'
   if (canApprove.value) return '请假审批'
@@ -242,6 +277,7 @@ const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
 const pendingData = ref([])
+const ccData = ref([])
 const arrangementOptions = ref([])
 const activeTab = ref('pending')
 
@@ -265,19 +301,17 @@ const form = reactive({
 })
 
 const rules = {
-  courseArrangementId: [{ required: true, message: '请输入排课编号', trigger: 'change' }],
   leaveType: [{ required: true, message: '请选择请假类型', trigger: 'change' }],
   startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
   endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }],
   reason: [{ required: true, message: '请输入请假事由', trigger: 'blur' }]
 }
 
-const usePendingShortcut = computed(
-  () => canApprove.value && activeTab.value === 'pending' && !searchForm.status
-)
+const usePendingShortcut = computed(() => canApprove.value && activeTab.value === 'pending' && !searchForm.status)
 
 const showPagination = computed(() => !usePendingShortcut.value)
 const currentRows = computed(() => {
+  if (activeTab.value === 'cc') return ccData.value
   if (usePendingShortcut.value) return pendingData.value
   return tableData.value
 })
@@ -309,6 +343,23 @@ const getStatusTagType = (status) => {
     REJECTED: 'danger'
   }
   return map[status] || 'info'
+}
+
+const getWorkflowTypeText = (type) => {
+  const map = {
+    SHORT: '短假',
+    LONG: '长假'
+  }
+  return map[type] || type || '-'
+}
+
+const getNodeText = (node) => {
+  const map = {
+    PENDING_HOMEROOM_REVIEW: '待班主任审批',
+    PENDING_COLLEGE_REVIEW: '待学院审批',
+    COMPLETED: '流程完成'
+  }
+  return map[node] || node || '-'
 }
 
 const formatDateTime = (value) => {
@@ -351,6 +402,12 @@ const handleExport = async (format) => {
 const fetchList = async () => {
   loading.value = true
   try {
+    if (activeTab.value === 'cc') {
+      const res = await getLeaveCcList()
+      ccData.value = res.data || []
+      return
+    }
+
     if (usePendingShortcut.value) {
       const res = await getPendingLeaveRequests()
       pendingData.value = res.data || []
@@ -471,9 +528,23 @@ const openDetail = async (row) => {
   detailVisible.value = true
 }
 
+const openDetailById = async (id) => {
+  const res = await getLeaveRequestDetail(id)
+  detail.value = res.data || {}
+  detailVisible.value = true
+}
+
+const markCcReadRow = async (row) => {
+  await markLeaveCcRead(row.id)
+  ElMessage.success('已标记为已读')
+  fetchList()
+}
+
 onMounted(() => {
-  if (!canApprove.value) {
+  if (!canApprove.value && !canViewCc.value) {
     activeTab.value = 'all'
+  } else if (!canApprove.value && canViewCc.value) {
+    activeTab.value = 'cc'
   }
   fetchArrangementOptions()
   fetchList()

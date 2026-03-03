@@ -5,10 +5,13 @@ import com.student.dto.LoginDTO;
 import com.student.dto.RegisterDTO;
 import com.student.dto.UpdateProfileDTO;
 import com.student.entity.SysUser;
+import com.student.entity.SysUserRole;
 import com.student.exception.BusinessException;
 import com.student.mapper.SysUserMapper;
+import com.student.mapper.SysUserRoleMapper;
 import com.student.security.JwtTokenProvider;
 import com.student.security.PermissionService;
+import com.student.security.RoleCode;
 import com.student.service.SysUserService;
 import com.student.vo.LoginVO;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +42,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp");
 
     private final SysUserMapper userMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final PermissionService permissionService;
@@ -62,31 +68,32 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException("Invalid username or password");
         }
 
-        String token = jwtTokenProvider.generateToken(user);
+        Set<RoleCode> roleCodes = getRoleCodes(user.getId());
+        if (roleCodes.isEmpty()) {
+            RoleCode fallback = RoleCode.fromLegacy(user.getRole());
+            if (fallback != null) {
+                roleCodes.add(fallback);
+            }
+        }
+        if (roleCodes.isEmpty()) {
+            throw new BusinessException("User has no available roles");
+        }
+        String primaryRole = roleCodes.iterator().next().name();
+        String token = jwtTokenProvider.generateToken(user, roleCodes.stream().map(RoleCode::name).toList(), primaryRole);
 
         LoginVO loginVO = new LoginVO();
         BeanUtils.copyProperties(user, loginVO);
         loginVO.setToken(token);
-        loginVO.setPermissions(permissionService.resolvePermissions(user.getRole()));
+        loginVO.setPrimaryRole(primaryRole);
+        loginVO.setRoles(roleCodes.stream().map(RoleCode::name).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new)));
+        loginVO.setPermissions(permissionService.resolvePermissions(roleCodes));
         return loginVO;
     }
 
     @Override
     @Transactional
     public void register(RegisterDTO registerDTO) {
-        if (registerDTO.getRole() != SysUser.Role.STUDENT) {
-            throw new BusinessException(403, "Only student self-registration is supported");
-        }
-        if (userMapper.countByUsername(registerDTO.getUsername()) > 0) {
-            throw new BusinessException("Username already exists");
-        }
-
-        SysUser user = new SysUser();
-        BeanUtils.copyProperties(registerDTO, user);
-        user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
-        user.setStatus(1);
-
-        userMapper.insert(user);
+        throw new BusinessException(403, "当前系统已关闭自助注册，请联系管理员批量导入账号");
     }
 
     @Override
@@ -181,6 +188,47 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setAvatar(avatarUrl);
         updateById(user);
         return avatarUrl;
+    }
+
+    @Override
+    public Set<RoleCode> getRoleCodes(Long userId) {
+        List<String> raw = sysUserRoleMapper.selectRoleCodesByUserId(userId);
+        Set<RoleCode> result = new LinkedHashSet<>();
+        for (String value : raw) {
+            RoleCode code = RoleCode.from(value);
+            if (code != null) {
+                result.add(code);
+            }
+        }
+        if (result.isEmpty()) {
+            SysUser user = userMapper.selectById(userId);
+            if (user != null) {
+                RoleCode fallback = RoleCode.fromLegacy(user.getRole());
+                if (fallback != null) {
+                    result.add(fallback);
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void grantRole(Long userId, RoleCode roleCode) {
+        if (userId == null || roleCode == null) {
+            return;
+        }
+        Long count = sysUserRoleMapper.selectCount(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUserRole>()
+                        .eq(SysUserRole::getUserId, userId)
+                        .eq(SysUserRole::getRoleCode, roleCode.name()));
+        if (count != null && count > 0) {
+            return;
+        }
+        SysUserRole relation = new SysUserRole();
+        relation.setUserId(userId);
+        relation.setRoleCode(roleCode.name());
+        sysUserRoleMapper.insert(relation);
     }
 
     private String resolveFileExtension(String filename) {

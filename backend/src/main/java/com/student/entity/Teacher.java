@@ -29,6 +29,8 @@ public class Teacher {
     private Title title;
     
     private String department;
+
+    private Long collegeId;
     
     private LocalDate hireDate;
     

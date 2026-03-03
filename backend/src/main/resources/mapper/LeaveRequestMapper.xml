@@ -16,6 +16,9 @@
         <result column="reason" property="reason"/>
         <result column="attachment" property="attachment"/>
         <result column="status" property="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="workflow_type" property="workflowType" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="current_node" property="currentNode" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="final_status" property="finalStatus" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
         <result column="approver_id" property="approverId"/>
         <result column="approver_name" property="approverName"/>
         <result column="approve_time" property="approveTime"/>

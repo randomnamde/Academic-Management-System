@@ -101,7 +101,7 @@ import AppModal from '@/components/ui/AppModal.vue'
 import { createClass, deleteClass, getClassList, updateClass } from '@/api/clazz'
 
 const store = useStore()
-const role = computed(() => store.state.userInfo?.role || '')
+const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const isStudent = computed(() => role.value === 'STUDENT')
 const tableDensity = computed(() => store.getters.tableDensity)
 

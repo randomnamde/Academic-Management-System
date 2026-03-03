@@ -732,19 +732,19 @@ class SecurityScopeIntegrationTest {
     }
 
     @Test
-    void teacherCannotApproveLeaveOutsideTeachingScope() throws Exception {
+    void homeroomTeacherCanApproveShortLeaveWhenCourseTeacherDiffers() throws Exception {
         String adminToken = loginAndGetToken("demo_admin", "123456");
         String studentToken = loginAndGetToken("student001", "123456");
         String teacherToken = loginAndGetToken("teacher001", "123456");
         Long arrangementId = createArrangement(adminToken, 2L);
         Long leaveId = submitLeaveRequestAndGetId(studentToken, arrangementId);
 
-        mockMvc.perform(post("/leave-request/" + leaveId + "/approve")
+                mockMvc.perform(post("/leave-request/" + leaveId + "/approve")
                         .param("approved", "true")
                         .param("remark", "scope-test")
                         .header("Authorization", "Bearer " + teacherToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(403));
+                .andExpect(jsonPath("$.code").value(200));
     }
 
     private String loginAndGetToken(String username, String password) throws Exception {

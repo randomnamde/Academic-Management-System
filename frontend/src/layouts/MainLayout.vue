@@ -326,7 +326,7 @@ const themeOptions = [
 ]
 
 const userInfo = computed(() => store.state.userInfo || {})
-const role = computed(() => userInfo.value?.role || '')
+const role = computed(() => userInfo.value?.primaryRole || userInfo.value?.role || '')
 const permissions = computed(() => userInfo.value?.permissions || [])
 const sidebarOpened = computed(() => store.state.sidebar?.opened !== false)
 const tableDensity = computed(() => store.state.uiPreference?.tableDensity || 'compact')

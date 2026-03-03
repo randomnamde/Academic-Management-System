@@ -3,6 +3,7 @@ package com.student.security;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,7 +16,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -34,12 +37,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
                 Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
                 String username = jwtTokenProvider.getUsernameFromToken(jwt);
-                String role = jwtTokenProvider.getRoleFromToken(jwt);
-                
+                String legacyRole = jwtTokenProvider.getRoleFromToken(jwt);
+                List<String> roles = jwtTokenProvider.getRolesFromToken(jwt);
+                Set<String> authorities = new LinkedHashSet<>();
+                for (String roleCode : roles) {
+                    RoleCode code = RoleCode.from(roleCode);
+                    if (code != null) {
+                        authorities.addAll(RoleCode.toAuthorities(Set.of(code)));
+                    }
+                }
+                if (authorities.isEmpty() && StringUtils.hasText(legacyRole)) {
+                    authorities.add(legacyRole);
+                }
                 UserDetails userDetails = User.builder()
                         .username(username)
                         .password("")
-                        .authorities("ROLE_" + role)
+                        .authorities(authorities.stream().map(item -> new SimpleGrantedAuthority("ROLE_" + item)).toList())
                         .build();
                 
                 UsernamePasswordAuthenticationToken authentication = 

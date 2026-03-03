@@ -10,7 +10,9 @@ import com.student.exception.BusinessException;
 import com.student.mapper.ClassMapper;
 import com.student.mapper.StudentMapper;
 import com.student.mapper.SysUserMapper;
+import com.student.security.RoleCode;
 import com.student.service.StudentService;
+import com.student.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +41,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     private final SysUserMapper userMapper;
     private final ClassMapper classMapper;
     private final PasswordEncoder passwordEncoder;
+    private final SysUserService sysUserService;
 
     @Override
     @Transactional
@@ -71,6 +74,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         user.setRole(SysUser.Role.STUDENT);
         user.setStatus(1);
         userMapper.insert(user);
+        sysUserService.grantRole(user.getId(), RoleCode.STUDENT);
 
         Student student = new Student();
         BeanUtils.copyProperties(studentDTO, student);

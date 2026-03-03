@@ -19,6 +19,8 @@ public class Class {
     private Year grade;
     
     private String major;
+
+    private Long collegeId;
     
     private Long teacherId;
     

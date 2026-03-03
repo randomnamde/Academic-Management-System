@@ -173,7 +173,7 @@ import { getCourseArrangementOptions } from '@/api/courseArrangement'
 import { canAction } from '@/permission/ability'
 
 const store = useStore()
-const role = computed(() => store.state.userInfo?.role || '')
+const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const permissions = computed(() => store.state.userInfo?.permissions || [])
 const canEditAttendance = computed(() =>
   canAction(role.value, 'attendance:create', permissions.value)

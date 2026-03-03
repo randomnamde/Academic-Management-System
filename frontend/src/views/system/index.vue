@@ -28,6 +28,16 @@
           </div>
         </div>
 
+        <div class="preference-card rounded-md border border-neutralx-200 p-3">
+          <p class="text-[15px] font-semibold text-primary-900">当前学期</p>
+          <p class="mt-1 text-[13px] text-slatex-500">用于长假无课程场景的任课老师抄送筛选。</p>
+          <div class="mt-3 flex items-center gap-2">
+            <el-input v-model="currentSemester" :disabled="!canEditSemester" placeholder="例如 2025-2026-2" />
+            <AppButton v-if="canEditSemester" :loading="semesterSaving" @click="saveSemester">保存</AppButton>
+          </div>
+          <p v-if="!canEditSemester" class="mt-2 text-[12px] text-slatex-500">仅学校管理员可修改学期配置。</p>
+        </div>
+
         <div class="preference-card rounded-md border border-neutralx-200 p-3 md:col-span-2">
           <p class="text-[15px] font-semibold text-primary-900">权限管理入口</p>
           <p class="mt-1 text-[13px] text-slatex-500">角色、权限矩阵与审计日志已迁移到独立权限中心模块。</p>
@@ -58,7 +68,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
 import { Monitor, Moon, SunMedium } from 'lucide-vue-next'
@@ -66,6 +76,7 @@ import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import { updatePassword } from '@/api/user'
 import { useTheme } from '@/composables/useTheme'
+import { getCurrentSemester, updateCurrentSemester } from '@/api/system'
 
 const store = useStore()
 const tableDensity = computed(() => store.getters.tableDensity)
@@ -84,6 +95,15 @@ const passwordForm = reactive({
 })
 const pwdFormRef = ref()
 const pwdLoading = ref(false)
+const currentSemester = ref('')
+const semesterSaving = ref(false)
+const allRoles = computed(() => {
+  const set = new Set(Array.isArray(store.state.userInfo?.roles) ? store.state.userInfo.roles : [])
+  if (store.state.userInfo?.primaryRole) set.add(store.state.userInfo.primaryRole)
+  if (store.state.userInfo?.role) set.add(store.state.userInfo.role)
+  return set
+})
+const canEditSemester = computed(() => allRoles.value.has('SCHOOL_ADMIN') || (allRoles.value.has('ADMIN') && !allRoles.value.has('COLLEGE_ADMIN')))
 
 const pwdRules = {
   oldPassword: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],
@@ -107,6 +127,25 @@ function setDensity(density) {
   store.commit('SET_TABLE_DENSITY', density)
 }
 
+async function fetchSemester() {
+  const res = await getCurrentSemester()
+  currentSemester.value = res.data?.currentSemester || ''
+}
+
+async function saveSemester() {
+  if (!currentSemester.value.trim()) {
+    ElMessage.warning('请输入学期值')
+    return
+  }
+  semesterSaving.value = true
+  try {
+    await updateCurrentSemester(currentSemester.value.trim())
+    ElMessage.success('学期配置已更新')
+  } finally {
+    semesterSaving.value = false
+  }
+}
+
 async function submitPassword() {
   const valid = await pwdFormRef.value.validate().catch(() => false)
   if (!valid) return
@@ -125,6 +164,8 @@ async function submitPassword() {
     pwdLoading.value = false
   }
 }
+
+onMounted(fetchSemester)
 </script>
 
 <style scoped>

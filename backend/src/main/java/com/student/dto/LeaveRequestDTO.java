@@ -14,7 +14,6 @@ public class LeaveRequestDTO {
 
     private Long studentId;
 
-    @NotNull(message = "Course arrangement id is required")
     private Long courseArrangementId;
 
     @NotNull(message = "Leave type is required")

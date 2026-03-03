@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.student.dto.TeacherDTO;
 import com.student.entity.Teacher;
+import com.student.security.CurrentUserService;
 import com.student.security.DataScopeService;
 import com.student.service.TeacherService;
 import com.student.vo.ResultVO;
@@ -20,17 +21,30 @@ public class TeacherController {
 
     private final TeacherService teacherService;
     private final DataScopeService dataScopeService;
+    private final CurrentUserService currentUserService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResultVO<Void> add(@RequestBody @Validated TeacherDTO teacherDTO) {
+    public ResultVO<Void> add(@RequestBody @Validated TeacherDTO teacherDTO, Authentication authentication) {
+        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        if (scopedCollegeId != null) {
+            teacherDTO.setCollegeId(scopedCollegeId);
+        }
         teacherService.addTeacher(teacherDTO);
         return ResultVO.success();
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResultVO<Void> update(@PathVariable Long id, @RequestBody @Validated TeacherDTO teacherDTO) {
+    public ResultVO<Void> update(@PathVariable Long id, @RequestBody @Validated TeacherDTO teacherDTO, Authentication authentication) {
+        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        if (scopedCollegeId != null) {
+            Teacher existing = teacherService.getById(id);
+            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+                return ResultVO.error(403, "Forbidden");
+            }
+            teacherDTO.setCollegeId(scopedCollegeId);
+        }
         teacherDTO.setId(id);
         teacherService.updateTeacher(teacherDTO);
         return ResultVO.success();
@@ -38,7 +52,14 @@ public class TeacherController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResultVO<Void> delete(@PathVariable Long id) {
+    public ResultVO<Void> delete(@PathVariable Long id, Authentication authentication) {
+        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        if (scopedCollegeId != null) {
+            Teacher existing = teacherService.getById(id);
+            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+                return ResultVO.error(403, "Forbidden");
+            }
+        }
         teacherService.deleteTeacher(id);
         return ResultVO.success();
     }
@@ -46,6 +67,13 @@ public class TeacherController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResultVO<Teacher> getById(@PathVariable Long id, Authentication authentication) {
+        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        if (scopedCollegeId != null) {
+            Teacher existing = teacherService.getById(id);
+            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+                return ResultVO.error(403, "Forbidden");
+            }
+        }
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
             if (!scope.getTeacherIds().contains(id)) {
@@ -65,6 +93,16 @@ public class TeacherController {
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Long departmentId,
             Authentication authentication) {
+        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        if (scopedCollegeId != null) {
+            Page<Teacher> pageParam = new Page<>(page, size);
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Teacher> wrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Teacher>()
+                    .eq(Teacher::getCollegeId, scopedCollegeId)
+                    .like(teacherNo != null && !teacherNo.isBlank(), Teacher::getTeacherNo, teacherNo)
+                    .like(name != null && !name.isBlank(), Teacher::getName, name);
+            Page<Teacher> result = teacherService.page(pageParam, wrapper);
+            return ResultVO.success(result);
+        }
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
             Page<Teacher> pageParam = new Page<>(page, size);
@@ -86,7 +124,14 @@ public class TeacherController {
 
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResultVO<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status) {
+    public ResultVO<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status, Authentication authentication) {
+        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        if (scopedCollegeId != null) {
+            Teacher existing = teacherService.getById(id);
+            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+                return ResultVO.error(403, "Forbidden");
+            }
+        }
         teacherService.updateTeacherStatus(id, status);
         return ResultVO.success();
     }

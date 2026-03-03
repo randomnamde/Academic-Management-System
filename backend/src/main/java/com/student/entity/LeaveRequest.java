@@ -38,6 +38,12 @@ public class LeaveRequest {
     private String attachment;
     
     private Status status;
+
+    private WorkflowType workflowType;
+
+    private NodeCode currentNode;
+
+    private FinalStatus finalStatus;
     
     private Long approverId;
     
@@ -60,5 +66,17 @@ public class LeaveRequest {
     
     public enum Status {
         PENDING, APPROVED, REJECTED
+    }
+
+    public enum WorkflowType {
+        SHORT, LONG
+    }
+
+    public enum NodeCode {
+        PENDING_HOMEROOM_REVIEW, PENDING_COLLEGE_REVIEW, COMPLETED
+    }
+
+    public enum FinalStatus {
+        APPROVED, REJECTED
     }
 }

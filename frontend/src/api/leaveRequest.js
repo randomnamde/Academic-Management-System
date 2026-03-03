@@ -61,6 +61,20 @@ export function getPendingLeaveRequests() {
   })
 }
 
+export function getLeaveCcList() {
+  return request({
+    url: '/leave-request/cc',
+    method: 'get'
+  })
+}
+
+export function markLeaveCcRead(id) {
+  return request({
+    url: `/leave-request/cc/${id}/read`,
+    method: 'put'
+  })
+}
+
 export function exportLeaveRequestReport(params) {
   return downloadWithAuth('/report/leave-request', params, 'leave-request.csv')
 }

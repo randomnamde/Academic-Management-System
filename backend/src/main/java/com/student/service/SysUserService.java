@@ -5,8 +5,11 @@ import com.student.dto.LoginDTO;
 import com.student.dto.RegisterDTO;
 import com.student.dto.UpdateProfileDTO;
 import com.student.entity.SysUser;
+import com.student.security.RoleCode;
 import com.student.vo.LoginVO;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Set;
 
 public interface SysUserService extends IService<SysUser> {
     
@@ -23,4 +26,8 @@ public interface SysUserService extends IService<SysUser> {
     void updateProfile(Long userId, UpdateProfileDTO dto);
 
     String uploadAvatar(Long userId, MultipartFile file);
+
+    Set<RoleCode> getRoleCodes(Long userId);
+
+    void grantRole(Long userId, RoleCode roleCode);
 }

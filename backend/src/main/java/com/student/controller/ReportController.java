@@ -3,9 +3,12 @@ package com.student.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.dto.ScoreQueryDTO;
 import com.student.entity.Attendance;
+import com.student.entity.CourseArrangement;
 import com.student.entity.LeaveRequest;
 import com.student.entity.Score;
 import com.student.security.DataScopeService;
+import com.student.security.CurrentUserService;
+import com.student.mapper.CourseArrangementMapper;
 import com.student.service.AttendanceService;
 import com.student.service.LeaveRequestService;
 import com.student.service.ScoreService;
@@ -20,6 +23,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,6 +46,8 @@ public class ReportController {
     private final AttendanceService attendanceService;
     private final LeaveRequestService leaveRequestService;
     private final DataScopeService dataScopeService;
+    private final CurrentUserService currentUserService;
+    private final CourseArrangementMapper courseArrangementMapper;
 
     @GetMapping("/score")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
@@ -53,6 +60,7 @@ public class ReportController {
         Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
+        Set<Long> scopedArrangementIds = resolveCollegeArrangementScope(authentication, courseArrangementId);
 
         ScoreQueryDTO queryDTO = new ScoreQueryDTO();
         queryDTO.setStudentId(scopedStudentId);
@@ -61,6 +69,7 @@ public class ReportController {
         queryDTO.setSemester(semester);
 
         Page<Score> result = scoreService.getScorePage(1, EXPORT_LIMIT, queryDTO);
+        List<Score> records = applyArrangementScope(result.getRecords(), scopedArrangementIds);
 
         List<String> headers = List.of(
                 "\u5b66\u53f7",
@@ -78,7 +87,7 @@ public class ReportController {
         );
 
         List<List<String>> rows = new ArrayList<>();
-        for (Score score : result.getRecords()) {
+        for (Score score : records) {
             rows.add(List.of(
                     safe(score.getStudentNo()),
                     safe(score.getStudentName()),
@@ -110,8 +119,10 @@ public class ReportController {
         Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
+        Set<Long> scopedArrangementIds = resolveCollegeArrangementScope(authentication, courseArrangementId);
         Page<Attendance> result = attendanceService.getAttendancePage(
                 1, EXPORT_LIMIT, scopedStudentId, scopedTeacherId, courseArrangementId, attendanceDate, status);
+        List<Attendance> records = applyArrangementScopeForAttendance(result.getRecords(), scopedArrangementIds);
 
         List<String> headers = List.of(
                 "\u5b66\u53f7",
@@ -126,7 +137,7 @@ public class ReportController {
         );
 
         List<List<String>> rows = new ArrayList<>();
-        for (Attendance attendance : result.getRecords()) {
+        for (Attendance attendance : records) {
             rows.add(List.of(
                     safe(attendance.getStudentNo()),
                     safe(attendance.getStudentName()),
@@ -152,8 +163,16 @@ public class ReportController {
                                    HttpServletResponse response) {
         Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
-        Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(
-                1, EXPORT_LIMIT, scopedStudentId, scopedTeacherId, status);
+        Page<LeaveRequest> result;
+        if (currentUserService.isCollegeAdmin(authentication)) {
+            Set<Long> studentIds = new HashSet<>(dataScopeService.resolveCollegeStudentIds(authentication));
+            if (scopedStudentId != null) {
+                studentIds = studentIds.contains(scopedStudentId) ? Set.of(scopedStudentId) : Set.of();
+            }
+            result = leaveRequestService.getLeaveRequestPageByStudentIds(1, EXPORT_LIMIT, studentIds, status);
+        } else {
+            result = leaveRequestService.getLeaveRequestPage(1, EXPORT_LIMIT, scopedStudentId, scopedTeacherId, status);
+        }
 
         List<String> headers = List.of(
                 "\u5b66\u53f7",
@@ -232,5 +251,50 @@ public class ReportController {
 
     private String formatDateTime(java.time.LocalDateTime value) {
         return value == null ? "" : value.format(DATETIME_FORMATTER);
+    }
+
+    private Set<Long> resolveCollegeArrangementScope(Authentication authentication, Long requestedArrangementId) {
+        if (!currentUserService.isCollegeAdmin(authentication)) {
+            return null;
+        }
+        Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+        if (classIds.isEmpty()) {
+            return Set.of();
+        }
+        Set<Long> arrangementIds = courseArrangementMapper.selectList(
+                        new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<CourseArrangement>()
+                                .in(CourseArrangement::getClassId, classIds))
+                .stream()
+                .map(CourseArrangement::getId)
+                .filter(id -> id != null)
+                .collect(java.util.stream.Collectors.toSet());
+        if (requestedArrangementId != null) {
+            return arrangementIds.contains(requestedArrangementId) ? Set.of(requestedArrangementId) : Set.of();
+        }
+        return arrangementIds;
+    }
+
+    private List<Score> applyArrangementScope(List<Score> records, Set<Long> arrangementIds) {
+        if (arrangementIds == null) {
+            return records;
+        }
+        if (arrangementIds.isEmpty()) {
+            return List.of();
+        }
+        return records.stream()
+                .filter(item -> item.getCourseArrangementId() != null && arrangementIds.contains(item.getCourseArrangementId()))
+                .toList();
+    }
+
+    private List<Attendance> applyArrangementScopeForAttendance(List<Attendance> records, Set<Long> arrangementIds) {
+        if (arrangementIds == null) {
+            return records;
+        }
+        if (arrangementIds.isEmpty()) {
+            return List.of();
+        }
+        return records.stream()
+                .filter(item -> item.getCourseArrangementId() != null && arrangementIds.contains(item.getCourseArrangementId()))
+                .toList();
     }
 }

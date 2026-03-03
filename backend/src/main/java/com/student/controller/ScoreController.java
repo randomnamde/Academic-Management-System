@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.dto.ScoreDTO;
 import com.student.dto.ScoreQueryDTO;
 import com.student.dto.ScoreStatisticsDTO;
+import com.student.entity.CourseArrangement;
 import com.student.entity.Score;
+import com.student.mapper.CourseArrangementMapper;
 import com.student.security.CurrentUserService;
 import com.student.security.DataScopeService;
 import com.student.service.ScoreService;
@@ -28,10 +30,12 @@ public class ScoreController {
     private final ScoreService scoreService;
     private final CurrentUserService currentUserService;
     private final DataScopeService dataScopeService;
+    private final CourseArrangementMapper courseArrangementMapper;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResultVO<Void> add(@RequestBody @Validated ScoreDTO scoreDTO, Authentication authentication) {
+        assertCollegeAdminArrangementScope(authentication, scoreDTO.getCourseArrangementId());
         dataScopeService.assertTeacherOwnsArrangement(authentication, scoreDTO.getCourseArrangementId());
         scoreService.addScore(scoreDTO);
         return ResultVO.success();
@@ -46,6 +50,8 @@ public class ScoreController {
         if (existing == null) {
             return ResultVO.error(404, "Score not found");
         }
+        assertCollegeAdminArrangementScope(authentication, existing.getCourseArrangementId());
+        assertCollegeAdminArrangementScope(authentication, scoreDTO.getCourseArrangementId());
         dataScopeService.assertTeacherOwnsArrangement(authentication, existing.getCourseArrangementId());
         dataScopeService.assertTeacherOwnsArrangement(authentication, scoreDTO.getCourseArrangementId());
         scoreDTO.setId(id);
@@ -60,6 +66,7 @@ public class ScoreController {
         if (existing == null) {
             return ResultVO.error(404, "Score not found");
         }
+        assertCollegeAdminArrangementScope(authentication, existing.getCourseArrangementId());
         dataScopeService.assertTeacherOwnsArrangement(authentication, existing.getCourseArrangementId());
         scoreService.deleteScore(id);
         return ResultVO.success();
@@ -72,6 +79,7 @@ public class ScoreController {
         if (score == null) {
             return ResultVO.error(404, "Score not found");
         }
+        assertCollegeAdminArrangementScope(authentication, score.getCourseArrangementId());
         if (currentUserService.isStudent(authentication)) {
             Long studentId = currentUserService.getCurrentStudentId(authentication);
             if (!studentId.equals(score.getStudentId())) {
@@ -91,6 +99,7 @@ public class ScoreController {
             @RequestParam(required = false) Long courseArrangementId,
             @RequestParam(required = false) String semester,
             Authentication authentication) {
+        assertCollegeAdminArrangementScope(authentication, courseArrangementId);
         Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
@@ -117,6 +126,7 @@ public class ScoreController {
     @GetMapping("/course/{courseArrangementId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResultVO<List<Score>> getByCourseArrangementId(@PathVariable Long courseArrangementId, Authentication authentication) {
+        assertCollegeAdminArrangementScope(authentication, courseArrangementId);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         List<Score> scores = scoreService.getScoresByCourseArrangementId(courseArrangementId);
         return ResultVO.success(scores);
@@ -145,6 +155,7 @@ public class ScoreController {
     @GetMapping("/distribution/{courseArrangementId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResultVO<List<Map<String, Object>>> getDistribution(@PathVariable Long courseArrangementId, Authentication authentication) {
+        assertCollegeAdminArrangementScope(authentication, courseArrangementId);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         List<Map<String, Object>> distribution = scoreService.getScoreDistribution(courseArrangementId);
         return ResultVO.success(distribution);
@@ -162,11 +173,29 @@ public class ScoreController {
     @PostMapping("/batch")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResultVO<Void> batchAdd(@RequestBody List<ScoreDTO> scoreDTOList, Authentication authentication) {
+        for (ScoreDTO item : scoreDTOList) {
+            assertCollegeAdminArrangementScope(authentication, item.getCourseArrangementId());
+        }
         dataScopeService.assertTeacherOwnsArrangements(
                 authentication,
                 scoreDTOList.stream().map(ScoreDTO::getCourseArrangementId).toList());
         scoreService.batchAddScores(scoreDTOList);
         return ResultVO.success();
+    }
+
+    private void assertCollegeAdminArrangementScope(Authentication authentication, Long arrangementId) {
+        Long scopedCollegeId = dataScopeService.resolveScopedCollegeId(authentication);
+        if (scopedCollegeId == null || arrangementId == null) {
+            return;
+        }
+        CourseArrangement arrangement = courseArrangementMapper.selectById(arrangementId);
+        if (arrangement == null) {
+            return;
+        }
+        java.util.Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+        if (!classIds.contains(arrangement.getClassId())) {
+            throw new com.student.exception.BusinessException(403, "Forbidden");
+        }
     }
 
     private ScoreStatisticsDTO buildScopedStatistics(Long studentId, List<Score> scopedScores) {

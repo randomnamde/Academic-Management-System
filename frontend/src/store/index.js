@@ -72,7 +72,13 @@ const store = createStore({
   },
   getters: {
     isLoggedIn: state => !!state.token,
-    userRole: state => state.userInfo?.role,
+    userRole: state => state.userInfo?.primaryRole || state.userInfo?.role,
+    userRoles: state => {
+      const merged = new Set(Array.isArray(state.userInfo?.roles) ? state.userInfo.roles : [])
+      if (state.userInfo?.primaryRole) merged.add(state.userInfo.primaryRole)
+      if (state.userInfo?.role) merged.add(state.userInfo.role)
+      return Array.from(merged)
+    },
     username: state => state.userInfo?.username,
     tableDensity: state => state.uiPreference.tableDensity,
     themeMode: state => state.uiPreference.themeMode

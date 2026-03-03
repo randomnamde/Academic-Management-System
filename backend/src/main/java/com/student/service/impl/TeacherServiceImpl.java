@@ -8,7 +8,9 @@ import com.student.entity.Teacher;
 import com.student.exception.BusinessException;
 import com.student.mapper.SysUserMapper;
 import com.student.mapper.TeacherMapper;
+import com.student.security.RoleCode;
 import com.student.service.TeacherService;
+import com.student.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +25,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     private final TeacherMapper teacherMapper;
     private final SysUserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final SysUserService sysUserService;
 
     @Override
     @Transactional
@@ -46,6 +49,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         user.setRole(SysUser.Role.TEACHER);
         user.setStatus(1);
         userMapper.insert(user);
+        sysUserService.grantRole(user.getId(), RoleCode.COURSE_TEACHER);
 
         Teacher teacher = new Teacher();
         BeanUtils.copyProperties(teacherDTO, teacher);

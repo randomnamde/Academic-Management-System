@@ -113,14 +113,48 @@ a {
   transition: all var(--sms-motion);
 }
 
+.el-button:not(.el-button--primary):not(.el-button--danger):not(.is-link):not(.is-text) {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--panel-border) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+}
+
+.el-button:not(.el-button--primary):not(.el-button--danger):not(.is-link):not(.is-text):hover {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--accent-500) 24%, var(--panel-border));
+  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+}
+
 .el-button--primary {
   background: linear-gradient(145deg, var(--accent-500), var(--accent-600));
   border-color: var(--accent-600);
+  color: var(--text-on-accent);
 }
 
 .el-button--primary:hover {
   background: linear-gradient(145deg, var(--accent-600), var(--accent-700));
   border-color: var(--accent-700);
+  color: var(--text-on-accent);
+}
+
+.el-button--danger {
+  color: var(--text-on-accent);
+}
+
+.el-button.is-link,
+.el-button--text {
+  color: var(--accent-500);
+  font-weight: 600;
+}
+
+.el-button.is-link:hover,
+.el-button--text:hover {
+  color: var(--accent-600);
+}
+
+.el-button.is-link.is-disabled,
+.el-button--text.is-disabled {
+  color: color-mix(in srgb, var(--text-secondary) 72%, transparent);
 }
 
 .el-table {
@@ -163,6 +197,12 @@ a {
 .el-table__fixed::before,
 .el-table__fixed-right::before,
 .el-table__fixed-right-patch {
+  background-color: var(--el-table-border-color) !important;
+}
+
+.el-table::before,
+.el-table--border::after,
+.el-table--group::after {
   background-color: var(--el-table-border-color) !important;
 }
 
@@ -223,6 +263,16 @@ a {
 .el-select-dropdown__item:hover,
 .el-dropdown-menu__item:not(.is-disabled):hover {
   background: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
+}
+
+.el-dropdown-menu__item--divided::before,
+.el-select-group__wrap:not(:last-of-type)::after {
+  background-color: var(--el-border-color-lighter);
+}
+
+.el-menu,
+.el-menu--vertical {
+  border-right-color: var(--el-menu-border-color);
 }
 
 .el-empty__description p {

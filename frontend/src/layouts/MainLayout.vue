@@ -7,7 +7,7 @@
         class="layout-sidebar hidden h-screen border-r md:flex md:flex-col"
         :style="{ width: isCollapsed ? '78px' : '252px' }"
       >
-        <div class="sidebar-brand flex h-16 items-center border-b px-4">
+        <div class="sidebar-brand sidebar-divider-bottom flex h-16 items-center px-4">
           <div class="brand-mark inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--accent-700)]">
             <Shield class="h-4 w-4" />
           </div>
@@ -17,27 +17,39 @@
 
         <nav class="flex-1 overflow-y-auto px-2 py-3">
           <section v-for="group in visibleMenuGroups" :key="group.key" class="mb-5">
-            <p v-if="!isCollapsed" class="menu-group-title">
+            <button
+              v-if="!isCollapsed"
+              class="menu-group-title menu-group-toggle touch-target"
+              type="button"
+              :aria-expanded="isGroupExpanded(group.key) ? 'true' : 'false'"
+              @click="toggleGroup(group.key)"
+            >
               <component :is="group.icon || LayoutGrid" class="h-3.5 w-3.5" />
               <span>{{ group.title }}</span>
-            </p>
+              <ChevronDown class="menu-group-caret h-3.5 w-3.5" :class="isGroupExpanded(group.key) ? 'is-open' : ''" />
+            </button>
 
-            <router-link
-              v-for="item in group.items"
-              :key="item.path"
-              :to="item.path"
-              class="menu-link touch-target"
-              :class="isActive(item.path) ? 'is-active' : ''"
-              :title="isCollapsed ? item.title : ''"
+            <div
+              v-show="isGroupExpanded(group.key)"
+              :class="['menu-children', isCollapsed ? 'is-collapsed' : '']"
             >
-              <span class="menu-rail" aria-hidden="true"></span>
-              <component :is="item.icon || EpMenu" class="h-4 w-4 shrink-0" />
-              <span v-if="!isCollapsed" class="menu-label">{{ item.title }}</span>
-            </router-link>
+              <router-link
+                v-for="item in group.items"
+                :key="item.path"
+                :to="item.path"
+                class="menu-link touch-target"
+                :class="isActive(item.path) ? 'is-active' : ''"
+                :title="isCollapsed ? item.title : ''"
+              >
+                <span class="menu-rail" aria-hidden="true"></span>
+                <component :is="item.icon || EpMenu" class="h-4 w-4 shrink-0" />
+                <span v-if="!isCollapsed" class="menu-label">{{ item.title }}</span>
+              </router-link>
+            </div>
           </section>
         </nav>
 
-        <div class="border-t p-2">
+        <div class="sidebar-divider-top p-2">
           <button class="menu-link touch-target" @click="handleCommand('profile')">
             <User class="h-4 w-4" />
             <span v-if="!isCollapsed" class="menu-label">个人中心</span>
@@ -180,7 +192,7 @@
       <div v-if="mobileMenuVisible" class="fixed inset-0 z-40 md:hidden">
         <div class="absolute inset-0 bg-slatex-900/45" @click="mobileMenuVisible = false"></div>
         <div class="layout-sidebar absolute left-0 top-0 h-full w-72 border-r p-2">
-          <div class="mb-2 flex h-12 items-center justify-between border-b px-2">
+          <div class="sidebar-divider-bottom mb-2 flex h-12 items-center justify-between px-2">
             <div class="flex items-center gap-1.5">
               <div class="brand-mark inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--accent-700)]">
                 <Shield class="h-3.5 w-3.5" />
@@ -190,22 +202,30 @@
             <button class="rounded-md px-2 py-1 text-[12px] text-slatex-600 hover:bg-neutralx-100 touch-target" @click="mobileMenuVisible = false">关闭</button>
           </div>
           <section v-for="group in visibleMenuGroups" :key="`mobile-${group.key}`" class="mb-4">
-            <p class="menu-group-title mb-1">
+            <button
+              class="menu-group-title menu-group-toggle mb-1 touch-target"
+              type="button"
+              :aria-expanded="isGroupExpanded(group.key) ? 'true' : 'false'"
+              @click="toggleGroup(group.key)"
+            >
               <component :is="group.icon || LayoutGrid" class="h-3.5 w-3.5" />
               <span>{{ group.title }}</span>
-            </p>
-            <router-link
-              v-for="item in group.items"
-              :key="`mobile-${item.path}`"
-              :to="item.path"
-              class="menu-link touch-target"
-              :class="isActive(item.path) ? 'is-active' : ''"
-              @click="mobileMenuVisible = false"
-            >
-              <span class="menu-rail" aria-hidden="true"></span>
-              <component :is="item.icon || EpMenu" class="h-4 w-4 shrink-0" />
-              <span class="menu-label">{{ item.title }}</span>
-            </router-link>
+              <ChevronDown class="menu-group-caret h-3.5 w-3.5" :class="isGroupExpanded(group.key) ? 'is-open' : ''" />
+            </button>
+            <div v-show="isGroupExpanded(group.key)" class="menu-children">
+              <router-link
+                v-for="item in group.items"
+                :key="`mobile-${item.path}`"
+                :to="item.path"
+                class="menu-link touch-target"
+                :class="isActive(item.path) ? 'is-active' : ''"
+                @click="mobileMenuVisible = false"
+              >
+                <span class="menu-rail" aria-hidden="true"></span>
+                <component :is="item.icon || EpMenu" class="h-4 w-4 shrink-0" />
+                <span class="menu-label">{{ item.title }}</span>
+              </router-link>
+            </div>
           </section>
         </div>
       </div>
@@ -312,6 +332,7 @@ const sidebarOpened = computed(() => store.state.sidebar?.opened !== false)
 const tableDensity = computed(() => store.state.uiPreference?.tableDensity || 'compact')
 const isCollapsed = computed(() => !sidebarOpened.value)
 const readAnnouncementStorageKey = computed(() => `announcement:read:${userInfo.value?.id || 'guest'}`)
+const collapsedGroupKeys = ref([])
 
 const groupLabel = {
   overview: '总览',
@@ -386,6 +407,23 @@ const visibleMenuGroups = computed(() => {
 
   return Array.from(groups.values())
 })
+
+const isGroupExpanded = (groupKey) => isCollapsed.value || !collapsedGroupKeys.value.includes(groupKey)
+
+const toggleGroup = (groupKey) => {
+  if (!groupKey) return
+  if (collapsedGroupKeys.value.includes(groupKey)) {
+    collapsedGroupKeys.value = collapsedGroupKeys.value.filter((key) => key !== groupKey)
+    return
+  }
+  collapsedGroupKeys.value = [...collapsedGroupKeys.value, groupKey]
+}
+
+const ensureActiveGroupExpanded = () => {
+  const activeGroup = visibleMenuGroups.value.find((group) => group.items.some((item) => isActive(item.path)))
+  if (!activeGroup) return
+  collapsedGroupKeys.value = collapsedGroupKeys.value.filter((key) => key !== activeGroup.key)
+}
 
 const gridStyle = computed(() => ({
   gridTemplateColumns: viewportWidth.value < 768 ? '1fr' : `${isCollapsed.value ? 78 : 252}px minmax(0, 1fr)`
@@ -540,7 +578,18 @@ watch(
     userMenuVisible.value = false
     mobileMenuVisible.value = false
     fetchNotificationSummary()
+    ensureActiveGroupExpanded()
   }
+)
+
+watch(
+  visibleMenuGroups,
+  (groups) => {
+    const validGroupKeys = new Set(groups.map((group) => group.key))
+    collapsedGroupKeys.value = collapsedGroupKeys.value.filter((key) => validGroupKeys.has(key))
+    ensureActiveGroupExpanded()
+  },
+  { immediate: true }
 )
 
 watch(
@@ -604,6 +653,14 @@ onUnmounted(() => {
   background: color-mix(in srgb, var(--surface-base) 84%, transparent);
 }
 
+.sidebar-divider-bottom {
+  border-bottom: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+}
+
+.sidebar-divider-top {
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+}
+
 .menu-group-title {
   display: flex;
   align-items: center;
@@ -615,6 +672,45 @@ onUnmounted(() => {
   letter-spacing: 0.01em;
   line-height: 1.25;
   color: color-mix(in srgb, var(--text-primary) 88%, var(--text-secondary));
+}
+
+.menu-group-toggle {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-group-caret {
+  margin-left: auto;
+  color: color-mix(in srgb, var(--text-secondary) 88%, transparent);
+  transform: rotate(-90deg);
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.menu-group-caret.is-open {
+  transform: rotate(0deg);
+  color: color-mix(in srgb, var(--text-primary) 88%, var(--text-secondary));
+}
+
+.menu-children {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, var(--text-secondary) 24%, transparent);
+}
+
+.menu-children.is-collapsed {
+  margin-left: 0;
+  padding-left: 0;
+  border-left: none;
+}
+
+:root[data-theme='dark'] .menu-children {
+  border-left-color: color-mix(in srgb, var(--text-secondary) 20%, transparent);
 }
 
 .menu-link {
@@ -688,10 +784,12 @@ onUnmounted(() => {
   justify-content: center;
   gap: 6px;
   min-height: 34px;
+  font-size: 13px;
+  font-weight: 500;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
   background: color-mix(in srgb, var(--surface-base) 88%, transparent);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   padding: 0 10px;
   transition: all 180ms ease;
 }
@@ -725,7 +823,8 @@ onUnmounted(() => {
   border-radius: 9px;
   padding: 4px 8px;
   font-size: 12px;
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: color-mix(in srgb, var(--text-primary) 88%, var(--text-secondary));
   transition: all 180ms ease;
 }
 

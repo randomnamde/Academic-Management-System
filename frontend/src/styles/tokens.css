@@ -9,6 +9,7 @@
   --accent-500: #1d9bc7;
   --accent-600: #1385ae;
   --accent-700: #0e6d90;
+  --text-on-accent: #f6fcff;
   --success: #18a06f;
   --warn: #c9831e;
   --danger: #c43d4b;
@@ -51,6 +52,8 @@
   --el-text-color-secondary: var(--color-slate-500);
   --el-border-color: color-mix(in srgb, var(--panel-border) 92%, transparent);
   --el-border-color-light: color-mix(in srgb, var(--panel-border) 74%, transparent);
+  --el-border-color-lighter: color-mix(in srgb, var(--panel-border) 58%, transparent);
+  --el-menu-border-color: color-mix(in srgb, var(--panel-border) 72%, transparent);
   --el-mask-color: color-mix(in srgb, var(--color-black) 36%, transparent);
   --el-table-bg-color: color-mix(in srgb, var(--surface-base) 90%, transparent);
   --el-table-tr-bg-color: color-mix(in srgb, var(--surface-base) 88%, transparent);
@@ -76,6 +79,7 @@
   --accent-500: #36b6e2;
   --accent-600: #23a1cf;
   --accent-700: #1988af;
+  --text-on-accent: #062232;
   --success: #2bc98a;
   --warn: #e5a23a;
   --danger: #e56a76;
@@ -118,6 +122,8 @@
   --el-text-color-secondary: var(--color-slate-500);
   --el-border-color: color-mix(in srgb, var(--panel-border) 92%, transparent);
   --el-border-color-light: color-mix(in srgb, var(--panel-border) 74%, transparent);
+  --el-border-color-lighter: color-mix(in srgb, var(--panel-border) 56%, transparent);
+  --el-menu-border-color: color-mix(in srgb, var(--panel-border) 68%, transparent);
   --el-mask-color: color-mix(in srgb, var(--color-black) 46%, transparent);
   --el-table-bg-color: color-mix(in srgb, var(--surface-base) 92%, transparent);
   --el-table-tr-bg-color: color-mix(in srgb, var(--surface-base) 90%, transparent);

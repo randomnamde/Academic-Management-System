@@ -37,17 +37,17 @@ const props = defineProps({
 defineEmits(['click'])
 
 const toneClass = {
-  default: 'border border-primary-800 bg-primary-800 text-white hover:bg-primary-700 hover:border-primary-700',
-  accent: 'border border-[var(--accent-600)] bg-[var(--accent-600)] text-white hover:bg-[var(--accent-700)] hover:border-[var(--accent-700)]',
-  neutral: 'border border-neutralx-200 bg-transparent text-slatex-700 hover:bg-neutralx-100'
+  default: 'border border-[var(--accent-600)] bg-[var(--accent-600)] text-[var(--text-on-accent)] hover:bg-[var(--accent-700)] hover:border-[var(--accent-700)] shadow-soft',
+  accent: 'border border-[var(--accent-600)] bg-[var(--accent-600)] text-[var(--text-on-accent)] hover:bg-[var(--accent-700)] hover:border-[var(--accent-700)] shadow-soft',
+  neutral: 'border border-neutralx-200 bg-transparent text-[var(--text-primary)] hover:bg-neutralx-100'
 }
 
 const variantClass = {
   primary: '',
-  secondary: 'border border-neutralx-200 bg-[var(--surface-base)] text-slatex-700 hover:bg-neutralx-100',
-  ghost: 'border border-transparent bg-transparent text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900',
-  danger: 'border border-state-danger bg-state-danger text-white hover:opacity-90',
-  text: 'border border-transparent bg-transparent text-[var(--accent-600)] hover:text-[var(--accent-700)]'
+  secondary: 'border border-neutralx-200 bg-[var(--surface-base)] text-[var(--text-primary)] hover:bg-neutralx-100',
+  ghost: 'border border-transparent bg-transparent text-[var(--text-primary)] hover:bg-neutralx-100 hover:text-[var(--text-primary)]',
+  danger: 'border border-state-danger bg-state-danger text-[var(--text-on-accent)] hover:opacity-90',
+  text: 'border border-transparent bg-transparent text-[var(--accent-500)] hover:text-[var(--accent-600)]'
 }
 
 const sizeClass = {

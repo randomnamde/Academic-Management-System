@@ -1,9 +1,9 @@
-<template>
-  <div class="notfound-page">
-    <el-card class="notfound-card">
+﻿<template>
+  <div class="error-page">
+    <el-card class="error-card">
       <p class="error-kicker">页面导航</p>
       <h1>404</h1>
-      <p class="error-title">页面不存在或已被移动</p>
+      <p class="error-title">页面不存在或已移动</p>
       <p class="error-desc">请检查地址是否正确，或返回首页继续使用系统。</p>
       <el-button type="primary" @click="$router.push('/dashboard')">返回首页</el-button>
     </el-card>
@@ -14,7 +14,7 @@
 </script>
 
 <style scoped lang="scss">
-.notfound-page {
+.error-page {
   min-height: calc(100vh - 120px);
   display: flex;
   align-items: center;
@@ -22,35 +22,38 @@
   padding: 24px;
 }
 
-.notfound-card {
+.error-card {
   text-align: center;
-  width: min(460px, 100%);
-  border-radius: 20px;
-  border: 1px solid rgba(21, 88, 102, 0.2);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.94), rgba(240, 249, 248, 0.88));
+  width: min(500px, 100%);
+  border-radius: var(--radius-pop);
+  border: 1px solid color-mix(in srgb, var(--panel-border) 84%, transparent);
+  background:
+    radial-gradient(circle at 50% -10%, color-mix(in srgb, var(--accent-500) 14%, transparent), transparent 54%),
+    var(--panel-glass);
+  box-shadow: var(--shadow-panel);
 }
 
 .error-kicker {
   margin: 0 0 8px;
   letter-spacing: 0.14em;
   font-size: 12px;
-  color: #4f8190;
+  color: var(--text-secondary);
 }
 
 h1 {
   margin: 0 0 10px;
   font-size: 62px;
-  color: #156f6b;
+  color: var(--accent-700);
 }
 
 .error-title {
   margin: 0 0 10px;
   font-size: 18px;
-  color: #1f4a5b;
+  color: var(--text-primary);
 }
 
 .error-desc {
   margin: 0 0 20px;
-  color: #5c7481;
+  color: var(--text-secondary);
 }
 </style>

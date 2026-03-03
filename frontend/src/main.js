@@ -11,6 +11,7 @@ import './styles/tokens.css'
 import './styles/base.css'
 import './styles/tailwind.css'
 import './styles/global.scss'
+import { initializeTheme } from './composables/useTheme'
 
 const resizeObserverErrorPattern = /ResizeObserver loop (completed with undelivered notifications|limit exceeded)/i
 
@@ -33,6 +34,8 @@ const app = createApp(App)
 app.use(ElementPlus, { locale: zhCn })
 app.use(router)
 app.use(store)
+initializeTheme(store)
 
 app.mount('#app')
+
 

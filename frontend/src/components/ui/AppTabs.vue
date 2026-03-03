@@ -1,5 +1,5 @@
-<template>
-  <div class="inline-flex rounded-sm border border-neutralx-200 bg-white p-0.5" role="tablist" :aria-label="ariaLabel">
+﻿<template>
+  <div class="app-tabs-root inline-flex rounded-md p-0.5" role="tablist" :aria-label="ariaLabel">
     <button
       v-for="(item, index) in items"
       :id="tabId(item.value)"
@@ -8,7 +8,7 @@
       :aria-selected="modelValue === item.value ? 'true' : 'false'"
       :tabindex="modelValue === item.value ? 0 : -1"
       role="tab"
-      class="rounded-sm px-2.5 py-1 text-[12px] font-medium transition-all duration-180 touch-target"
+      class="rounded-md px-2.5 py-1 text-[12px] font-medium transition-all duration-180 touch-target"
       :class="modelValue === item.value ? 'bg-neutralx-100 text-primary-800' : 'text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900'"
       @click="activate(item.value)"
       @keydown="onKeydown($event, index)"
@@ -53,3 +53,11 @@ function onKeydown(event, index) {
   })
 }
 </script>
+
+<style scoped>
+.app-tabs-root {
+  border: 1px solid color-mix(in srgb, var(--panel-border) 84%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+}
+</style>
+

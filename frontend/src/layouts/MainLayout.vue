@@ -1,75 +1,70 @@
 ﻿<template>
-  <div class="h-screen overflow-hidden bg-neutralx-50 text-slatex-900">
+  <div class="layout-shell h-screen overflow-hidden text-slatex-900">
     <a href="#main-content" class="skip-link">跳到主要内容</a>
+
     <div class="grid h-full" :style="gridStyle">
       <aside
-        class="glass-lite hidden h-screen border-r border-neutralx-200 bg-panel md:flex md:flex-col"
-        :style="{ width: isCollapsed ? '72px' : '236px' }"
+        class="layout-sidebar hidden h-screen border-r md:flex md:flex-col"
+        :style="{ width: isCollapsed ? '78px' : '252px' }"
       >
-        <div class="flex h-14 items-center border-b border-neutralx-200 px-4">
-          <div class="inline-flex h-6 w-6 items-center justify-center rounded-sm border border-neutralx-200 bg-white/70 text-primary-800">
-            <Shield class="h-3.5 w-3.5" />
+        <div class="sidebar-brand flex h-16 items-center border-b px-4">
+          <div class="brand-mark inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--accent-700)]">
+            <Shield class="h-4 w-4" />
           </div>
           <h1 v-if="!isCollapsed" class="ml-2 text-[13px] font-semibold tracking-tight text-primary-900">Academic Management System</h1>
           <span v-else class="text-[12px] font-semibold text-primary-900">AMS</span>
         </div>
 
-        <nav class="flex-1 overflow-y-auto p-2">
-          <section v-for="group in visibleMenuGroups" :key="group.key" class="mb-4">
-            <p v-if="!isCollapsed" class="mb-1 flex items-center justify-start gap-1 px-2 text-[15px] font-semibold tracking-[0.01em] text-slatex-500">
-              <component :is="group.icon || LayoutGrid" class="h-3 w-3" />
+        <nav class="flex-1 overflow-y-auto px-2 py-3">
+          <section v-for="group in visibleMenuGroups" :key="group.key" class="mb-5">
+            <p v-if="!isCollapsed" class="menu-group-title">
+              <component :is="group.icon || LayoutGrid" class="h-3.5 w-3.5" />
               <span>{{ group.title }}</span>
             </p>
+
             <router-link
               v-for="item in group.items"
               :key="item.path"
               :to="item.path"
-              class="mb-1 flex h-8 items-center justify-center gap-2 rounded-sm px-2 text-[14px] font-medium transition-all duration-180 touch-target"
-              :class="isActive(item.path)
-                ? 'bg-neutralx-100 text-primary-800'
-                : 'text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900'"
+              class="menu-link touch-target"
+              :class="isActive(item.path) ? 'is-active' : ''"
               :title="isCollapsed ? item.title : ''"
             >
-              <component :is="item.icon || EpMenu" class="h-3.5 w-3.5 shrink-0" />
-              <span v-if="!isCollapsed" class="truncate text-center">{{ item.title }}</span>
+              <span class="menu-rail" aria-hidden="true"></span>
+              <component :is="item.icon || EpMenu" class="h-4 w-4 shrink-0" />
+              <span v-if="!isCollapsed" class="menu-label">{{ item.title }}</span>
             </router-link>
           </section>
         </nav>
 
-        <div class="border-t border-neutralx-200 p-2">
-          <button
-            class="flex h-8 w-full items-center justify-center gap-2 rounded-sm px-2 text-[13px] text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900 touch-target"
-            @click="handleCommand('profile')"
-          >
-            <User class="h-3.5 w-3.5" />
-            <span v-if="!isCollapsed">个人中心</span>
+        <div class="border-t p-2">
+          <button class="menu-link touch-target" @click="handleCommand('profile')">
+            <User class="h-4 w-4" />
+            <span v-if="!isCollapsed" class="menu-label">个人中心</span>
           </button>
-          <button
-            class="mt-1 flex h-8 w-full items-center justify-center gap-2 rounded-sm px-2 text-[13px] text-state-danger hover:bg-red-50 touch-target"
-            @click="handleCommand('logout')"
-          >
-            <LogOut class="h-3.5 w-3.5" />
-            <span v-if="!isCollapsed">退出登录</span>
+          <button class="menu-link touch-target is-danger mt-1" @click="handleCommand('logout')">
+            <LogOut class="h-4 w-4" />
+            <span v-if="!isCollapsed" class="menu-label">退出登录</span>
           </button>
         </div>
       </aside>
 
-      <section class="flex h-screen min-w-0 flex-col">
-        <header class="glass-lite z-20 flex h-14 shrink-0 items-center justify-between border-b border-neutralx-200 bg-panel px-3 md:px-5">
-          <div class="flex min-w-0 items-center gap-2">
+      <section class="layout-main flex h-screen min-w-0 flex-col">
+        <header class="layout-header z-20 flex h-16 shrink-0 items-center gap-3 border-b px-3 md:px-5">
+          <div class="header-zone nav-zone flex min-w-0 flex-1 items-center gap-2">
             <button
-              class="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-neutralx-200 bg-white text-slatex-600 hover:bg-neutralx-100 touch-target"
+              class="header-ctl-btn touch-target"
               :aria-label="mobileMenuVisible ? '关闭导航菜单' : '展开导航菜单'"
               @click="toggleSidebar"
             >
-              <PanelLeft class="h-3.5 w-3.5" />
+              <PanelLeft class="h-4 w-4" />
             </button>
             <Breadcrumb class="min-w-0" />
           </div>
 
-          <div class="flex items-center gap-2">
+          <div class="header-zone quick-zone hidden items-center gap-2 lg:flex">
             <button
-              class="inline-flex h-8 items-center gap-1 rounded-sm border border-neutralx-200 bg-white px-2 text-[12px] text-slatex-600 hover:bg-neutralx-100 touch-target"
+              class="header-chip touch-target"
               aria-label="切换表格密度"
               @click="toggleDensity"
             >
@@ -77,41 +72,59 @@
               {{ tableDensity === 'compact' ? '紧凑' : '标准' }}
             </button>
 
+            <div class="theme-switch" role="radiogroup" aria-label="主题模式切换">
+              <button
+                v-for="option in themeOptions"
+                :key="option.value"
+                type="button"
+                class="theme-switch-item touch-target"
+                :class="themeMode === option.value ? 'is-active' : ''"
+                :aria-pressed="themeMode === option.value"
+                @click="setThemeMode(option.value)"
+              >
+                <component :is="option.icon" class="h-3.5 w-3.5" />
+                <span>{{ option.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="header-zone user-zone flex items-center gap-2">
             <div class="relative">
               <button
-                class="relative inline-flex h-8 w-8 items-center justify-center rounded-sm border border-neutralx-200 bg-white text-slatex-600 hover:bg-neutralx-100 touch-target"
+                class="header-ctl-btn relative touch-target"
                 aria-label="通知公告"
                 :aria-expanded="noticePopoverVisible ? 'true' : 'false'"
                 aria-haspopup="menu"
                 @click="toggleNoticePopover"
               >
-                <Bell class="h-3.5 w-3.5" />
+                <Bell class="h-4 w-4" />
                 <span
                   v-if="notificationCount > 0"
-                  class="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-sm bg-primary-800 px-1 text-[10px] text-white"
+                  class="notice-count absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-md px-1 text-[10px] text-white"
                 >
                   {{ notificationCount > 99 ? '99+' : notificationCount }}
                 </span>
               </button>
 
-              <div
-                v-if="noticePopoverVisible"
-                class="glass-lite absolute right-0 z-30 mt-2 w-80 rounded-md border border-neutralx-200 bg-white p-2 shadow-pop"
-              >
+              <div v-if="noticePopoverVisible" class="notice-popover absolute right-0 z-30 mt-2 w-96">
                 <div class="mb-1 flex items-center justify-between px-1">
                   <p class="text-[12px] font-semibold text-primary-900">最新公告</p>
-                  <button class="text-[11px] text-primary-700 hover:underline touch-target" @click="openAnnouncementPage">查看全部</button>
+                  <button class="text-[11px] text-[var(--accent-600)] hover:underline touch-target" @click="openAnnouncementPage">查看全部</button>
                 </div>
-                <div v-if="!latestAnnouncements.length" class="py-5 text-center text-[12px] text-slatex-500">暂无公告</div>
-                <div v-else class="max-h-60 space-y-1 overflow-y-auto">
+                <div v-if="!latestAnnouncements.length" class="py-6 text-center text-[12px] text-slatex-500">暂无公告</div>
+                <div v-else class="max-h-72 space-y-1 overflow-y-auto">
                   <button
                     v-for="item in latestAnnouncements"
                     :key="item.id"
-                    class="block w-full rounded-sm px-2 py-1.5 text-left transition-all duration-180 hover:bg-neutralx-100"
+                    class="notice-card block w-full text-left"
                     @click="openAnnouncementDetail(item)"
                   >
-                    <div class="truncate text-[13px] text-slatex-800">{{ item.title }}</div>
-                    <div class="mt-0.5 text-[11px] text-slatex-500">{{ item.createTime || '-' }}</div>
+                    <div class="line-clamp-1 text-[13px] font-medium text-slatex-900">{{ item.title }}</div>
+                    <div class="mt-1 flex items-center gap-1.5 text-[11px] text-slatex-500">
+                      <span class="app-tag-info">{{ getTypeLabel(item.type) }}</span>
+                      <span class="app-tag-info">{{ getPriorityLabel(item.priority) }}</span>
+                      <span>{{ item.createTime || '-' }}</span>
+                    </div>
                   </button>
                 </div>
               </div>
@@ -119,22 +132,18 @@
 
             <div class="relative">
               <button
-                class="inline-flex h-8 items-center gap-2 rounded-sm border border-neutralx-200 bg-white px-2 text-[12px] text-slatex-700 hover:bg-neutralx-100 touch-target"
+                class="header-chip touch-target"
                 aria-label="打开用户菜单"
                 :aria-expanded="userMenuVisible ? 'true' : 'false'"
                 aria-haspopup="menu"
                 @click="userMenuVisible = !userMenuVisible"
               >
-                <img :src="userInfo.avatar || defaultAvatar" alt="avatar" class="h-5 w-5 rounded-sm object-cover" />
+                <img :src="userInfo.avatar || defaultAvatar" alt="avatar" class="h-6 w-6 rounded-md object-cover" />
                 <span class="hidden max-w-24 truncate md:block">{{ userInfo.realName || userInfo.username || '用户' }}</span>
                 <ChevronDown class="h-3.5 w-3.5 text-slatex-500" />
               </button>
 
-              <div
-                v-if="userMenuVisible"
-                class="glass-lite absolute right-0 z-30 mt-2 w-40 rounded-md border border-neutralx-200 bg-white p-1.5 shadow-pop"
-                role="menu"
-              >
+              <div v-if="userMenuVisible" class="user-popover absolute right-0 z-30 mt-2 w-44" role="menu">
                 <div class="menu-section">
                   <button class="menu-item touch-target" role="menuitem" @click="handleCommand('profile')">个人中心</button>
                   <button class="menu-item touch-target" role="menuitem" @click="handleCommand('password')">修改密码</button>
@@ -169,34 +178,33 @@
 
     <Transition name="app-fade">
       <div v-if="mobileMenuVisible" class="fixed inset-0 z-40 md:hidden">
-        <div class="absolute inset-0 bg-slatex-900/35" @click="mobileMenuVisible = false"></div>
-        <div class="glass-lite absolute left-0 top-0 h-full w-72 border-r border-neutralx-200 bg-panel p-2">
-          <div class="mb-2 flex h-10 items-center justify-between border-b border-neutralx-200 px-2">
+        <div class="absolute inset-0 bg-slatex-900/45" @click="mobileMenuVisible = false"></div>
+        <div class="layout-sidebar absolute left-0 top-0 h-full w-72 border-r p-2">
+          <div class="mb-2 flex h-12 items-center justify-between border-b px-2">
             <div class="flex items-center gap-1.5">
-              <div class="inline-flex h-6 w-6 items-center justify-center rounded-sm border border-neutralx-200 bg-white/70 text-primary-800">
+              <div class="brand-mark inline-flex h-7 w-7 items-center justify-center rounded-md text-[var(--accent-700)]">
                 <Shield class="h-3.5 w-3.5" />
               </div>
               <h1 class="text-[13px] font-semibold tracking-tight text-primary-900">Academic Management System</h1>
             </div>
-            <button class="rounded-sm px-2 py-1 text-[12px] text-slatex-600 hover:bg-neutralx-100 touch-target" @click="mobileMenuVisible = false">关闭</button>
+            <button class="rounded-md px-2 py-1 text-[12px] text-slatex-600 hover:bg-neutralx-100 touch-target" @click="mobileMenuVisible = false">关闭</button>
           </div>
           <section v-for="group in visibleMenuGroups" :key="`mobile-${group.key}`" class="mb-4">
-            <p class="mb-1 flex items-center justify-start gap-1 px-2 text-[15px] font-semibold tracking-[0.01em] text-slatex-500">
-              <component :is="group.icon || LayoutGrid" class="h-3 w-3" />
+            <p class="menu-group-title mb-1">
+              <component :is="group.icon || LayoutGrid" class="h-3.5 w-3.5" />
               <span>{{ group.title }}</span>
             </p>
             <router-link
               v-for="item in group.items"
               :key="`mobile-${item.path}`"
               :to="item.path"
-              class="mb-1 flex h-8 items-center justify-center gap-2 rounded-sm px-2 text-[14px] font-medium transition-all duration-180 touch-target"
-              :class="isActive(item.path)
-                ? 'bg-neutralx-100 text-primary-800'
-                : 'text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900'"
+              class="menu-link touch-target"
+              :class="isActive(item.path) ? 'is-active' : ''"
               @click="mobileMenuVisible = false"
             >
-              <component :is="item.icon || EpMenu" class="h-3.5 w-3.5 shrink-0" />
-              <span class="truncate">{{ item.title }}</span>
+              <span class="menu-rail" aria-hidden="true"></span>
+              <component :is="item.icon || EpMenu" class="h-4 w-4 shrink-0" />
+              <span class="menu-label">{{ item.title }}</span>
             </router-link>
           </section>
         </div>
@@ -205,12 +213,12 @@
 
     <AppModal v-model="noticeDetailVisible" title="公告详情" width="720px">
       <div class="grid gap-2 text-[13px] text-slatex-700 md:grid-cols-2">
-        <div class="rounded-sm border border-neutralx-200 bg-neutralx-100 px-2 py-1.5 md:col-span-2"><strong>标题：</strong>{{ noticeDetail.title || '-' }}</div>
-        <div class="rounded-sm border border-neutralx-200 bg-neutralx-100 px-2 py-1.5"><strong>类型：</strong>{{ noticeDetail.type || '-' }}</div>
-        <div class="rounded-sm border border-neutralx-200 bg-neutralx-100 px-2 py-1.5"><strong>目标角色：</strong>{{ noticeDetail.targetRole || '-' }}</div>
-        <div class="rounded-sm border border-neutralx-200 bg-neutralx-100 px-2 py-1.5 md:col-span-2"><strong>发布时间：</strong>{{ noticeDetail.createTime || '-' }}</div>
+        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5 md:col-span-2"><strong>标题：</strong>{{ noticeDetail.title || '-' }}</div>
+        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5"><strong>类型：</strong>{{ noticeDetail.type || '-' }}</div>
+        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5"><strong>目标角色：</strong>{{ noticeDetail.targetRole || '-' }}</div>
+        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5 md:col-span-2"><strong>发布时间：</strong>{{ noticeDetail.createTime || '-' }}</div>
       </div>
-      <div class="mt-3 rounded-sm border border-neutralx-200 p-3 text-[13px] leading-6 text-slatex-700">
+      <div class="mt-3 rounded-md border border-neutralx-200 p-3 text-[13px] leading-6 text-slatex-700">
         {{ noticeDetail.content || '暂无内容' }}
       </div>
       <template #footer>
@@ -225,7 +233,22 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
-import { Bell, BookOpenCheck, ChevronDown, GraduationCap, LayoutGrid, LogOut, PanelLeft, Rows4, Shield, ShieldCheck, User } from 'lucide-vue-next'
+import {
+  Bell,
+  BookOpenCheck,
+  ChevronDown,
+  GraduationCap,
+  LayoutGrid,
+  LogOut,
+  Monitor,
+  Moon,
+  PanelLeft,
+  Rows4,
+  Shield,
+  ShieldCheck,
+  SunMedium,
+  User
+} from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   BellFilled,
@@ -249,10 +272,13 @@ import Breadcrumb from '@/components/Breadcrumb.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { getAnnouncementDetail, getAnnouncementList } from '@/api/announcement'
 import { canRoute } from '@/permission/ability'
+import { useTheme } from '@/composables/useTheme'
 
 const store = useStore()
 const route = useRoute()
 const router = useRouter()
+const { mode: themeMode, setThemeMode } = useTheme(store)
+
 const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
 
 const viewportWidth = ref(window.innerWidth)
@@ -272,6 +298,12 @@ const noticeDetail = ref({
   targetRole: '',
   createTime: ''
 })
+
+const themeOptions = [
+  { value: 'system', label: '系统', icon: Monitor },
+  { value: 'light', label: '浅色', icon: SunMedium },
+  { value: 'dark', label: '深色', icon: Moon }
+]
 
 const userInfo = computed(() => store.state.userInfo || {})
 const role = computed(() => userInfo.value?.role || '')
@@ -356,7 +388,7 @@ const visibleMenuGroups = computed(() => {
 })
 
 const gridStyle = computed(() => ({
-  gridTemplateColumns: viewportWidth.value < 768 ? '1fr' : `${isCollapsed.value ? 72 : 236}px minmax(0, 1fr)`
+  gridTemplateColumns: viewportWidth.value < 768 ? '1fr' : `${isCollapsed.value ? 78 : 252}px minmax(0, 1fr)`
 }))
 
 const parseSafe = (value, fallback) => {
@@ -410,6 +442,23 @@ const markAnnouncementAsRead = (id) => {
 
 const syncNotificationCount = () => {
   notificationCount.value = latestAnnouncements.value.filter((item) => !isAnnouncementRead(item.id)).length
+}
+
+const getTypeLabel = (type) => {
+  const map = {
+    SYSTEM: '系统',
+    NOTICE: '通知',
+    ALERT: '提醒'
+  }
+  return map[type] || type || '公告'
+}
+
+const getPriorityLabel = (priority) => {
+  const value = Number(priority)
+  if (Number.isNaN(value)) return '常规'
+  if (value >= 8) return '高优先'
+  if (value >= 5) return '中优先'
+  return '常规'
 }
 
 const fetchNotificationSummary = async ({ force = false } = {}) => {
@@ -522,13 +571,206 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.layout-shell {
+  background:
+    radial-gradient(circle at 8% -6%, color-mix(in srgb, var(--accent-500) 16%, transparent), transparent 45%),
+    radial-gradient(circle at 96% 2%, color-mix(in srgb, var(--accent-500) 10%, transparent), transparent 52%),
+    var(--bg-base);
+}
+
+.layout-sidebar,
+.layout-header,
+.notice-popover,
+.user-popover {
+  border-color: color-mix(in srgb, var(--panel-border) 84%, transparent);
+  background: var(--panel-glass);
+  backdrop-filter: blur(12px) saturate(130%);
+}
+
+:root[data-theme='dark'] .layout-sidebar,
+:root[data-theme='dark'] .layout-header,
+:root[data-theme='dark'] .notice-popover,
+:root[data-theme='dark'] .user-popover {
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
+.layout-sidebar,
+.layout-header {
+  box-shadow: var(--shadow-soft);
+}
+
+.brand-mark {
+  border: 1px solid color-mix(in srgb, var(--accent-500) 32%, var(--panel-border));
+  background: color-mix(in srgb, var(--surface-base) 84%, transparent);
+}
+
+.menu-group-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  color: color-mix(in srgb, var(--text-primary) 88%, var(--text-secondary));
+}
+
+.menu-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0 10px;
+  color: var(--text-secondary);
+  transition: all 180ms ease;
+}
+
+.menu-link:hover {
+  background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
+  color: var(--text-primary);
+}
+
+.menu-link.is-active {
+  border-color: color-mix(in srgb, var(--accent-500) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-500) 16%, var(--surface-elevated));
+  color: color-mix(in srgb, var(--text-primary) 85%, var(--accent-700));
+}
+
+.menu-link.is-danger {
+  color: var(--danger);
+}
+
+.menu-link.is-danger:hover {
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.menu-rail {
+  position: absolute;
+  left: 3px;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  border-radius: 999px;
+  background: transparent;
+  transition: background-color 180ms ease;
+}
+
+.menu-link.is-active .menu-rail {
+  background: linear-gradient(180deg, var(--accent-500), var(--accent-700));
+}
+
+.menu-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.layout-header {
+  border-color: color-mix(in srgb, var(--panel-border) 84%, transparent);
+}
+
+.header-zone {
+  min-height: 40px;
+}
+
+.header-ctl-btn,
+.header-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+  color: var(--text-secondary);
+  padding: 0 10px;
+  transition: all 180ms ease;
+}
+
+.header-ctl-btn {
+  width: 34px;
+  padding: 0;
+}
+
+.header-ctl-btn:hover,
+.header-chip:hover {
+  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  color: var(--text-primary);
+}
+
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 78%, transparent);
+  padding: 2px;
+}
+
+.theme-switch-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: all 180ms ease;
+}
+
+.theme-switch-item:hover {
+  color: var(--text-primary);
+}
+
+.theme-switch-item.is-active {
+  border-color: color-mix(in srgb, var(--accent-500) 28%, transparent);
+  background: color-mix(in srgb, var(--accent-500) 15%, transparent);
+  color: var(--accent-700);
+}
+
+.notice-count {
+  background: linear-gradient(140deg, var(--accent-600), var(--accent-700));
+}
+
+.notice-popover,
+.user-popover {
+  border: 1px solid color-mix(in srgb, var(--panel-border) 86%, transparent);
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: var(--shadow-panel);
+}
+
+.notice-card {
+  border: 1px solid color-mix(in srgb, var(--panel-border) 62%, transparent);
+  border-radius: 10px;
+  padding: 8px;
+  background: color-mix(in srgb, var(--surface-base) 68%, transparent);
+  transition: all 180ms ease;
+}
+
+.notice-card:hover {
+  border-color: color-mix(in srgb, var(--accent-500) 28%, transparent);
+  background: color-mix(in srgb, var(--surface-elevated) 86%, transparent);
+}
+
 .menu-item {
   width: 100%;
-  border-radius: 6px;
-  padding: 6px 8px;
+  border-radius: 8px;
+  padding: 7px 8px;
   text-align: left;
-  font-size: 14px;
-  color: #475569;
+  font-size: 13px;
+  color: var(--text-secondary);
   transition: all 180ms ease;
 }
 
@@ -539,18 +781,19 @@ onUnmounted(() => {
 }
 
 .menu-divider {
-  margin: 4px 0;
-  border-top: 1px solid #e2e8f0;
+  margin: 5px 0;
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 76%, transparent);
 }
 
 .menu-item:hover {
-  background: #f1f5f9;
-  color: #1e2938;
+  background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
+  color: var(--text-primary);
 }
 
-.glass-lite {
-  background: rgba(252, 253, 254, 0.66);
-  border-color: rgba(226, 232, 240, 0.74);
-  backdrop-filter: blur(14px) saturate(138%);
+@media (max-width: 1279px) {
+  .layout-header {
+    gap: 8px;
+  }
 }
 </style>
+

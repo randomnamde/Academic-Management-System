@@ -7,7 +7,9 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background: var(--color-surface);
+  background: radial-gradient(circle at 5% -10%, rgba(29, 155, 199, 0.08), transparent 42%), var(--bg-base);
+  color: var(--text-primary);
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -16,3 +18,4 @@ select,
 textarea {
   font: inherit;
 }
+

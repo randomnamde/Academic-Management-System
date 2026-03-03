@@ -1,34 +1,51 @@
 ﻿<template>
-  <div class="min-h-screen bg-neutralx-50 px-4 py-10 md:px-6">
-    <div class="mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-[1.1fr,0.9fr]">
-      <section class="app-panel p-6">
-        <p class="text-[12px] uppercase tracking-[0.08em] text-slatex-500">教务管理</p>
-        <h1 class="mt-2 text-[30px] font-semibold tracking-tight text-primary-900">学生管理系统</h1>
-        <p class="mt-2 text-[13px] text-slatex-600">统一处理学生、课程、成绩、考勤与权限管理任务。</p>
+  <div class="login-page min-h-screen px-4 py-8 md:px-6 md:py-10">
+    <div class="mx-auto grid w-full max-w-6xl gap-4 lg:grid-cols-[1.06fr,0.94fr]">
+      <section class="brand-panel app-surface-glass rounded-lg border p-6 md:p-8">
+        <p class="brand-kicker">教育运营中枢</p>
+        <h1 class="brand-title mt-2">学生管理系统</h1>
+        <p class="brand-desc mt-3">
+          以数据为核心，统一处理学生、课程、成绩、考勤、请假与权限流程，提升教学协同效率与决策质量。
+        </p>
 
-        <div class="mt-5 grid gap-2 sm:grid-cols-3">
-          <article class="rounded-sm border border-neutralx-200 bg-white p-3">
-            <p class="text-[11px] text-slatex-500">节点状态</p>
-            <strong class="mt-1 block text-[16px] text-primary-900">{{ runtimeMetrics.nodeStatus }}</strong>
+        <div class="mt-6 grid gap-3 sm:grid-cols-3">
+          <article class="value-card">
+            <p class="value-title">全链路可视</p>
+            <p class="value-desc">从课堂到成绩，关键节点可追踪可回溯。</p>
           </article>
-          <article class="rounded-sm border border-neutralx-200 bg-white p-3">
-            <p class="text-[11px] text-slatex-500">并发网关</p>
-            <strong class="mt-1 block text-[16px] text-primary-900">{{ runtimeMetrics.gatewayConcurrency }}</strong>
+          <article class="value-card">
+            <p class="value-title">角色协同</p>
+            <p class="value-desc">管理员、教师、学生按权限高效协作。</p>
           </article>
-          <article class="rounded-sm border border-neutralx-200 bg-white p-3">
-            <p class="text-[11px] text-slatex-500">同步延迟</p>
-            <strong class="mt-1 block text-[16px] text-primary-900">{{ runtimeMetrics.syncDelayMs }}</strong>
+          <article class="value-card">
+            <p class="value-title">风险预警</p>
+            <p class="value-desc">低分与异常考勤自动聚合，减少遗漏。</p>
+          </article>
+        </div>
+
+        <div class="metric-strip mt-6 grid gap-2 sm:grid-cols-3">
+          <article class="metric-item">
+            <p>节点状态</p>
+            <strong>{{ runtimeMetrics.nodeStatus }}</strong>
+          </article>
+          <article class="metric-item">
+            <p>并发网关</p>
+            <strong>{{ runtimeMetrics.gatewayConcurrency }}</strong>
+          </article>
+          <article class="metric-item">
+            <p>同步延迟</p>
+            <strong>{{ runtimeMetrics.syncDelayMs }}</strong>
           </article>
         </div>
       </section>
 
-      <section class="app-panel p-5 md:p-6">
+      <section class="auth-panel app-surface-glass rounded-lg border p-5 md:p-6">
         <header class="mb-4 text-center">
-          <div class="mx-auto mb-2 inline-flex h-10 w-10 items-center justify-center rounded-sm border border-neutralx-200 bg-white text-primary-800">
+          <div class="auth-mark mx-auto mb-2 inline-flex h-11 w-11 items-center justify-center rounded-md">
             <School class="h-5 w-5" />
           </div>
           <h2 class="text-[22px] font-semibold tracking-tight text-primary-900">身份验证</h2>
-          <p class="mt-1 text-[12px] text-slatex-500">学生管理平台</p>
+          <p class="mt-1 text-[13px] text-slatex-500">欢迎回来，请登录你的账户</p>
         </header>
 
         <AppTabs v-model="activeTab" :items="tabs" id-prefix="auth" aria-label="登录注册切换" />
@@ -49,7 +66,7 @@
             <label for="login-password" class="mb-1 block text-[13px] font-medium text-slatex-700">密码</label>
             <AppInput id="login-password" v-model="loginForm.password" name="password" type="password" autocomplete="current-password" placeholder="请输入密码" />
           </div>
-          <AppButton block :loading="loading" native-type="submit">登录</AppButton>
+          <AppButton tone="accent" block :loading="loading" native-type="submit">登录系统</AppButton>
         </form>
 
         <form
@@ -100,7 +117,7 @@
             <label for="register-role" class="mb-1 block text-[13px] font-medium text-slatex-700">角色</label>
             <AppSelect id="register-role" v-model="registerForm.role" name="role" :options="[{ label: '学生', value: 'STUDENT' }]" />
           </div>
-          <AppButton variant="secondary" block :loading="loading" native-type="submit">注册</AppButton>
+          <AppButton tone="neutral" variant="primary" block :loading="loading" native-type="submit">完成注册</AppButton>
         </form>
 
         <footer class="mt-5 border-t border-neutralx-200 pt-3 text-center text-[11px] text-slatex-500">
@@ -265,4 +282,111 @@ onBeforeUnmount(() => {
   runtimeMetricsTimer = null
 })
 </script>
+
+<style scoped>
+.login-page {
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--accent-500) 15%, transparent), transparent 36%),
+    radial-gradient(circle at 100% -4%, color-mix(in srgb, var(--accent-600) 16%, transparent), transparent 40%),
+    linear-gradient(140deg, color-mix(in srgb, var(--bg-elevated) 92%, transparent), var(--bg-base));
+}
+
+.brand-panel,
+.auth-panel {
+  border-color: color-mix(in srgb, var(--panel-border) 82%, transparent);
+  box-shadow: var(--shadow-panel);
+}
+
+.brand-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--surface-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--surface-grid-line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at 25% 15%, black 32%, transparent 78%);
+}
+
+.brand-kicker {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-700);
+  font-weight: 600;
+}
+
+.brand-title {
+  font-size: 30px;
+  line-height: 1.12;
+  color: var(--text-primary);
+}
+
+.brand-desc {
+  max-width: 52ch;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.value-card {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 80%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 74%, transparent);
+  padding: 12px;
+  min-height: 100%;
+}
+
+.value-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.value-desc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.metric-strip {
+  position: relative;
+  z-index: 1;
+}
+
+.metric-item {
+  border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.metric-item p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.metric-item strong {
+  margin-top: 6px;
+  display: block;
+  font-size: 18px;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.auth-mark {
+  border: 1px solid color-mix(in srgb, var(--accent-500) 32%, transparent);
+  background: color-mix(in srgb, var(--accent-500) 14%, transparent);
+  color: var(--accent-700);
+}
+</style>
 

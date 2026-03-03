@@ -1,44 +1,46 @@
 ﻿<template>
-  <div class="app-page space-y-3">
-    <AppCard content-class="p-4">
-      <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p class="text-[12px] uppercase tracking-[0.08em] text-slatex-500">教务总览</p>
-          <h2 class="mt-1 text-[22px] font-semibold tracking-tight text-primary-900">{{ dashboardTitle }}</h2>
-          <p class="mt-1 text-[13px] text-slatex-600">{{ dashboardDesc }}</p>
-        </div>
-        <div class="grid min-w-[280px] grid-cols-3 gap-2">
-          <div class="kpi-chip">
-            <span>待处理审批</span>
-            <strong>{{ operationOverview.pendingApprovalCount }}</strong>
-          </div>
-          <div class="kpi-chip">
-            <span>异常考勤</span>
-            <strong>{{ operationOverview.abnormalTodayCount }}</strong>
-          </div>
-          <div class="kpi-chip">
-            <span>低分预警</span>
-            <strong>{{ operationOverview.lowScoreWarningCount }}</strong>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-3 grid gap-2 md:grid-cols-4">
-        <button
-          v-for="item in metricCards"
-          :key="item.key"
-          class="metric-item"
-          :class="{ 'opacity-55 cursor-not-allowed': item.disabled }"
-          :disabled="item.disabled"
-          @click="handleMetricClick(item.key)"
-        >
-          <div class="text-[12px] text-slatex-500">{{ item.label }}</div>
-          <div class="mt-1 text-[22px] font-semibold tracking-tight text-primary-900">{{ item.value }}</div>
-        </button>
-      </div>
-    </AppCard>
-
+  <div class="app-page dashboard-page space-y-3">
     <section class="grid gap-3 xl:grid-cols-12">
+      <AppCard class="hero-card xl:col-span-8" surface="glass" content-class="p-4">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p class="text-[12px] uppercase tracking-[0.09em] text-slatex-500">教务总览</p>
+            <h2 class="mt-1 text-[30px] font-semibold tracking-tight text-primary-900">{{ dashboardTitle }}</h2>
+            <p class="mt-2 text-[15px] text-slatex-600">{{ dashboardDesc }}</p>
+          </div>
+          <div class="hero-summary grid min-w-[280px] grid-cols-3 gap-2">
+            <div class="kpi-chip">
+              <span>待处理审批</span>
+              <strong>{{ operationOverview.pendingApprovalCount }}</strong>
+            </div>
+            <div class="kpi-chip">
+              <span>异常考勤</span>
+              <strong>{{ operationOverview.abnormalTodayCount }}</strong>
+            </div>
+            <div class="kpi-chip">
+              <span>低分预警</span>
+              <strong>{{ operationOverview.lowScoreWarningCount }}</strong>
+            </div>
+          </div>
+        </div>
+      </AppCard>
+
+      <AppCard class="cluster-card xl:col-span-4" title="关键指标簇" surface="elevated" content-class="p-3">
+        <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+          <button
+            v-for="item in metricCards"
+            :key="item.key"
+            class="metric-item"
+            :class="{ 'opacity-55 cursor-not-allowed': item.disabled }"
+            :disabled="item.disabled"
+            @click="handleMetricClick(item.key)"
+          >
+            <div class="text-[12px] text-slatex-500">{{ item.label }}</div>
+            <div class="mt-1 text-[22px] font-semibold tracking-tight text-primary-900">{{ item.value }}</div>
+          </button>
+        </div>
+      </AppCard>
+
       <AppCard v-if="!isStudent" class="xl:col-span-4" title="学生性别分布" content-class="p-3">
         <div ref="genderChartRef" class="chart-canvas"></div>
       </AppCard>
@@ -68,7 +70,7 @@
         </div>
       </AppCard>
 
-      <AppCard :class="isStudent ? 'xl:col-span-4' : 'xl:col-span-4'" title="运营事项" content-class="p-3">
+      <AppCard class="xl:col-span-4" title="运营事项" content-class="p-3">
         <div class="space-y-2">
           <button class="ops-item" @click="goAnalytics({ riskType: 'approval_overdue' })">
             <span>待处理审批</span>
@@ -89,7 +91,7 @@
         <div ref="trendChartRef" class="chart-canvas"></div>
       </AppCard>
 
-      <AppCard class="xl:col-span-4" title="最新公告" content-class="p-3">
+      <AppCard class="xl:col-span-4" title="最新公告" surface="base" content-class="p-3">
         <template #header>
           <AppButton variant="text" size="sm" @click="$router.push('/announcement')">查看更多</AppButton>
         </template>
@@ -98,7 +100,7 @@
           <button
             v-for="item in announcements"
             :key="item.id"
-            class="w-full rounded-sm border border-transparent px-2 py-1.5 text-left text-[13px] text-slatex-700 hover:border-neutralx-200 hover:bg-neutralx-100"
+            class="announcement-item w-full text-left"
             @click="openAnnouncementDetail(item)"
           >
             <div class="truncate">{{ item.title }}</div>
@@ -107,7 +109,7 @@
         </div>
       </AppCard>
 
-      <AppCard class="xl:col-span-12" title="待办事项" content-class="p-3">
+      <AppCard class="xl:col-span-12" title="待办事项" surface="glass" content-class="p-3">
         <template #header>
           <AppButton variant="ghost" size="sm" :loading="todoLoading" @click="refreshTodos">刷新</AppButton>
         </template>
@@ -131,7 +133,7 @@
               <div
                 v-for="item in todoList"
                 :key="item.id"
-                class="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-neutralx-200 px-2 py-2"
+                class="todo-item flex flex-wrap items-center justify-between gap-2 rounded-sm border px-2 py-2"
                 :class="item.completed ? 'opacity-60' : ''"
               >
                 <div class="flex min-w-0 flex-1 items-start gap-2">
@@ -171,7 +173,6 @@
     </AppModal>
   </div>
 </template>
-
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -202,6 +203,7 @@ const trendChartRef = ref(null)
 let genderChartInstance = null
 let courseChartInstance = null
 let trendChartInstance = null
+let themeObserver = null
 
 const statistics = ref({
   studentCount: 0,
@@ -339,31 +341,38 @@ const loadTodoState = () => {
   completedTodoIds.value = Array.isArray(cachedCompleted) ? cachedCompleted : []
 }
 
-const chartTheme = {
+const readCssVar = (name, fallback) => {
+  if (typeof window === 'undefined') return fallback
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return value || fallback
+}
+
+const getChartTheme = () => ({
   fontFamily: "'IBM Plex Sans','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif",
-  text: '#334155',
-  axis: '#64748B',
+  text: readCssVar('--text-primary', '#334155'),
+  axis: readCssVar('--text-secondary', '#64748B'),
   grid: 'rgba(148, 163, 184, 0.22)',
-  border: '#E2E8F0',
-  tooltipBg: 'rgba(252, 253, 254, 0.96)',
-  primary: '#163454',
-  primarySoft: '#2A527A',
-  secondary: '#64748B'
-}
+  border: readCssVar('--panel-border', '#E2E8F0'),
+  tooltipBg: readCssVar('--surface-popover', 'rgba(252, 253, 254, 0.96)'),
+  primary: readCssVar('--accent-700', '#163454'),
+  primarySoft: readCssVar('--accent-600', '#2A527A'),
+  secondary: readCssVar('--accent-500', '#64748B'),
+  canvasEdge: readCssVar('--surface-base', '#FFFFFF')
+})
 
-const baseAxisLabel = {
-  color: chartTheme.axis,
+const buildAxisLabel = (theme) => ({
+  color: theme.axis,
   fontSize: 11,
-  fontFamily: chartTheme.fontFamily
-}
+  fontFamily: theme.fontFamily
+})
 
-const baseTooltip = {
-  backgroundColor: chartTheme.tooltipBg,
-  borderColor: chartTheme.border,
+const buildTooltip = (theme) => ({
+  backgroundColor: theme.tooltipBg,
+  borderColor: theme.border,
   borderWidth: 1,
-  textStyle: { color: chartTheme.text, fontSize: 12, fontFamily: chartTheme.fontFamily },
-  extraCssText: 'box-shadow:0 1px 2px rgba(15,23,42,.08);border-radius:6px;'
-}
+  textStyle: { color: theme.text, fontSize: 12, fontFamily: theme.fontFamily },
+  extraCssText: 'box-shadow:0 8px 24px rgba(15,23,42,.12);border-radius:10px;'
+})
 
 const saveCustomTodos = () => {
   localStorage.setItem(buildTodoStorageKey('custom'), JSON.stringify(customTodos.value))
@@ -510,11 +519,13 @@ const refreshTodos = async () => {
 
 const renderGenderChart = () => {
   if (!genderChartInstance || isStudent.value) return
+  const theme = getChartTheme()
+  const baseTooltip = buildTooltip(theme)
   const male = Number(genderStatistics.value.male || 0)
   const female = Number(genderStatistics.value.female || 0)
   const total = male + female
   genderChartInstance.setOption({
-    color: [chartTheme.primary, chartTheme.secondary],
+    color: [theme.primary, theme.secondary],
     tooltip: { ...baseTooltip, trigger: 'item' },
     title: {
       text: String(total),
@@ -522,16 +533,16 @@ const renderGenderChart = () => {
       left: 'center',
       top: '40%',
       textStyle: {
-        color: '#0F2742',
+        color: theme.text,
         fontSize: 22,
         fontWeight: 700,
-        fontFamily: chartTheme.fontFamily
+        fontFamily: theme.fontFamily
       },
       subtextStyle: {
-        color: chartTheme.axis,
+        color: theme.axis,
         fontSize: 11,
         fontWeight: 500,
-        fontFamily: chartTheme.fontFamily
+        fontFamily: theme.fontFamily
       }
     },
     legend: {
@@ -539,7 +550,7 @@ const renderGenderChart = () => {
       icon: 'circle',
       itemWidth: 8,
       itemHeight: 8,
-      textStyle: { color: chartTheme.axis, fontSize: 11, fontFamily: chartTheme.fontFamily }
+      textStyle: { color: theme.axis, fontSize: 11, fontFamily: theme.fontFamily }
     },
     series: [
       {
@@ -548,7 +559,7 @@ const renderGenderChart = () => {
         center: ['50%', '42%'],
         label: { show: false },
         labelLine: { show: false },
-        itemStyle: { borderColor: '#FCFDFE', borderWidth: 2 },
+        itemStyle: { borderColor: theme.canvasEdge, borderWidth: 2 },
         data: [
           { value: male, name: '男生' },
           { value: female, name: '女生' }
@@ -560,13 +571,16 @@ const renderGenderChart = () => {
 
 const renderCourseChart = () => {
   if (!courseChartInstance || isStudent.value) return
+  const theme = getChartTheme()
+  const baseTooltip = buildTooltip(theme)
+  const baseAxisLabel = buildAxisLabel(theme)
   const values = [
     Number(courseCategoryStatistics.value.required || 0),
     Number(courseCategoryStatistics.value.elective || 0),
     Number(courseCategoryStatistics.value.practical || 0)
   ]
   courseChartInstance.setOption({
-    color: [chartTheme.primarySoft],
+    color: [theme.primarySoft],
     tooltip: {
       ...baseTooltip,
       trigger: 'axis',
@@ -578,7 +592,7 @@ const renderCourseChart = () => {
       data: ['必修', '选修', '实践'],
       axisLabel: baseAxisLabel,
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: chartTheme.border } }
+      axisLine: { lineStyle: { color: theme.border } }
     },
     yAxis: {
       type: 'value',
@@ -586,13 +600,13 @@ const renderCourseChart = () => {
       axisLabel: baseAxisLabel,
       axisTick: { show: false },
       axisLine: { show: false },
-      splitLine: { lineStyle: { color: chartTheme.grid } }
+      splitLine: { lineStyle: { color: theme.grid } }
     },
     series: [
       {
         type: 'bar',
         barWidth: 26,
-        itemStyle: { color: '#1E4266', borderRadius: [3, 3, 0, 0] },
+        itemStyle: { color: theme.primarySoft, borderRadius: [3, 3, 0, 0] },
         data: values
       }
     ]
@@ -601,9 +615,12 @@ const renderCourseChart = () => {
 
 const renderTrendChart = () => {
   if (!trendChartInstance) return
+  const theme = getChartTheme()
+  const baseTooltip = buildTooltip(theme)
+  const baseAxisLabel = buildAxisLabel(theme)
   const trend = Array.isArray(operationOverview.value.abnormalTrend) ? operationOverview.value.abnormalTrend : []
   trendChartInstance.setOption({
-    color: [chartTheme.primary],
+    color: [theme.primary],
     tooltip: { ...baseTooltip, trigger: 'axis' },
     grid: { top: 18, left: 34, right: 14, bottom: 26 },
     xAxis: {
@@ -611,7 +628,7 @@ const renderTrendChart = () => {
       data: trend.map((item) => item.date || ''),
       axisLabel: baseAxisLabel,
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: chartTheme.border } }
+      axisLine: { lineStyle: { color: theme.border } }
     },
     yAxis: {
       type: 'value',
@@ -619,7 +636,7 @@ const renderTrendChart = () => {
       axisLabel: baseAxisLabel,
       axisTick: { show: false },
       axisLine: { show: false },
-      splitLine: { lineStyle: { color: chartTheme.grid } }
+      splitLine: { lineStyle: { color: theme.grid } }
     },
     series: [
       {
@@ -628,8 +645,8 @@ const renderTrendChart = () => {
         smooth: true,
         showSymbol: true,
         symbolSize: 6,
-        lineStyle: { color: '#163454', width: 2.25 },
-        itemStyle: { color: '#163454', borderColor: '#FFFFFF', borderWidth: 1 },
+        lineStyle: { color: theme.primary, width: 2.25 },
+        itemStyle: { color: theme.primary, borderColor: theme.canvasEdge, borderWidth: 1 },
         areaStyle: { color: 'rgba(22, 52, 84, 0.08)' },
         data: trend.map((item) => Number(item.count || 0))
       }
@@ -755,10 +772,18 @@ onMounted(() => {
   fetchLatestAnnouncements()
   refreshTodos()
   initCharts()
+  themeObserver = new MutationObserver(() => {
+    renderGenderChart()
+    renderCourseChart()
+    renderTrendChart()
+  })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleChartResize)
+  themeObserver?.disconnect()
+  themeObserver = null
   genderChartInstance?.dispose()
   courseChartInstance?.dispose()
   trendChartInstance?.dispose()
@@ -769,11 +794,17 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.hero-card {
+  background:
+    radial-gradient(circle at 5% -22%, color-mix(in srgb, var(--accent-500) 16%, transparent), transparent 46%),
+    var(--panel-glass);
+}
+
 .kpi-chip {
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background: #ffffff;
-  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -781,27 +812,29 @@ onBeforeUnmount(() => {
 
 .kpi-chip span {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .kpi-chip strong {
-  font-size: 18px;
+  font-size: 22px;
   line-height: 1;
-  color: #0f2742;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .metric-item {
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background: #fff;
-  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+  padding: 12px;
   text-align: left;
   transition: all 180ms ease;
 }
 
 .metric-item:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: color-mix(in srgb, var(--surface-elevated) 90%, transparent);
+  border-color: color-mix(in srgb, var(--accent-500) 28%, transparent);
+  transform: translateY(-1px);
 }
 
 .chart-canvas {
@@ -809,15 +842,15 @@ onBeforeUnmount(() => {
 }
 
 .mini-card {
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 80%, transparent);
+  border-radius: 12px;
   padding: 10px;
-  background: #fff;
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
 }
 
 .mini-card span {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .mini-card strong {
@@ -825,7 +858,7 @@ onBeforeUnmount(() => {
   margin-top: 4px;
   font-size: 20px;
   line-height: 1;
-  color: #0f2742;
+  color: var(--text-primary);
 }
 
 .ops-item {
@@ -833,22 +866,44 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+  border-radius: 12px;
   padding: 10px;
-  background: #fff;
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
   font-size: 13px;
-  color: #334155;
+  color: var(--text-secondary);
   transition: all 180ms ease;
 }
 
 .ops-item:hover {
-  border-color: #cbd5e1;
-  background: #f8fafc;
+  border-color: color-mix(in srgb, var(--accent-500) 28%, transparent);
+  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
 }
 
 .ops-item strong {
-  color: #0f2742;
+  color: var(--text-primary);
   font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.announcement-item {
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 8px;
+  color: var(--text-secondary);
+  transition: all 180ms ease;
+}
+
+.announcement-item:hover {
+  border-color: color-mix(in srgb, var(--accent-500) 24%, transparent);
+  background: color-mix(in srgb, var(--surface-elevated) 90%, transparent);
+  color: var(--text-primary);
+}
+
+.todo-item {
+  border-color: color-mix(in srgb, var(--panel-border) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 84%, transparent);
 }
 </style>
+
+

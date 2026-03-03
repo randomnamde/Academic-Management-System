@@ -1,23 +1,128 @@
-﻿:root {
-  --color-primary-900: #0f2742;
-  --color-primary-800: #163454;
-  --color-primary-700: #1e4266;
-  --color-primary-600: #2a527a;
-  --color-slate-900: #1e2938;
-  --color-slate-700: #334155;
-  --color-slate-600: #475569;
-  --color-slate-500: #64748b;
-  --color-neutral-200: #e2e8f0;
-  --color-neutral-100: #f1f5f9;
-  --color-surface: #f8fafc;
-  --color-panel: #fcfdfe;
-  --color-info: #2563eb;
-  --color-success: #15803d;
-  --color-warn: #b45309;
-  --color-danger: #b91c1c;
+﻿:root,
+:root[data-theme='light'] {
+  --bg-base: #f4f8fb;
+  --bg-elevated: #eef4f8;
+  --panel-glass: rgba(255, 255, 255, 0.72);
+  --panel-border: rgba(147, 197, 223, 0.35);
+  --text-primary: #123247;
+  --text-secondary: #456176;
+  --accent-500: #1d9bc7;
+  --accent-600: #1385ae;
+  --accent-700: #0e6d90;
+  --success: #18a06f;
+  --warn: #c9831e;
+  --danger: #c43d4b;
+
+  --surface-base: #ffffff;
+  --surface-elevated: #f6fbff;
+  --surface-popover: rgba(255, 255, 255, 0.84);
+  --surface-grid-line: rgba(43, 96, 129, 0.06);
+
+  --shadow-soft: 0 8px 24px rgba(26, 66, 92, 0.07);
+  --shadow-panel: 0 16px 44px rgba(15, 48, 72, 0.12);
+  --shadow-overlay: 0 22px 56px rgba(11, 34, 51, 0.2);
+
+  --color-white: #ffffff;
+  --color-black: #0d1117;
+  --color-primary-900: #123247;
+  --color-primary-800: #164560;
+  --color-primary-700: #1f5a79;
+  --color-primary-600: #2a7396;
+  --color-slate-900: #123247;
+  --color-slate-700: #294a60;
+  --color-slate-600: #456176;
+  --color-slate-500: #6a879b;
+  --color-neutral-200: #cfddea;
+  --color-neutral-100: #e8f1f7;
+  --color-surface: var(--bg-base);
+  --color-panel: var(--surface-base);
+  --color-info: #1d9bc7;
+  --color-success: var(--success);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+
+  --el-bg-color: var(--surface-base);
+  --el-bg-color-page: var(--bg-base);
+  --el-fill-color-blank: var(--surface-base);
+  --el-fill-color-light: color-mix(in srgb, var(--surface-elevated) 84%, transparent);
+  --el-fill-color-lighter: color-mix(in srgb, var(--surface-elevated) 64%, transparent);
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: var(--text-secondary);
+  --el-text-color-secondary: var(--color-slate-500);
+  --el-border-color: color-mix(in srgb, var(--panel-border) 92%, transparent);
+  --el-border-color-light: color-mix(in srgb, var(--panel-border) 74%, transparent);
+  --el-mask-color: color-mix(in srgb, var(--color-black) 36%, transparent);
+  --el-table-bg-color: color-mix(in srgb, var(--surface-base) 90%, transparent);
+  --el-table-tr-bg-color: color-mix(in srgb, var(--surface-base) 88%, transparent);
+  --el-table-header-bg-color: color-mix(in srgb, var(--surface-elevated) 78%, transparent);
+  --el-table-row-hover-bg-color: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  --el-table-border-color: color-mix(in srgb, var(--panel-border) 88%, transparent);
 
   --font-sans: 'IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  --radius-control: 6px;
-  --radius-panel: 8px;
+  --font-display: 'IBM Plex Serif', 'Noto Serif SC', 'Songti SC', serif;
+  --radius-control: 8px;
+  --radius-panel: 14px;
+  --radius-pop: 18px;
   --motion-standard: 180ms ease;
 }
+
+:root[data-theme='dark'] {
+  --bg-base: #0e1721;
+  --bg-elevated: #132131;
+  --panel-glass: rgba(18, 31, 45, 0.72);
+  --panel-border: rgba(74, 118, 149, 0.42);
+  --text-primary: #e6f0f7;
+  --text-secondary: #a9c0d3;
+  --accent-500: #36b6e2;
+  --accent-600: #23a1cf;
+  --accent-700: #1988af;
+  --success: #2bc98a;
+  --warn: #e5a23a;
+  --danger: #e56a76;
+
+  --surface-base: #152537;
+  --surface-elevated: #1a2d43;
+  --surface-popover: rgba(22, 35, 49, 0.88);
+  --surface-grid-line: rgba(114, 164, 196, 0.11);
+
+  --shadow-soft: 0 10px 28px rgba(4, 10, 15, 0.32);
+  --shadow-panel: 0 20px 46px rgba(3, 8, 12, 0.45);
+  --shadow-overlay: 0 26px 60px rgba(2, 6, 10, 0.56);
+
+  --color-white: #e6f0f7;
+  --color-black: #0b1118;
+  --color-primary-900: #d7ebf7;
+  --color-primary-800: #b9d8eb;
+  --color-primary-700: #86bedf;
+  --color-primary-600: #4ea7d4;
+  --color-slate-900: #e6f0f7;
+  --color-slate-700: #c6d9e7;
+  --color-slate-600: #a9c0d3;
+  --color-slate-500: #89a8bf;
+  --color-neutral-200: #294359;
+  --color-neutral-100: #20354a;
+  --color-surface: var(--bg-base);
+  --color-panel: var(--surface-base);
+  --color-info: var(--accent-500);
+  --color-success: var(--success);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+
+  --el-bg-color: color-mix(in srgb, var(--surface-base) 88%, transparent);
+  --el-bg-color-page: var(--bg-base);
+  --el-fill-color-blank: color-mix(in srgb, var(--surface-base) 90%, transparent);
+  --el-fill-color-light: color-mix(in srgb, var(--surface-elevated) 86%, transparent);
+  --el-fill-color-lighter: color-mix(in srgb, var(--surface-elevated) 66%, transparent);
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: var(--text-secondary);
+  --el-text-color-secondary: var(--color-slate-500);
+  --el-border-color: color-mix(in srgb, var(--panel-border) 92%, transparent);
+  --el-border-color-light: color-mix(in srgb, var(--panel-border) 74%, transparent);
+  --el-mask-color: color-mix(in srgb, var(--color-black) 46%, transparent);
+  --el-table-bg-color: color-mix(in srgb, var(--surface-base) 92%, transparent);
+  --el-table-tr-bg-color: color-mix(in srgb, var(--surface-base) 90%, transparent);
+  --el-table-header-bg-color: color-mix(in srgb, var(--surface-elevated) 78%, transparent);
+  --el-table-row-hover-bg-color: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+  --el-table-border-color: color-mix(in srgb, var(--panel-border) 88%, transparent);
+}
+

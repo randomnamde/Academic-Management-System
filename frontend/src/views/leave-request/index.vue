@@ -496,25 +496,25 @@ onMounted(() => {
 }
 
 :deep(.op-cell) {
-  background-color: var(--el-table-tr-bg-color, #ffffff) !important;
+  background-color: var(--el-table-tr-bg-color, color-mix(in srgb, var(--surface-base) 88%, transparent)) !important;
 }
 
 :deep(.el-table__fixed-right .op-cell) {
-  background-color: var(--el-table-tr-bg-color, #ffffff) !important;
+  background-color: var(--el-table-tr-bg-color, color-mix(in srgb, var(--surface-base) 88%, transparent)) !important;
 }
 
 :deep(.op-header-cell) {
-  background-color: var(--el-table-header-bg-color, #f1f5f9) !important;
-  color: #334155;
+  background-color: var(--el-table-header-bg-color, color-mix(in srgb, var(--surface-elevated) 78%, transparent)) !important;
+  color: var(--text-secondary);
 }
 
 :deep(.el-table__fixed-right .op-header-cell) {
-  background-color: var(--el-table-header-bg-color, #f1f5f9) !important;
-  color: #334155;
+  background-color: var(--el-table-header-bg-color, color-mix(in srgb, var(--surface-elevated) 78%, transparent)) !important;
+  color: var(--text-secondary);
 }
 
 :deep(.el-table__fixed-right-patch) {
-  background-color: var(--el-table-header-bg-color, #f1f5f9) !important;
+  background-color: var(--el-table-header-bg-color, color-mix(in srgb, var(--surface-elevated) 78%, transparent)) !important;
 }
 
 :deep(.op-actions .el-button + .el-button) {
@@ -525,9 +525,9 @@ onMounted(() => {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #334155;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 84%, transparent);
+  background: color-mix(in srgb, var(--surface-elevated) 84%, transparent);
+  color: var(--text-secondary);
   font-weight: 700;
 }
 </style>

@@ -265,12 +265,12 @@ watch(
   margin-top: 10px;
   font-size: 18px;
   font-weight: 700;
-  color: #17384a;
+  color: var(--text-primary);
 }
 
 .user-role {
   margin-top: 4px;
-  color: #68818d;
+  color: var(--text-secondary);
 }
 
 .avatar-upload-row {
@@ -291,6 +291,6 @@ watch(
 
 .avatar-tip {
   font-size: 12px;
-  color: #68818d;
+  color: var(--text-secondary);
 }
 </style>

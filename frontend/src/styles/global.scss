@@ -1,20 +1,20 @@
 ﻿:root {
-  --sms-font: 'IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  --sms-bg-surface: #f8fafc;
-  --sms-bg-panel: #fcfdfe;
-  --sms-text-primary: #1e2938;
-  --sms-text-secondary: #475569;
-  --sms-border: #e2e8f0;
-  --sms-primary-900: #0f2742;
-  --sms-primary-800: #163454;
-  --sms-primary-700: #1e4266;
-  --sms-info: #2563eb;
-  --sms-success: #15803d;
-  --sms-warn: #b45309;
-  --sms-danger: #b91c1c;
-  --sms-radius-control: 6px;
-  --sms-radius-panel: 8px;
-  --sms-motion: 180ms ease;
+  --sms-font: var(--font-sans);
+  --sms-bg-surface: var(--bg-base);
+  --sms-bg-panel: var(--surface-base);
+  --sms-text-primary: var(--text-primary);
+  --sms-text-secondary: var(--text-secondary);
+  --sms-border: var(--panel-border);
+  --sms-primary-900: var(--accent-700);
+  --sms-primary-800: var(--accent-600);
+  --sms-primary-700: var(--accent-500);
+  --sms-info: var(--accent-500);
+  --sms-success: var(--success);
+  --sms-warn: var(--warn);
+  --sms-danger: var(--danger);
+  --sms-radius-control: var(--radius-control);
+  --sms-radius-panel: var(--radius-panel);
+  --sms-motion: var(--motion-standard);
 }
 
 * {
@@ -48,23 +48,27 @@ a {
 
 ::-webkit-scrollbar-thumb {
   border-radius: 9999px;
-  background: #cbd5e1;
+  background: color-mix(in srgb, var(--text-secondary) 42%, transparent);
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: color-mix(in srgb, var(--bg-elevated) 65%, transparent);
 }
 
 .el-card {
   border-radius: var(--sms-radius-panel);
-  border: 1px solid var(--sms-border);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-  background: rgba(252, 253, 254, 0.72);
-  backdrop-filter: blur(10px) saturate(136%);
+  border: 1px solid color-mix(in srgb, var(--sms-border) 86%, transparent);
+  box-shadow: var(--shadow-soft);
+  background: var(--panel-glass);
+  backdrop-filter: blur(12px) saturate(130%);
+}
+
+:root[data-theme='dark'] .el-card {
+  backdrop-filter: blur(10px) saturate(120%);
 }
 
 .el-card__header {
-  border-bottom: 1px solid var(--sms-border);
+  border-bottom: 1px solid color-mix(in srgb, var(--sms-border) 78%, transparent);
   padding: 12px 14px;
 }
 
@@ -91,7 +95,8 @@ a {
 .el-textarea__inner,
 .el-input-number,
 .el-date-editor.el-input__wrapper {
-  border: 1px solid var(--sms-border);
+  border: 1px solid color-mix(in srgb, var(--sms-border) 90%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 86%, transparent);
 }
 
 .el-input__wrapper.is-focus,
@@ -100,7 +105,7 @@ a {
 .el-input-number.is-focus,
 .el-date-editor.el-input__wrapper.is-focus {
   border-color: var(--sms-primary-700);
-  box-shadow: 0 0 0 2px rgba(30, 66, 102, 0.12) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sms-primary-700) 24%, transparent) !important;
 }
 
 .el-button {
@@ -109,23 +114,24 @@ a {
 }
 
 .el-button--primary {
-  background: var(--sms-primary-800);
-  border-color: var(--sms-primary-800);
+  background: linear-gradient(145deg, var(--accent-500), var(--accent-600));
+  border-color: var(--accent-600);
 }
 
 .el-button--primary:hover {
-  background: var(--sms-primary-700);
-  border-color: var(--sms-primary-700);
+  background: linear-gradient(145deg, var(--accent-600), var(--accent-700));
+  border-color: var(--accent-700);
 }
 
 .el-table {
   border-radius: var(--sms-radius-control);
-  border: 1px solid var(--sms-border);
+  border: 1px solid color-mix(in srgb, var(--sms-border) 92%, transparent);
+  background: var(--el-table-bg-color);
 }
 
 .el-table th.el-table__cell {
-  background: #f1f5f9;
-  color: #334155;
+  background: var(--el-table-header-bg-color);
+  color: var(--sms-text-secondary);
   font-weight: 600;
   padding-top: 8px;
   padding-bottom: 8px;
@@ -137,46 +143,134 @@ a {
 }
 
 .el-table .el-table__row:hover > td.el-table__cell {
-  background: #f8fafc !important;
+  background: var(--el-table-row-hover-bg-color) !important;
+}
+
+.el-table,
+.el-table__inner-wrapper,
+.el-table__header-wrapper,
+.el-table__body-wrapper,
+.el-table__fixed,
+.el-table__fixed-right,
+.el-table__fixed-body-wrapper {
+  background: var(--el-table-bg-color);
+}
+
+.el-table td.el-table__cell {
+  background: var(--el-table-tr-bg-color);
+}
+
+.el-table__fixed::before,
+.el-table__fixed-right::before,
+.el-table__fixed-right-patch {
+  background-color: var(--el-table-border-color) !important;
+}
+
+.el-table--striped .el-table__body tr.el-table__row--striped td.el-table__cell {
+  background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
+}
+
+.el-loading-mask {
+  background-color: color-mix(in srgb, var(--surface-popover) 88%, transparent);
+  backdrop-filter: blur(8px) saturate(118%);
+}
+
+.el-loading-spinner .path {
+  stroke: var(--accent-500);
+}
+
+.el-loading-spinner .el-loading-text {
+  color: var(--text-secondary);
+}
+
+.el-skeleton__item {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--surface-elevated) 72%, transparent) 25%,
+    color-mix(in srgb, var(--surface-elevated) 92%, transparent) 37%,
+    color-mix(in srgb, var(--surface-elevated) 72%, transparent) 63%
+  );
+  background-size: 400% 100%;
+}
+
+.el-tabs__nav-wrap::after {
+  background-color: var(--el-border-color-light);
+}
+
+.el-tabs__item {
+  color: var(--text-secondary);
+}
+
+.el-tabs__item:hover,
+.el-tabs__item.is-active {
+  color: var(--accent-600);
+}
+
+.el-tabs__active-bar {
+  background-color: var(--accent-500);
+}
+
+.el-select-dropdown,
+.el-dropdown-menu,
+.el-picker-panel,
+.el-popper.is-light {
+  border-color: color-mix(in srgb, var(--panel-border) 84%, transparent);
+  background: var(--surface-popover);
+  backdrop-filter: blur(12px) saturate(126%);
+}
+
+.el-select-dropdown__item.hover,
+.el-select-dropdown__item:hover,
+.el-dropdown-menu__item:not(.is-disabled):hover {
+  background: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
+}
+
+.el-empty__description p {
+  color: var(--text-secondary);
+}
+
+.el-descriptions {
+  --el-descriptions-table-border: color-mix(in srgb, var(--panel-border) 78%, transparent);
 }
 
 .el-tag {
-  border-radius: 6px;
+  border-radius: 999px;
   font-weight: 500;
-  border-color: #dbe2ea;
+  border-color: color-mix(in srgb, var(--sms-border) 88%, transparent);
 }
 
 .el-tag.el-tag--success {
   color: var(--sms-success);
-  background: rgba(21, 128, 61, 0.08);
+  background: color-mix(in srgb, var(--sms-success) 12%, transparent);
 }
 
 .el-tag.el-tag--danger {
   color: var(--sms-danger);
-  background: rgba(185, 28, 28, 0.08);
+  background: color-mix(in srgb, var(--sms-danger) 12%, transparent);
 }
 
 .el-tag.el-tag--warning {
   color: var(--sms-warn);
-  background: rgba(180, 83, 9, 0.08);
+  background: color-mix(in srgb, var(--sms-warn) 12%, transparent);
 }
 
 .el-tag.el-tag--info {
-  color: #475569;
-  background: #f1f5f9;
+  color: var(--sms-text-secondary);
+  background: color-mix(in srgb, var(--surface-elevated) 76%, transparent);
 }
 
 .el-dialog {
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
-  background: rgba(255, 255, 255, 0.84);
-  backdrop-filter: blur(14px) saturate(138%);
+  border-radius: var(--radius-pop);
+  box-shadow: var(--shadow-overlay);
+  border: 1px solid color-mix(in srgb, var(--sms-border) 84%, transparent);
+  background: var(--surface-popover);
+  backdrop-filter: blur(14px) saturate(132%);
 }
 
 .el-dialog__header {
   margin-right: 0;
   padding: 14px 16px 10px;
-  border-bottom: 1px solid var(--sms-border);
+  border-bottom: 1px solid color-mix(in srgb, var(--sms-border) 80%, transparent);
 }
 
 .el-dialog__body {
@@ -185,7 +279,7 @@ a {
 
 .el-dialog__footer {
   padding: 10px 16px 14px;
-  border-top: 1px solid var(--sms-border);
+  border-top: 1px solid color-mix(in srgb, var(--sms-border) 80%, transparent);
 }
 
 .el-pagination {
@@ -198,9 +292,20 @@ a {
 }
 
 .page-placeholder {
-  border: 1px dashed var(--sms-border);
+  border: 1px dashed color-mix(in srgb, var(--sms-border) 84%, transparent);
   border-radius: var(--sms-radius-panel);
   padding: 12px;
-  background: #fff;
+  background: color-mix(in srgb, var(--surface-base) 90%, transparent);
   color: var(--sms-text-secondary);
 }
+
+.glass-lite {
+  background: var(--panel-glass);
+  border-color: var(--panel-border);
+  backdrop-filter: blur(12px) saturate(130%);
+}
+
+:root[data-theme='dark'] .glass-lite {
+  backdrop-filter: blur(10px) saturate(120%);
+}
+

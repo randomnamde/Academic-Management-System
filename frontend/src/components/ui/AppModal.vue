@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <Transition name="app-fade">
     <div
       v-if="modelValue"
@@ -21,7 +21,7 @@
           <header class="mb-3 flex items-center justify-between border-b border-neutralx-200 pb-2">
             <h3 :id="titleId" class="text-[15px] font-semibold tracking-tight text-primary-900">{{ title }}</h3>
             <button
-              class="rounded-sm border border-transparent px-1.5 py-0.5 text-slatex-500 transition-all duration-180 hover:bg-neutralx-100 touch-target"
+              class="rounded-md border border-transparent px-1.5 py-0.5 text-slatex-500 transition-all duration-180 hover:bg-neutralx-100 touch-target"
               aria-label="关闭弹窗"
               @click="close"
             >
@@ -52,7 +52,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const overlayRef = ref(null)
 const panelRef = ref(null)
 const previousActiveElement = ref(null)
 const titleId = computed(() => `modal-title-${String(props.title || 'dialog').replace(/\s+/g, '-').toLowerCase()}`)
@@ -140,3 +139,4 @@ onBeforeUnmount(() => {
   previousActiveElement.value?.focus?.()
 })
 </script>
+

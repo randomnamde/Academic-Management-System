@@ -1,48 +1,65 @@
-/** @type {import('tailwindcss').Config} */
+﻿/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'sans-serif']
+        sans: ['IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+        display: ['IBM Plex Serif', 'Noto Serif SC', 'Songti SC', 'serif']
       },
       colors: {
+        white: 'var(--color-white)',
+        black: 'var(--color-black)',
         primary: {
-          900: '#0F2742',
-          800: '#163454',
-          700: '#1E4266',
-          600: '#2A527A'
+          900: 'var(--color-primary-900)',
+          800: 'var(--color-primary-800)',
+          700: 'var(--color-primary-700)',
+          600: 'var(--color-primary-600)'
         },
         slatex: {
-          900: '#1E2938',
-          700: '#334155',
-          600: '#475569',
-          500: '#64748B'
+          900: 'var(--color-slate-900)',
+          700: 'var(--color-slate-700)',
+          600: 'var(--color-slate-600)',
+          500: 'var(--color-slate-500)'
         },
         neutralx: {
-          200: '#E2E8F0',
-          100: '#F1F5F9',
-          50: '#F8FAFC'
+          200: 'var(--color-neutral-200)',
+          100: 'var(--color-neutral-100)',
+          50: 'var(--bg-base)'
         },
-        panel: '#FCFDFE',
+        panel: 'var(--color-panel)',
+        glass: 'var(--panel-glass)',
         state: {
-          info: '#2563EB',
-          success: '#15803D',
-          warn: '#B45309',
-          danger: '#B91C1C'
+          info: 'var(--color-info)',
+          success: 'var(--color-success)',
+          warn: 'var(--color-warn)',
+          danger: 'var(--color-danger)'
+        },
+        semantic: {
+          bg: 'var(--bg-base)',
+          elevated: 'var(--bg-elevated)',
+          text: 'var(--text-primary)',
+          muted: 'var(--text-secondary)',
+          accent: 'var(--accent-500)'
         }
       },
       borderRadius: {
-        sm: '6px',
-        md: '8px'
+        sm: 'var(--radius-control)',
+        md: 'var(--radius-panel)',
+        lg: 'var(--radius-pop)'
       },
       boxShadow: {
-        pop: '0 1px 2px rgba(15, 23, 42, 0.08)'
+        soft: 'var(--shadow-soft)',
+        panel: 'var(--shadow-panel)',
+        pop: 'var(--shadow-overlay)'
       },
       transitionDuration: {
-        180: '180ms'
+        180: '180ms',
+        220: '220ms',
+        320: '320ms'
       }
     }
   },
   plugins: []
 }
+

@@ -1,4 +1,4 @@
-import { createStore } from 'vuex'
+﻿import { createStore } from 'vuex'
 import Cookies from 'js-cookie'
 import { login, getUserInfo } from '@/api/user'
 
@@ -11,7 +11,8 @@ const store = createStore({
     },
     uiPreference: {
       tableDensity: localStorage.getItem('ui:tableDensity') || 'compact',
-      sidebarCollapsed: localStorage.getItem('ui:sidebarCollapsed') === 'true'
+      sidebarCollapsed: localStorage.getItem('ui:sidebarCollapsed') === 'true',
+      themeMode: localStorage.getItem('ui:themeMode') || 'system'
     }
   },
   mutations: {
@@ -39,6 +40,11 @@ const store = createStore({
       const next = density === 'comfortable' ? 'comfortable' : 'compact'
       state.uiPreference.tableDensity = next
       localStorage.setItem('ui:tableDensity', next)
+    },
+    SET_THEME_MODE(state, mode) {
+      const next = ['light', 'dark', 'system'].includes(mode) ? mode : 'system'
+      state.uiPreference.themeMode = next
+      localStorage.setItem('ui:themeMode', next)
     }
   },
   actions: {
@@ -68,8 +74,10 @@ const store = createStore({
     isLoggedIn: state => !!state.token,
     userRole: state => state.userInfo?.role,
     username: state => state.userInfo?.username,
-    tableDensity: state => state.uiPreference.tableDensity
+    tableDensity: state => state.uiPreference.tableDensity,
+    themeMode: state => state.uiPreference.themeMode
   }
 })
 
 export default store
+

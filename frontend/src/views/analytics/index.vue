@@ -46,29 +46,29 @@
     </template>
 
     <template #kpi>
-      <AppCard v-if="!isStudent" class="kpi-card" content-class="kpi-body">
+      <AppCard v-if="!isStudent" class="kpi-card" surface="elevated" content-class="kpi-body">
         <span class="kpi-label">学生规模</span>
         <strong class="kpi-value">{{ overview.studentCount }}</strong>
       </AppCard>
-      <AppCard class="kpi-card" content-class="kpi-body">
+      <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
         <span class="kpi-label">{{ pendingKpiLabel }}</span>
         <strong class="kpi-value">{{ overview.pendingApprovalCount }}</strong>
       </AppCard>
-      <AppCard class="kpi-card" content-class="kpi-body">
+      <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
         <span class="kpi-label">出勤率</span>
         <strong class="kpi-value">{{ formatPercent(overview.attendanceRate) }}</strong>
         <span class="kpi-trend" :class="trendClass(overview.attendanceRateChange)">
           {{ formatDelta(overview.attendanceRateChange) }}
         </span>
       </AppCard>
-      <AppCard class="kpi-card" content-class="kpi-body">
+      <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
         <span class="kpi-label">审批平均时长(小时)</span>
         <strong class="kpi-value">{{ formatNumber(overview.approvalAvgHours) }}</strong>
         <span class="kpi-trend" :class="trendClass(-overview.approvalAvgHoursChange)">
           {{ formatDelta(overview.approvalAvgHoursChange) }}
         </span>
       </AppCard>
-      <AppCard class="kpi-card" content-class="kpi-body">
+      <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
         <span class="kpi-label">{{ lowScoreKpiLabel }}</span>
         <strong class="kpi-value">{{ overview.lowScoreRiskCount }}</strong>
         <span class="kpi-trend" :class="trendClass(-overview.lowScoreRiskChange)">
@@ -78,15 +78,15 @@
     </template>
 
     <template #charts>
-      <AppCard class="chart-card" title="异常考勤趋势" content-class="p-4">
+      <AppCard class="chart-card" title="异常考勤趋势" surface="glass" content-class="p-4">
         <div ref="attendanceTrendRef" class="chart-canvas"></div>
       </AppCard>
-      <AppCard class="chart-card" title="成绩质量趋势" content-class="p-4">
+      <AppCard class="chart-card" title="成绩质量趋势" surface="glass" content-class="p-4">
         <div ref="scoreTrendRef" class="chart-canvas"></div>
       </AppCard>
     </template>
 
-    <AppCard class="risk-card" title="风险学生榜单" content-class="p-4">
+    <AppCard class="risk-card" title="风险学生榜单" surface="base" content-class="p-4">
       <template #header>
         <el-radio-group v-model="riskType" size="small" @change="handleRiskTypeChange">
           <el-radio-button label="low_score">低分风险</el-radio-button>
@@ -211,32 +211,40 @@ const attendanceTrendRef = ref(null)
 const scoreTrendRef = ref(null)
 let attendanceTrendChart = null
 let scoreTrendChart = null
+let themeObserver = null
 
-const chartTheme = {
+const readCssVar = (name, fallback) => {
+  if (typeof window === 'undefined') return fallback
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return value || fallback
+}
+
+const getChartTheme = () => ({
   fontFamily: "'IBM Plex Sans','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif",
-  text: '#334155',
-  axis: '#64748B',
+  text: readCssVar('--text-primary', '#334155'),
+  axis: readCssVar('--text-secondary', '#64748B'),
   grid: 'rgba(148, 163, 184, 0.22)',
-  border: '#E2E8F0',
-  tooltipBg: 'rgba(252, 253, 254, 0.96)',
-  primary: '#163454',
-  primarySoft: '#2A527A',
-  secondary: '#64748B'
-}
+  border: readCssVar('--panel-border', '#E2E8F0'),
+  tooltipBg: readCssVar('--surface-popover', 'rgba(252, 253, 254, 0.96)'),
+  primary: readCssVar('--accent-700', '#163454'),
+  primarySoft: readCssVar('--accent-600', '#2A527A'),
+  secondary: readCssVar('--accent-500', '#64748B'),
+  canvasEdge: readCssVar('--surface-base', '#FFFFFF')
+})
 
-const baseAxisLabel = {
-  color: chartTheme.axis,
+const buildAxisLabel = (theme) => ({
+  color: theme.axis,
   fontSize: 11,
-  fontFamily: chartTheme.fontFamily
-}
+  fontFamily: theme.fontFamily
+})
 
-const baseTooltip = {
-  backgroundColor: chartTheme.tooltipBg,
-  borderColor: chartTheme.border,
+const buildTooltip = (theme) => ({
+  backgroundColor: theme.tooltipBg,
+  borderColor: theme.border,
   borderWidth: 1,
-  textStyle: { color: chartTheme.text, fontSize: 12, fontFamily: chartTheme.fontFamily },
-  extraCssText: 'box-shadow:0 1px 2px rgba(15,23,42,.08);border-radius:6px;'
-}
+  textStyle: { color: theme.text, fontSize: 12, fontFamily: theme.fontFamily },
+  extraCssText: 'box-shadow:0 8px 24px rgba(15,23,42,.12);border-radius:10px;'
+})
 
 function formatDate(date) {
   const y = date.getFullYear()
@@ -382,10 +390,13 @@ function handleRiskTypeChange(type) {
 
 function renderAttendanceTrend(records) {
   if (!attendanceTrendChart) return
+  const theme = getChartTheme()
+  const baseTooltip = buildTooltip(theme)
+  const baseAxisLabel = buildAxisLabel(theme)
   const labels = records.map((item) => item.periodLabel)
   const values = records.map((item) => Number(item.count || 0))
   attendanceTrendChart.setOption({
-    color: [chartTheme.primarySoft],
+    color: [theme.primarySoft],
     tooltip: {
       ...baseTooltip,
       trigger: 'axis',
@@ -397,7 +408,7 @@ function renderAttendanceTrend(records) {
       data: labels,
       axisLabel: baseAxisLabel,
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: chartTheme.border } }
+      axisLine: { lineStyle: { color: theme.border } }
     },
     yAxis: {
       type: 'value',
@@ -405,7 +416,7 @@ function renderAttendanceTrend(records) {
       axisLabel: baseAxisLabel,
       axisTick: { show: false },
       axisLine: { show: false },
-      splitLine: { lineStyle: { color: chartTheme.grid } }
+      splitLine: { lineStyle: { color: theme.grid } }
     },
     series: [
       {
@@ -415,7 +426,7 @@ function renderAttendanceTrend(records) {
         data: values,
         itemStyle: {
           borderRadius: [3, 3, 0, 0],
-          color: chartTheme.primarySoft
+          color: theme.primarySoft
         }
       }
     ]
@@ -424,12 +435,15 @@ function renderAttendanceTrend(records) {
 
 function renderScoreTrend(records) {
   if (!scoreTrendChart) return
+  const theme = getChartTheme()
+  const baseTooltip = buildTooltip(theme)
+  const baseAxisLabel = buildAxisLabel(theme)
   const labels = records.map((item) => item.periodLabel)
   const avg = records.map((item) => Number(item.avgScore || 0))
   const pass = records.map((item) => Number(item.passRate || 0))
   const excellent = records.map((item) => Number(item.excellentRate || 0))
   scoreTrendChart.setOption({
-    color: [chartTheme.primary, chartTheme.primarySoft, chartTheme.secondary],
+    color: [theme.primary, theme.primarySoft, theme.secondary],
     tooltip: { ...baseTooltip, trigger: 'axis' },
     legend: {
       data: ['均分', '及格率', '优秀率'],
@@ -437,7 +451,7 @@ function renderScoreTrend(records) {
       itemWidth: 8,
       itemHeight: 8,
       icon: 'circle',
-      textStyle: { color: chartTheme.axis, fontSize: 11, fontFamily: chartTheme.fontFamily }
+      textStyle: { color: theme.axis, fontSize: 11, fontFamily: theme.fontFamily }
     },
     grid: { top: 34, left: 40, right: 36, bottom: 26 },
     xAxis: {
@@ -445,7 +459,7 @@ function renderScoreTrend(records) {
       data: labels,
       axisLabel: baseAxisLabel,
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: chartTheme.border } }
+      axisLine: { lineStyle: { color: theme.border } }
     },
     yAxis: [
       {
@@ -453,18 +467,18 @@ function renderScoreTrend(records) {
         name: '分值',
         min: 0,
         max: 100,
-        nameTextStyle: { color: chartTheme.axis, fontSize: 11, fontFamily: chartTheme.fontFamily, padding: [0, 0, 0, 8] },
+        nameTextStyle: { color: theme.axis, fontSize: 11, fontFamily: theme.fontFamily, padding: [0, 0, 0, 8] },
         axisLabel: baseAxisLabel,
         axisTick: { show: false },
         axisLine: { show: false },
-        splitLine: { lineStyle: { color: chartTheme.grid } }
+        splitLine: { lineStyle: { color: theme.grid } }
       },
       {
         type: 'value',
         name: '百分比',
         min: 0,
         max: 100,
-        nameTextStyle: { color: chartTheme.axis, fontSize: 11, fontFamily: chartTheme.fontFamily, padding: [0, 8, 0, 0] },
+        nameTextStyle: { color: theme.axis, fontSize: 11, fontFamily: theme.fontFamily, padding: [0, 8, 0, 0] },
         axisLabel: { ...baseAxisLabel, formatter: '{value}%' },
         axisTick: { show: false },
         axisLine: { show: false },
@@ -478,8 +492,8 @@ function renderScoreTrend(records) {
         smooth: true,
         data: avg,
         symbolSize: 6,
-        lineStyle: { color: chartTheme.primary, width: 2.25 },
-        itemStyle: { color: chartTheme.primary, borderColor: '#FFFFFF', borderWidth: 1 },
+        lineStyle: { color: theme.primary, width: 2.25 },
+        itemStyle: { color: theme.primary, borderColor: theme.canvasEdge, borderWidth: 1 },
         areaStyle: { color: 'rgba(22, 52, 84, 0.08)' }
       },
       {
@@ -489,8 +503,8 @@ function renderScoreTrend(records) {
         yAxisIndex: 1,
         data: pass,
         symbolSize: 5,
-        lineStyle: { color: chartTheme.primarySoft, width: 2 },
-        itemStyle: { color: chartTheme.primarySoft, borderColor: '#FFFFFF', borderWidth: 1 }
+        lineStyle: { color: theme.primarySoft, width: 2 },
+        itemStyle: { color: theme.primarySoft, borderColor: theme.canvasEdge, borderWidth: 1 }
       },
       {
         name: '优秀率',
@@ -499,8 +513,8 @@ function renderScoreTrend(records) {
         yAxisIndex: 1,
         data: excellent,
         symbolSize: 5,
-        lineStyle: { color: chartTheme.secondary, width: 2 },
-        itemStyle: { color: chartTheme.secondary, borderColor: '#FFFFFF', borderWidth: 1 }
+        lineStyle: { color: theme.secondary, width: 2 },
+        itemStyle: { color: theme.secondary, borderColor: theme.canvasEdge, borderWidth: 1 }
       }
     ]
   })
@@ -564,10 +578,17 @@ onMounted(() => {
   initCharts()
   refreshAll()
   window.addEventListener('resize', handleResize)
+  themeObserver = new MutationObserver(() => {
+    fetchAttendanceTrend()
+    fetchScoreTrend()
+  })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
+  themeObserver?.disconnect()
+  themeObserver = null
   attendanceTrendChart?.dispose()
   scoreTrendChart?.dispose()
   attendanceTrendChart = null
@@ -582,12 +603,12 @@ onBeforeUnmount(() => {
   font-size: 22px;
   line-height: 1.3;
   letter-spacing: -0.015em;
-  color: #0f2742;
+  color: var(--text-primary);
 }
 
 .filter-header p {
   margin: 6px 0 10px;
-  color: #475569;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
@@ -600,10 +621,10 @@ onBeforeUnmount(() => {
 .kpi-card,
 .chart-card,
 .risk-card {
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background: #fcfdfe;
-  box-shadow: none;
+  border-radius: var(--radius-panel);
+  border: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+  box-shadow: var(--shadow-soft);
 }
 
 .kpi-body {
@@ -615,13 +636,14 @@ onBeforeUnmount(() => {
 
 .kpi-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .kpi-value {
   font-size: 24px;
   line-height: 1;
-  color: #0f2742;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .kpi-trend {
@@ -630,15 +652,15 @@ onBeforeUnmount(() => {
 }
 
 .kpi-trend.positive {
-  color: #15803d;
+  color: var(--success);
 }
 
 .kpi-trend.negative {
-  color: #b91c1c;
+  color: var(--danger);
 }
 
 .kpi-trend.neutral {
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .chart-canvas {

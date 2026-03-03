@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <button
     :type="nativeType"
     :class="classes"
@@ -26,6 +26,7 @@ import { computed } from 'vue'
 
 const props = defineProps({
   variant: { type: String, default: 'primary' },
+  tone: { type: String, default: 'default' },
   size: { type: String, default: 'md' },
   nativeType: { type: String, default: 'button' },
   loading: { type: Boolean, default: false },
@@ -35,12 +36,18 @@ const props = defineProps({
 
 defineEmits(['click'])
 
+const toneClass = {
+  default: 'border border-primary-800 bg-primary-800 text-white hover:bg-primary-700 hover:border-primary-700',
+  accent: 'border border-[var(--accent-600)] bg-[var(--accent-600)] text-white hover:bg-[var(--accent-700)] hover:border-[var(--accent-700)]',
+  neutral: 'border border-neutralx-200 bg-transparent text-slatex-700 hover:bg-neutralx-100'
+}
+
 const variantClass = {
-  primary: 'border border-primary-800 bg-primary-800 text-white hover:bg-primary-700 hover:border-primary-700',
-  secondary: 'border border-neutralx-200 bg-white text-slatex-700 hover:bg-neutralx-100',
+  primary: '',
+  secondary: 'border border-neutralx-200 bg-[var(--surface-base)] text-slatex-700 hover:bg-neutralx-100',
   ghost: 'border border-transparent bg-transparent text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900',
   danger: 'border border-state-danger bg-state-danger text-white hover:opacity-90',
-  text: 'border border-transparent bg-transparent text-primary-700 hover:text-primary-800'
+  text: 'border border-transparent bg-transparent text-[var(--accent-600)] hover:text-[var(--accent-700)]'
 }
 
 const sizeClass = {
@@ -50,9 +57,10 @@ const sizeClass = {
 }
 
 const classes = computed(() => [
-  'inline-flex items-center justify-center rounded-sm font-medium transition-all duration-180 ease-in-out disabled:cursor-not-allowed disabled:opacity-55 min-h-[44px] touch-manipulation md:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-700/45',
-  variantClass[props.variant] || variantClass.primary,
+  'inline-flex items-center justify-center rounded-sm font-medium transition-all duration-180 ease-in-out disabled:cursor-not-allowed disabled:opacity-55 min-h-[44px] touch-manipulation md:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-500)]/45',
+  props.variant === 'primary' ? (toneClass[props.tone] || toneClass.default) : (variantClass[props.variant] || variantClass.primary),
   sizeClass[props.size] || sizeClass.md,
   props.block ? 'w-full' : ''
 ])
 </script>
+

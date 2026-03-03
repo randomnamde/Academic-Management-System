@@ -1,7 +1,12 @@
-﻿<template>
+<template>
   <select
+    :id="id"
+    :name="name"
     :value="modelValue"
     :disabled="disabled"
+    :required="required"
+    :aria-label="ariaLabel"
+    :aria-describedby="ariaDescribedby"
     class="app-select"
     @change="$emit('update:modelValue', normalizeValue($event.target.value))"
   >
@@ -12,10 +17,15 @@
 
 <script setup>
 const props = defineProps({
+  id: { type: String, default: '' },
+  name: { type: String, default: '' },
   modelValue: { type: [String, Number], default: '' },
   options: { type: Array, default: () => [] },
   placeholder: { type: String, default: '' },
   disabled: { type: Boolean, default: false },
+  required: { type: Boolean, default: false },
+  ariaLabel: { type: String, default: '' },
+  ariaDescribedby: { type: String, default: '' },
   valueType: { type: String, default: 'string' }
 })
 

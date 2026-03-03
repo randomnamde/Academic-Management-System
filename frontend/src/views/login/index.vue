@@ -31,40 +31,74 @@
           <p class="mt-1 text-[12px] text-slatex-500">学生管理平台</p>
         </header>
 
-        <AppTabs v-model="activeTab" :items="tabs" />
+        <AppTabs v-model="activeTab" :items="tabs" id-prefix="auth" aria-label="登录注册切换" />
 
-        <form v-if="activeTab === 'login'" class="mt-4 space-y-3" @submit.prevent="handleLogin">
+        <form
+          v-if="activeTab === 'login'"
+          id="auth-panel-login"
+          role="tabpanel"
+          aria-labelledby="auth-tab-login"
+          class="mt-4 space-y-3"
+          @submit.prevent="handleLogin"
+        >
           <div>
-            <label class="mb-1 block text-[13px] font-medium text-slatex-700">用户名</label>
-            <AppInput v-model="loginForm.username" placeholder="请输入用户名" />
+            <label for="login-username" class="mb-1 block text-[13px] font-medium text-slatex-700">用户名</label>
+            <AppInput id="login-username" v-model="loginForm.username" name="username" autocomplete="username" placeholder="请输入用户名" />
           </div>
           <div>
-            <label class="mb-1 block text-[13px] font-medium text-slatex-700">密码</label>
-            <AppInput v-model="loginForm.password" type="password" placeholder="请输入密码" />
+            <label for="login-password" class="mb-1 block text-[13px] font-medium text-slatex-700">密码</label>
+            <AppInput id="login-password" v-model="loginForm.password" name="password" type="password" autocomplete="current-password" placeholder="请输入密码" />
           </div>
           <AppButton block :loading="loading" native-type="submit">登录</AppButton>
         </form>
 
-        <form v-else class="mt-4 space-y-3" @submit.prevent="handleRegister">
+        <form
+          v-else
+          id="auth-panel-register"
+          role="tabpanel"
+          aria-labelledby="auth-tab-register"
+          class="mt-4 space-y-3"
+          @submit.prevent="handleRegister"
+        >
           <div>
-            <label class="mb-1 block text-[13px] font-medium text-slatex-700">用户名</label>
-            <AppInput v-model="registerForm.username" placeholder="请输入用户名" />
+            <label for="register-username" class="mb-1 block text-[13px] font-medium text-slatex-700">用户名</label>
+            <AppInput
+              id="register-username"
+              v-model="registerForm.username"
+              name="registerUsername"
+              autocomplete="username"
+              placeholder="请输入用户名"
+            />
           </div>
           <div>
-            <label class="mb-1 block text-[13px] font-medium text-slatex-700">真实姓名</label>
-            <AppInput v-model="registerForm.realName" placeholder="请输入真实姓名" />
+            <label for="register-real-name" class="mb-1 block text-[13px] font-medium text-slatex-700">真实姓名</label>
+            <AppInput id="register-real-name" v-model="registerForm.realName" name="realName" autocomplete="name" placeholder="请输入真实姓名" />
           </div>
           <div>
-            <label class="mb-1 block text-[13px] font-medium text-slatex-700">密码</label>
-            <AppInput v-model="registerForm.password" type="password" placeholder="请输入密码" />
+            <label for="register-password" class="mb-1 block text-[13px] font-medium text-slatex-700">密码</label>
+            <AppInput
+              id="register-password"
+              v-model="registerForm.password"
+              name="registerPassword"
+              type="password"
+              autocomplete="new-password"
+              placeholder="请输入密码"
+            />
           </div>
           <div>
-            <label class="mb-1 block text-[13px] font-medium text-slatex-700">确认密码</label>
-            <AppInput v-model="registerForm.confirmPassword" type="password" placeholder="请再次输入密码" />
+            <label for="register-confirm-password" class="mb-1 block text-[13px] font-medium text-slatex-700">确认密码</label>
+            <AppInput
+              id="register-confirm-password"
+              v-model="registerForm.confirmPassword"
+              name="confirmPassword"
+              type="password"
+              autocomplete="new-password"
+              placeholder="请再次输入密码"
+            />
           </div>
           <div>
-            <label class="mb-1 block text-[13px] font-medium text-slatex-700">角色</label>
-            <AppSelect v-model="registerForm.role" :options="[{ label: '学生', value: 'STUDENT' }]" />
+            <label for="register-role" class="mb-1 block text-[13px] font-medium text-slatex-700">角色</label>
+            <AppSelect id="register-role" v-model="registerForm.role" name="role" :options="[{ label: '学生', value: 'STUDENT' }]" />
           </div>
           <AppButton variant="secondary" block :loading="loading" native-type="submit">注册</AppButton>
         </form>

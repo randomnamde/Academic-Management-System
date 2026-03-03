@@ -1,5 +1,6 @@
 ﻿<template>
   <div class="h-screen overflow-hidden bg-neutralx-50 text-slatex-900">
+    <a href="#main-content" class="skip-link">跳到主要内容</a>
     <div class="grid h-full" :style="gridStyle">
       <aside
         class="glass-lite hidden h-screen border-r border-neutralx-200 bg-panel md:flex md:flex-col"
@@ -16,20 +17,20 @@
         <nav class="flex-1 overflow-y-auto p-2">
           <section v-for="group in visibleMenuGroups" :key="group.key" class="mb-4">
             <p v-if="!isCollapsed" class="mb-1 flex items-center justify-start gap-1 px-2 text-[15px] font-semibold tracking-[0.01em] text-slatex-500">
-              <component :is="group.icon || 'Menu'" class="h-3 w-3" />
+              <component :is="group.icon || LayoutGrid" class="h-3 w-3" />
               <span>{{ group.title }}</span>
             </p>
             <router-link
               v-for="item in group.items"
               :key="item.path"
               :to="item.path"
-              class="mb-1 flex h-8 items-center justify-center gap-2 rounded-sm px-2 text-[14px] font-medium transition-all duration-180"
+              class="mb-1 flex h-8 items-center justify-center gap-2 rounded-sm px-2 text-[14px] font-medium transition-all duration-180 touch-target"
               :class="isActive(item.path)
                 ? 'bg-neutralx-100 text-primary-800'
                 : 'text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900'"
               :title="isCollapsed ? item.title : ''"
             >
-              <component :is="item.icon || 'Menu'" class="h-3.5 w-3.5 shrink-0" />
+              <component :is="item.icon || EpMenu" class="h-3.5 w-3.5 shrink-0" />
               <span v-if="!isCollapsed" class="truncate text-center">{{ item.title }}</span>
             </router-link>
           </section>
@@ -37,14 +38,14 @@
 
         <div class="border-t border-neutralx-200 p-2">
           <button
-            class="flex h-8 w-full items-center justify-center gap-2 rounded-sm px-2 text-[13px] text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900"
+            class="flex h-8 w-full items-center justify-center gap-2 rounded-sm px-2 text-[13px] text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900 touch-target"
             @click="handleCommand('profile')"
           >
             <User class="h-3.5 w-3.5" />
             <span v-if="!isCollapsed">个人中心</span>
           </button>
           <button
-            class="mt-1 flex h-8 w-full items-center justify-center gap-2 rounded-sm px-2 text-[13px] text-state-danger hover:bg-red-50"
+            class="mt-1 flex h-8 w-full items-center justify-center gap-2 rounded-sm px-2 text-[13px] text-state-danger hover:bg-red-50 touch-target"
             @click="handleCommand('logout')"
           >
             <LogOut class="h-3.5 w-3.5" />
@@ -57,7 +58,8 @@
         <header class="glass-lite z-20 flex h-14 shrink-0 items-center justify-between border-b border-neutralx-200 bg-panel px-3 md:px-5">
           <div class="flex min-w-0 items-center gap-2">
             <button
-              class="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-neutralx-200 bg-white text-slatex-600 hover:bg-neutralx-100"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-neutralx-200 bg-white text-slatex-600 hover:bg-neutralx-100 touch-target"
+              :aria-label="mobileMenuVisible ? '关闭导航菜单' : '展开导航菜单'"
               @click="toggleSidebar"
             >
               <PanelLeft class="h-3.5 w-3.5" />
@@ -67,7 +69,8 @@
 
           <div class="flex items-center gap-2">
             <button
-              class="inline-flex h-8 items-center gap-1 rounded-sm border border-neutralx-200 bg-white px-2 text-[12px] text-slatex-600 hover:bg-neutralx-100"
+              class="inline-flex h-8 items-center gap-1 rounded-sm border border-neutralx-200 bg-white px-2 text-[12px] text-slatex-600 hover:bg-neutralx-100 touch-target"
+              aria-label="切换表格密度"
               @click="toggleDensity"
             >
               <Rows4 class="h-3.5 w-3.5" />
@@ -76,7 +79,10 @@
 
             <div class="relative">
               <button
-                class="relative inline-flex h-8 w-8 items-center justify-center rounded-sm border border-neutralx-200 bg-white text-slatex-600 hover:bg-neutralx-100"
+                class="relative inline-flex h-8 w-8 items-center justify-center rounded-sm border border-neutralx-200 bg-white text-slatex-600 hover:bg-neutralx-100 touch-target"
+                aria-label="通知公告"
+                :aria-expanded="noticePopoverVisible ? 'true' : 'false'"
+                aria-haspopup="menu"
                 @click="toggleNoticePopover"
               >
                 <Bell class="h-3.5 w-3.5" />
@@ -94,7 +100,7 @@
               >
                 <div class="mb-1 flex items-center justify-between px-1">
                   <p class="text-[12px] font-semibold text-primary-900">最新公告</p>
-                  <button class="text-[11px] text-primary-700 hover:underline" @click="openAnnouncementPage">查看全部</button>
+                  <button class="text-[11px] text-primary-700 hover:underline touch-target" @click="openAnnouncementPage">查看全部</button>
                 </div>
                 <div v-if="!latestAnnouncements.length" class="py-5 text-center text-[12px] text-slatex-500">暂无公告</div>
                 <div v-else class="max-h-60 space-y-1 overflow-y-auto">
@@ -113,7 +119,10 @@
 
             <div class="relative">
               <button
-                class="inline-flex h-8 items-center gap-2 rounded-sm border border-neutralx-200 bg-white px-2 text-[12px] text-slatex-700 hover:bg-neutralx-100"
+                class="inline-flex h-8 items-center gap-2 rounded-sm border border-neutralx-200 bg-white px-2 text-[12px] text-slatex-700 hover:bg-neutralx-100 touch-target"
+                aria-label="打开用户菜单"
+                :aria-expanded="userMenuVisible ? 'true' : 'false'"
+                aria-haspopup="menu"
                 @click="userMenuVisible = !userMenuVisible"
               >
                 <img :src="userInfo.avatar || defaultAvatar" alt="avatar" class="h-5 w-5 rounded-sm object-cover" />
@@ -124,21 +133,22 @@
               <div
                 v-if="userMenuVisible"
                 class="glass-lite absolute right-0 z-30 mt-2 w-40 rounded-md border border-neutralx-200 bg-white p-1.5 shadow-pop"
+                role="menu"
               >
                 <div class="menu-section">
-                  <button class="menu-item" @click="handleCommand('profile')">个人中心</button>
-                  <button class="menu-item" @click="handleCommand('password')">修改密码</button>
+                  <button class="menu-item touch-target" role="menuitem" @click="handleCommand('profile')">个人中心</button>
+                  <button class="menu-item touch-target" role="menuitem" @click="handleCommand('password')">修改密码</button>
                 </div>
                 <div class="menu-divider"></div>
                 <div class="menu-section">
-                  <button class="menu-item text-state-danger" @click="handleCommand('logout')">退出登录</button>
+                  <button class="menu-item touch-target text-state-danger" role="menuitem" @click="handleCommand('logout')">退出登录</button>
                 </div>
               </div>
             </div>
           </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-3 md:p-4">
+        <main id="main-content" tabindex="-1" class="flex-1 overflow-y-auto p-3 md:p-4">
           <router-view v-slot="{ Component, route: activeRoute }">
             <KeepAlive>
               <component
@@ -168,24 +178,24 @@
               </div>
               <h1 class="text-[13px] font-semibold tracking-tight text-primary-900">Academic Management System</h1>
             </div>
-            <button class="rounded-sm px-2 py-1 text-[12px] text-slatex-600 hover:bg-neutralx-100" @click="mobileMenuVisible = false">关闭</button>
+            <button class="rounded-sm px-2 py-1 text-[12px] text-slatex-600 hover:bg-neutralx-100 touch-target" @click="mobileMenuVisible = false">关闭</button>
           </div>
           <section v-for="group in visibleMenuGroups" :key="`mobile-${group.key}`" class="mb-4">
             <p class="mb-1 flex items-center justify-start gap-1 px-2 text-[15px] font-semibold tracking-[0.01em] text-slatex-500">
-              <component :is="group.icon || 'Menu'" class="h-3 w-3" />
+              <component :is="group.icon || LayoutGrid" class="h-3 w-3" />
               <span>{{ group.title }}</span>
             </p>
             <router-link
               v-for="item in group.items"
               :key="`mobile-${item.path}`"
               :to="item.path"
-              class="mb-1 flex h-8 items-center justify-center gap-2 rounded-sm px-2 text-[14px] font-medium transition-all duration-180"
+              class="mb-1 flex h-8 items-center justify-center gap-2 rounded-sm px-2 text-[14px] font-medium transition-all duration-180 touch-target"
               :class="isActive(item.path)
                 ? 'bg-neutralx-100 text-primary-800'
                 : 'text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900'"
               @click="mobileMenuVisible = false"
             >
-              <component :is="item.icon || 'Menu'" class="h-3.5 w-3.5 shrink-0" />
+              <component :is="item.icon || EpMenu" class="h-3.5 w-3.5 shrink-0" />
               <span class="truncate">{{ item.title }}</span>
             </router-link>
           </section>
@@ -217,6 +227,24 @@ import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import { Bell, BookOpenCheck, ChevronDown, GraduationCap, LayoutGrid, LogOut, PanelLeft, Rows4, Shield, ShieldCheck, User } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  BellFilled,
+  Calendar as EpCalendar,
+  DataAnalysis,
+  Document,
+  DocumentChecked,
+  HomeFilled,
+  Menu as EpMenu,
+  Operation,
+  Postcard,
+  Reading,
+  School as EpSchool,
+  Setting,
+  Tickets,
+  TrendCharts,
+  User as EpUser,
+  UserFilled
+} from '@element-plus/icons-vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { getAnnouncementDetail, getAnnouncementList } from '@/api/announcement'
@@ -230,6 +258,7 @@ const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726
 const viewportWidth = ref(window.innerWidth)
 const notificationCount = ref(0)
 const latestAnnouncements = ref([])
+const lastNotificationFetchAt = ref(0)
 const noticePopoverVisible = ref(false)
 const noticeDetailVisible = ref(false)
 const userMenuVisible = ref(false)
@@ -266,6 +295,30 @@ const groupIcon = {
   access: ShieldCheck
 }
 
+const routeIconMap = {
+  HomeFilled,
+  DataAnalysis,
+  UserFilled,
+  User: EpUser,
+  School: EpSchool,
+  Reading,
+  Tickets,
+  TrendCharts,
+  Calendar: EpCalendar,
+  DocumentChecked,
+  BellFilled,
+  Postcard,
+  Operation,
+  Document,
+  Setting,
+  Menu: EpMenu
+}
+
+const resolveRouteIcon = (icon) => {
+  if (typeof icon === 'string') return routeIconMap[icon] || EpMenu
+  return icon || EpMenu
+}
+
 const layoutChildren = computed(() => {
   const layoutRoute = router.options.routes.find((item) => item.name === 'Layout')
   return Array.isArray(layoutRoute?.children) ? layoutRoute.children : []
@@ -287,7 +340,7 @@ const visibleMenuGroups = computed(() => {
         groups.set(key, {
           key,
           title: groupLabel[key] || '其他',
-          icon: groupIcon[key] || 'Menu',
+          icon: groupIcon[key] || LayoutGrid,
           items: []
         })
       }
@@ -295,7 +348,7 @@ const visibleMenuGroups = computed(() => {
       groups.get(key).items.push({
         title: item.meta?.title || routeName,
         path: item.path.startsWith('/') ? item.path : `/${item.path}`,
-        icon: item.meta?.icon || 'Menu'
+        icon: resolveRouteIcon(item.meta?.icon)
       })
     })
 
@@ -347,6 +400,7 @@ const saveReadAnnouncements = () => {
 }
 
 const isAnnouncementRead = (id) => readAnnouncementIds.value.includes(id)
+const notificationCacheTtl = 30 * 1000
 
 const markAnnouncementAsRead = (id) => {
   if (!id || isAnnouncementRead(id)) return
@@ -358,10 +412,17 @@ const syncNotificationCount = () => {
   notificationCount.value = latestAnnouncements.value.filter((item) => !isAnnouncementRead(item.id)).length
 }
 
-const fetchNotificationSummary = async () => {
+const fetchNotificationSummary = async ({ force = false } = {}) => {
+  const now = Date.now()
+  if (!force && now - lastNotificationFetchAt.value < notificationCacheTtl && latestAnnouncements.value.length) {
+    syncNotificationCount()
+    return
+  }
+
   try {
     const res = await getAnnouncementList({ page: 1, size: 8, status: 1 })
     latestAnnouncements.value = res.data?.records || []
+    lastNotificationFetchAt.value = now
     syncNotificationCount()
   } catch (_e) {
     latestAnnouncements.value = []
@@ -373,7 +434,7 @@ const toggleNoticePopover = async () => {
   noticePopoverVisible.value = !noticePopoverVisible.value
   userMenuVisible.value = false
   if (noticePopoverVisible.value) {
-    await fetchNotificationSummary()
+    await fetchNotificationSummary({ force: true })
   }
 }
 
@@ -437,7 +498,7 @@ watch(
   () => userInfo.value?.id,
   () => {
     loadReadAnnouncements()
-    syncNotificationCount()
+    fetchNotificationSummary({ force: true })
   }
 )
 
@@ -451,7 +512,7 @@ watch(
 
 onMounted(() => {
   loadReadAnnouncements()
-  fetchNotificationSummary()
+  fetchNotificationSummary({ force: true })
   window.addEventListener('resize', handleResize)
 })
 

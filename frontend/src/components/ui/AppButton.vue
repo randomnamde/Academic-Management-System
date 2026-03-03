@@ -1,13 +1,15 @@
-﻿<template>
+<template>
   <button
     :type="nativeType"
     :class="classes"
     :disabled="disabled || loading"
+    :aria-busy="loading ? 'true' : undefined"
     @click="$emit('click', $event)"
   >
     <svg
       v-if="loading"
       class="mr-2 h-3.5 w-3.5 animate-spin"
+      aria-hidden="true"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -48,7 +50,7 @@ const sizeClass = {
 }
 
 const classes = computed(() => [
-  'inline-flex items-center justify-center rounded-sm font-medium transition-all duration-180 ease-in-out disabled:cursor-not-allowed disabled:opacity-55',
+  'inline-flex items-center justify-center rounded-sm font-medium transition-all duration-180 ease-in-out disabled:cursor-not-allowed disabled:opacity-55 min-h-[44px] touch-manipulation md:min-h-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-700/45',
   variantClass[props.variant] || variantClass.primary,
   sizeClass[props.size] || sizeClass.md,
   props.block ? 'w-full' : ''

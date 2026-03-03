@@ -1,1 +1,0 @@
-import{o as n,c as r,L as p,n as o,a as c}from"./index-CH6VSytg.js";const i={__name:"AppBadge",props:{type:{type:String,default:"info"}},setup(a){const e=a,s=c(()=>e.type==="success"?"app-tag-success":e.type==="warning"?"app-tag-warning":e.type==="danger"?"app-tag-danger":"app-tag-info");return(t,u)=>(n(),r("span",{class:o(s.value)},[p(t.$slots,"default")],2))}};export{i as _};

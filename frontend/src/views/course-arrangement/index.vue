@@ -38,7 +38,9 @@
           <template #default="{ row }">{{ row.enrolledCount || 0 }}/{{ row.capacity || 0 }}</template>
         </el-table-column>
         <el-table-column label="状态" width="90">
-          <template #default="{ row }">{{ row.status === 1 ? '启用' : '停用' }}</template>
+          <template #default="{ row }">
+            <AppBadge :type="statusBadgeType(row.status)">{{ statusLabel(row.status) }}</AppBadge>
+          </template>
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
@@ -127,6 +129,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
+import AppBadge from '@/components/ui/AppBadge.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import {
@@ -171,6 +174,14 @@ const rules = {
   semester: [{ required: true, message: '请输入学期', trigger: 'blur' }],
   schedule: [{ required: true, message: '请输入时间安排', trigger: 'blur' }],
   capacity: [{ required: true, message: '请输入容量', trigger: 'change' }]
+}
+
+function statusLabel(status) {
+  return Number(status) === 1 ? '启用' : '停用'
+}
+
+function statusBadgeType(status) {
+  return Number(status) === 1 ? 'success' : 'info'
 }
 
 function resetForm() {

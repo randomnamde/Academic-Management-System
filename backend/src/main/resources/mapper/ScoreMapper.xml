@@ -7,6 +7,7 @@
         <result column="student_id" property="studentId"/>
         <result column="student_no" property="studentNo"/>
         <result column="student_name" property="studentName"/>
+        <result column="class_name" property="className"/>
         <result column="course_arrangement_id" property="courseArrangementId"/>
         <result column="course_name" property="courseName"/>
         <result column="teacher_name" property="teacherName"/>
@@ -17,19 +18,50 @@
         <result column="total_score" property="totalScore"/>
         <result column="gpa" property="gpa"/>
         <result column="exam_time" property="examTime"/>
-        <result column="status" property="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="derived_status" property="status" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
         <result column="remark" property="remark"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
+    <sql id="DerivedStatusExpr">
+        CASE
+            WHEN s.total_score IS NULL THEN 'NORMAL'
+            WHEN s.total_score &lt; 60.00
+                 AND (
+                     SELECT prev.total_score
+                     FROM score prev
+                     JOIN course_arrangement prev_ca ON prev.course_arrangement_id = prev_ca.id
+                     WHERE prev.student_id = s.student_id
+                       AND prev_ca.course_id = ca.course_id
+                       AND prev_ca.semester = ca.semester
+                       AND (
+                           COALESCE(prev.exam_time, prev.create_time) &lt; COALESCE(s.exam_time, s.create_time)
+                           OR (
+                               COALESCE(prev.exam_time, prev.create_time) = COALESCE(s.exam_time, s.create_time)
+                               AND prev.id &lt; s.id
+                           )
+                       )
+                     ORDER BY COALESCE(prev.exam_time, prev.create_time) DESC, prev.id DESC
+                     LIMIT 1
+                 ) &lt; 60.00
+            THEN 'RETAKE'
+            WHEN s.total_score &lt; 60.00 THEN 'MAKEUP'
+            ELSE 'NORMAL'
+        END
+    </sql>
+
     <select id="selectByIdWithDetail" resultMap="BaseResultMap">
         SELECT s.*, 
                st.student_no, st.name as student_name,
+               COALESCE(ca_cl.class_name, st_cl.class_name) as class_name,
+               <include refid="DerivedStatusExpr"/> as derived_status,
                c.course_name, t.name as teacher_name, ca.semester
         FROM score s
         LEFT JOIN student st ON s.student_id = st.id
         LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        LEFT JOIN class ca_cl ON ca.class_id = ca_cl.id
+        LEFT JOIN class st_cl ON st.class_id = st_cl.id
         LEFT JOIN course c ON ca.course_id = c.id
         LEFT JOIN teacher t ON ca.teacher_id = t.id
         WHERE s.id = #{id}
@@ -38,10 +70,14 @@
     <select id="selectPageWithDetail" resultMap="BaseResultMap">
         SELECT s.*, 
                st.student_no, st.name as student_name,
+               COALESCE(ca_cl.class_name, st_cl.class_name) as class_name,
+               <include refid="DerivedStatusExpr"/> as derived_status,
                c.course_name, t.name as teacher_name, ca.semester
         FROM score s
         LEFT JOIN student st ON s.student_id = st.id
         LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        LEFT JOIN class ca_cl ON ca.class_id = ca_cl.id
+        LEFT JOIN class st_cl ON st.class_id = st_cl.id
         LEFT JOIN course c ON ca.course_id = c.id
         LEFT JOIN teacher t ON ca.teacher_id = t.id
         <where>
@@ -64,10 +100,14 @@
     <select id="selectByStudentId" resultMap="BaseResultMap">
         SELECT s.*, 
                st.student_no, st.name as student_name,
+               COALESCE(ca_cl.class_name, st_cl.class_name) as class_name,
+               <include refid="DerivedStatusExpr"/> as derived_status,
                c.course_name, t.name as teacher_name, ca.semester
         FROM score s
         LEFT JOIN student st ON s.student_id = st.id
         LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        LEFT JOIN class ca_cl ON ca.class_id = ca_cl.id
+        LEFT JOIN class st_cl ON st.class_id = st_cl.id
         LEFT JOIN course c ON ca.course_id = c.id
         LEFT JOIN teacher t ON ca.teacher_id = t.id
         WHERE s.student_id = #{studentId}
@@ -77,10 +117,14 @@
     <select id="selectByCourseArrangementId" resultMap="BaseResultMap">
         SELECT s.*, 
                st.student_no, st.name as student_name,
+               COALESCE(ca_cl.class_name, st_cl.class_name) as class_name,
+               <include refid="DerivedStatusExpr"/> as derived_status,
                c.course_name, t.name as teacher_name, ca.semester
         FROM score s
         LEFT JOIN student st ON s.student_id = st.id
         LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        LEFT JOIN class ca_cl ON ca.class_id = ca_cl.id
+        LEFT JOIN class st_cl ON st.class_id = st_cl.id
         LEFT JOIN course c ON ca.course_id = c.id
         LEFT JOIN teacher t ON ca.teacher_id = t.id
         WHERE s.course_arrangement_id = #{courseArrangementId}

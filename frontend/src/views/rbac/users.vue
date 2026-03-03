@@ -1,5 +1,5 @@
 ﻿<template>
-  <CrudPageShell title="Role & Permission / 用户">
+  <CrudPageShell title="权限中心 / 用户管理">
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="用户名">

@@ -3,7 +3,7 @@
     <AppCard content-class="p-4">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p class="text-[12px] uppercase tracking-[0.08em] text-slatex-500">Academic Overview</p>
+          <p class="text-[12px] uppercase tracking-[0.08em] text-slatex-500">教务总览</p>
           <h2 class="mt-1 text-[22px] font-semibold tracking-tight text-primary-900">{{ dashboardTitle }}</h2>
           <p class="mt-1 text-[13px] text-slatex-600">{{ dashboardDesc }}</p>
         </div>
@@ -339,6 +339,32 @@ const loadTodoState = () => {
   completedTodoIds.value = Array.isArray(cachedCompleted) ? cachedCompleted : []
 }
 
+const chartTheme = {
+  fontFamily: "'IBM Plex Sans','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif",
+  text: '#334155',
+  axis: '#64748B',
+  grid: 'rgba(148, 163, 184, 0.22)',
+  border: '#E2E8F0',
+  tooltipBg: 'rgba(252, 253, 254, 0.96)',
+  primary: '#163454',
+  primarySoft: '#2A527A',
+  secondary: '#64748B'
+}
+
+const baseAxisLabel = {
+  color: chartTheme.axis,
+  fontSize: 11,
+  fontFamily: chartTheme.fontFamily
+}
+
+const baseTooltip = {
+  backgroundColor: chartTheme.tooltipBg,
+  borderColor: chartTheme.border,
+  borderWidth: 1,
+  textStyle: { color: chartTheme.text, fontSize: 12, fontFamily: chartTheme.fontFamily },
+  extraCssText: 'box-shadow:0 1px 2px rgba(15,23,42,.08);border-radius:6px;'
+}
+
 const saveCustomTodos = () => {
   localStorage.setItem(buildTodoStorageKey('custom'), JSON.stringify(customTodos.value))
 }
@@ -484,16 +510,48 @@ const refreshTodos = async () => {
 
 const renderGenderChart = () => {
   if (!genderChartInstance || isStudent.value) return
+  const male = Number(genderStatistics.value.male || 0)
+  const female = Number(genderStatistics.value.female || 0)
+  const total = male + female
   genderChartInstance.setOption({
-    tooltip: { trigger: 'item' },
-    legend: { bottom: 0 },
+    color: [chartTheme.primary, chartTheme.secondary],
+    tooltip: { ...baseTooltip, trigger: 'item' },
+    title: {
+      text: String(total),
+      subtext: '总人数',
+      left: 'center',
+      top: '40%',
+      textStyle: {
+        color: '#0F2742',
+        fontSize: 22,
+        fontWeight: 700,
+        fontFamily: chartTheme.fontFamily
+      },
+      subtextStyle: {
+        color: chartTheme.axis,
+        fontSize: 11,
+        fontWeight: 500,
+        fontFamily: chartTheme.fontFamily
+      }
+    },
+    legend: {
+      bottom: 0,
+      icon: 'circle',
+      itemWidth: 8,
+      itemHeight: 8,
+      textStyle: { color: chartTheme.axis, fontSize: 11, fontFamily: chartTheme.fontFamily }
+    },
     series: [
       {
         type: 'pie',
-        radius: ['42%', '72%'],
+        radius: ['56%', '76%'],
+        center: ['50%', '42%'],
+        label: { show: false },
+        labelLine: { show: false },
+        itemStyle: { borderColor: '#FCFDFE', borderWidth: 2 },
         data: [
-          { value: Number(genderStatistics.value.male || 0), name: '男生', itemStyle: { color: '#163454' } },
-          { value: Number(genderStatistics.value.female || 0), name: '女生', itemStyle: { color: '#64748B' } }
+          { value: male, name: '男生' },
+          { value: female, name: '女生' }
         ]
       }
     ]
@@ -508,15 +566,33 @@ const renderCourseChart = () => {
     Number(courseCategoryStatistics.value.practical || 0)
   ]
   courseChartInstance.setOption({
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    grid: { top: 20, left: 34, right: 14, bottom: 30 },
-    xAxis: { type: 'category', data: ['必修', '选修', '实践'] },
-    yAxis: { type: 'value', minInterval: 1 },
+    color: [chartTheme.primarySoft],
+    tooltip: {
+      ...baseTooltip,
+      trigger: 'axis',
+      axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(148,163,184,0.08)' } }
+    },
+    grid: { top: 18, left: 34, right: 14, bottom: 26 },
+    xAxis: {
+      type: 'category',
+      data: ['必修', '选修', '实践'],
+      axisLabel: baseAxisLabel,
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: chartTheme.border } }
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1,
+      axisLabel: baseAxisLabel,
+      axisTick: { show: false },
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: chartTheme.grid } }
+    },
     series: [
       {
         type: 'bar',
         barWidth: 26,
-        itemStyle: { color: '#1E4266', borderRadius: [4, 4, 0, 0] },
+        itemStyle: { color: '#1E4266', borderRadius: [3, 3, 0, 0] },
         data: values
       }
     ]
@@ -527,18 +603,34 @@ const renderTrendChart = () => {
   if (!trendChartInstance) return
   const trend = Array.isArray(operationOverview.value.abnormalTrend) ? operationOverview.value.abnormalTrend : []
   trendChartInstance.setOption({
-    tooltip: { trigger: 'axis' },
-    grid: { top: 20, left: 34, right: 14, bottom: 30 },
-    xAxis: { type: 'category', data: trend.map((item) => item.date || '') },
-    yAxis: { type: 'value', minInterval: 1 },
+    color: [chartTheme.primary],
+    tooltip: { ...baseTooltip, trigger: 'axis' },
+    grid: { top: 18, left: 34, right: 14, bottom: 26 },
+    xAxis: {
+      type: 'category',
+      data: trend.map((item) => item.date || ''),
+      axisLabel: baseAxisLabel,
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: chartTheme.border } }
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1,
+      axisLabel: baseAxisLabel,
+      axisTick: { show: false },
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: chartTheme.grid } }
+    },
     series: [
       {
         name: '异常考勤',
         type: 'line',
         smooth: true,
         showSymbol: true,
-        lineStyle: { color: '#163454', width: 2.5 },
-        itemStyle: { color: '#163454' },
+        symbolSize: 6,
+        lineStyle: { color: '#163454', width: 2.25 },
+        itemStyle: { color: '#163454', borderColor: '#FFFFFF', borderWidth: 1 },
+        areaStyle: { color: 'rgba(22, 52, 84, 0.08)' },
         data: trend.map((item) => Number(item.count || 0))
       }
     ]

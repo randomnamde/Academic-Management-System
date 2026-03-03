@@ -7,7 +7,6 @@ import com.student.dto.ScoreQueryDTO;
 import com.student.dto.ScoreStatisticsDTO;
 import com.student.entity.Score;
 import com.student.exception.BusinessException;
-import com.student.mapper.CourseArrangementMapper;
 import com.student.mapper.ScoreMapper;
 import com.student.mapper.StudentMapper;
 import com.student.service.ScoreService;
@@ -25,9 +24,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements ScoreService {
 
+    private static final BigDecimal PASS_SCORE = new BigDecimal("60.00");
+
     private final ScoreMapper scoreMapper;
     private final StudentMapper studentMapper;
-    private final CourseArrangementMapper courseArrangementMapper;
 
     @Override
     @Transactional
@@ -40,6 +40,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
         Score score = new Score();
         BeanUtils.copyProperties(scoreDTO, score);
         score.calculateTotalScore();
+        applyPersistedStatusRule(score);
 
         scoreMapper.insert(score);
     }
@@ -59,6 +60,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
         Score score = new Score();
         BeanUtils.copyProperties(scoreDTO, score);
         score.calculateTotalScore();
+        applyPersistedStatusRule(score);
 
         scoreMapper.updateById(score);
     }
@@ -155,5 +157,14 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
         for (ScoreDTO scoreDTO : scoreDTOList) {
             addScore(scoreDTO);
         }
+    }
+
+    private void applyPersistedStatusRule(Score score) {
+        if (score == null) return;
+        if (score.getTotalScore() != null && score.getTotalScore().compareTo(PASS_SCORE) < 0) {
+            score.setStatus(Score.Status.MAKEUP);
+            return;
+        }
+        score.setStatus(Score.Status.NORMAL);
     }
 }

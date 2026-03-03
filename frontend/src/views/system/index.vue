@@ -13,9 +13,9 @@
 
         <div class="rounded-sm border border-neutralx-200 bg-white p-3">
           <p class="text-[13px] font-semibold text-primary-900">权限管理入口</p>
-          <p class="mt-1 text-[12px] text-slatex-500">角色、权限矩阵与审计日志已迁移到独立 RBAC 模块。</p>
+          <p class="mt-1 text-[12px] text-slatex-500">角色、权限矩阵与审计日志已迁移到独立权限中心模块。</p>
           <div class="mt-3">
-            <AppButton variant="secondary" @click="$router.push('/rbac/users')">进入 RBAC</AppButton>
+            <AppButton variant="secondary" @click="$router.push('/rbac/users')">进入权限中心</AppButton>
           </div>
         </div>
       </div>

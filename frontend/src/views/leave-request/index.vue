@@ -5,8 +5,8 @@
         <AppButton variant="secondary">导出报表</AppButton>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="csv">导出 CSV</el-dropdown-item>
-            <el-dropdown-item command="xlsx">导出 Excel</el-dropdown-item>
+            <el-dropdown-item command="csv">导出逗号分隔文件</el-dropdown-item>
+            <el-dropdown-item command="xlsx">导出电子表格文件</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -40,7 +40,7 @@
         <el-table-column v-if="!isStudent" prop="studentName" label="学生" width="120" />
         <el-table-column v-if="!isStudent" prop="className" label="班级" width="120" />
         <el-table-column prop="courseName" label="课程" width="150" />
-        <el-table-column prop="courseArrangementId" label="排课ID" width="100" />
+        <el-table-column prop="courseArrangementId" label="排课编号" width="100" />
         <el-table-column prop="leaveType" label="请假类型" width="100">
           <template #default="{ row }">{{ getLeaveTypeText(row.leaveType) }}</template>
         </el-table-column>
@@ -115,7 +115,7 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="排课ID" prop="courseArrangementId">
+            <el-form-item label="排课编号" prop="courseArrangementId">
               <el-select
                 v-model="form.courseArrangementId"
                 filterable
@@ -184,7 +184,7 @@
         <el-descriptions-item label="学生">{{ detail.studentName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="班级">{{ detail.className || '-' }}</el-descriptions-item>
         <el-descriptions-item label="课程">{{ detail.courseName || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="排课ID">{{ detail.courseArrangementId || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="排课编号">{{ detail.courseArrangementId || '-' }}</el-descriptions-item>
         <el-descriptions-item label="请假类型">{{ getLeaveTypeText(detail.leaveType) }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <el-tag :type="getStatusTagType(detail.status)">{{ getStatusText(detail.status) }}</el-tag>
@@ -265,7 +265,7 @@ const form = reactive({
 })
 
 const rules = {
-  courseArrangementId: [{ required: true, message: '请输入排课ID', trigger: 'change' }],
+  courseArrangementId: [{ required: true, message: '请输入排课编号', trigger: 'change' }],
   leaveType: [{ required: true, message: '请选择请假类型', trigger: 'change' }],
   startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
   endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }],
@@ -320,7 +320,7 @@ const formatRange = (row) => `${formatDateTime(row.startTime)} ~ ${formatDateTim
 
 const formatArrangementLabel = (item) => {
   const parts = [item.semester, item.courseName, item.className].filter(Boolean)
-  return parts.length ? `${parts.join(' | ')} (ID:${item.id})` : `排课ID:${item.id}`
+  return parts.length ? `${parts.join(' | ')} (编号:${item.id})` : `排课编号:${item.id}`
 }
 
 const resetForm = () => {
@@ -496,23 +496,25 @@ onMounted(() => {
 }
 
 :deep(.op-cell) {
-  background-color: rgba(219, 241, 239, 0.74) !important;
+  background-color: var(--el-table-tr-bg-color, #ffffff) !important;
 }
 
 :deep(.el-table__fixed-right .op-cell) {
-  background-color: rgba(219, 241, 239, 0.74) !important;
+  background-color: var(--el-table-tr-bg-color, #ffffff) !important;
 }
 
 :deep(.op-header-cell) {
-  background-color: rgba(210, 236, 233, 0.86) !important;
+  background-color: var(--el-table-header-bg-color, #f1f5f9) !important;
+  color: #334155;
 }
 
 :deep(.el-table__fixed-right .op-header-cell) {
-  background-color: rgba(210, 236, 233, 0.86) !important;
+  background-color: var(--el-table-header-bg-color, #f1f5f9) !important;
+  color: #334155;
 }
 
 :deep(.el-table__fixed-right-patch) {
-  background-color: rgba(210, 236, 233, 0.86) !important;
+  background-color: var(--el-table-header-bg-color, #f1f5f9) !important;
 }
 
 :deep(.op-actions .el-button + .el-button) {
@@ -523,8 +525,10 @@ onMounted(() => {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 6px;
-  background: rgba(22, 110, 107, 0.16);
-  color: #1f4f5f;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
   font-weight: 700;
 }
 </style>
+

@@ -125,7 +125,7 @@
 
         <el-row :gutter="16">
           <el-col :span="8">
-            <el-form-item label="目标班级ID">
+            <el-form-item label="目标班级编号">
               <el-input-number v-model="form.targetClassId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
@@ -324,3 +324,4 @@ async function handleStatusChange(row, enabled) {
 
 onMounted(fetchList)
 </script>
+

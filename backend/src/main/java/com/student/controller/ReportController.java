@@ -13,6 +13,13 @@ import com.student.util.CsvExportUtil;
 import com.student.util.ExcelExportUtil;
 import com.student.util.ExportFormat;
 import com.student.vo.ResultVO;
+import jakarta.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,14 +28,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.servlet.http.HttpServletResponse;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("/report")
@@ -54,19 +53,36 @@ public class ReportController {
         Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
+
         ScoreQueryDTO queryDTO = new ScoreQueryDTO();
         queryDTO.setStudentId(scopedStudentId);
         queryDTO.setTeacherId(scopedTeacherId);
         queryDTO.setCourseArrangementId(courseArrangementId);
         queryDTO.setSemester(semester);
+
         Page<Score> result = scoreService.getScorePage(1, EXPORT_LIMIT, queryDTO);
 
-        List<String> headers = List.of("学号", "姓名", "课程", "学期", "平时分", "期中分", "期末分", "总评", "GPA", "状态", "考试时间");
+        List<String> headers = List.of(
+                "\u5b66\u53f7",
+                "\u59d3\u540d",
+                "\u73ed\u7ea7",
+                "\u8bfe\u7a0b",
+                "\u5b66\u671f",
+                "\u5e73\u65f6\u5206",
+                "\u671f\u4e2d\u5206",
+                "\u671f\u672b\u5206",
+                "\u603b\u8bc4",
+                "GPA",
+                "\u72b6\u6001",
+                "\u8003\u8bd5\u65f6\u95f4"
+        );
+
         List<List<String>> rows = new ArrayList<>();
         for (Score score : result.getRecords()) {
             rows.add(List.of(
                     safe(score.getStudentNo()),
                     safe(score.getStudentName()),
+                    safe(score.getClassName()),
                     safe(score.getCourseName()),
                     safe(score.getSemester()),
                     safe(score.getUsualScore()),
@@ -79,7 +95,7 @@ public class ReportController {
             ));
         }
 
-        writeExport(response, ExportFormat.fromNullable(format), "成绩单", "score", headers, rows);
+        writeExport(response, ExportFormat.fromNullable(format), "\u6210\u7ee9\u5355", "score", headers, rows);
     }
 
     @GetMapping("/attendance")
@@ -97,7 +113,18 @@ public class ReportController {
         Page<Attendance> result = attendanceService.getAttendancePage(
                 1, EXPORT_LIMIT, scopedStudentId, scopedTeacherId, courseArrangementId, attendanceDate, status);
 
-        List<String> headers = List.of("学号", "姓名", "班级", "课程", "考勤日期", "状态", "签到时间", "签退时间", "备注");
+        List<String> headers = List.of(
+                "\u5b66\u53f7",
+                "\u59d3\u540d",
+                "\u73ed\u7ea7",
+                "\u8bfe\u7a0b",
+                "\u8003\u52e4\u65e5\u671f",
+                "\u72b6\u6001",
+                "\u7b7e\u5230\u65f6\u95f4",
+                "\u7b7e\u9000\u65f6\u95f4",
+                "\u5907\u6ce8"
+        );
+
         List<List<String>> rows = new ArrayList<>();
         for (Attendance attendance : result.getRecords()) {
             rows.add(List.of(
@@ -112,7 +139,8 @@ public class ReportController {
                     safe(attendance.getRemark())
             ));
         }
-        writeExport(response, ExportFormat.fromNullable(format), "考勤明细", "attendance", headers, rows);
+
+        writeExport(response, ExportFormat.fromNullable(format), "\u8003\u52e4\u660e\u7ec6", "attendance", headers, rows);
     }
 
     @GetMapping("/leave-request")
@@ -127,7 +155,20 @@ public class ReportController {
         Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(
                 1, EXPORT_LIMIT, scopedStudentId, scopedTeacherId, status);
 
-        List<String> headers = List.of("学号", "姓名", "班级", "课程", "请假类型", "开始时间", "结束时间", "状态", "审批人", "审批备注", "提交时间");
+        List<String> headers = List.of(
+                "\u5b66\u53f7",
+                "\u59d3\u540d",
+                "\u73ed\u7ea7",
+                "\u8bfe\u7a0b",
+                "\u8bf7\u5047\u7c7b\u578b",
+                "\u5f00\u59cb\u65f6\u95f4",
+                "\u7ed3\u675f\u65f6\u95f4",
+                "\u72b6\u6001",
+                "\u5ba1\u6279\u4eba",
+                "\u5ba1\u6279\u5907\u6ce8",
+                "\u63d0\u4ea4\u65f6\u95f4"
+        );
+
         List<List<String>> rows = new ArrayList<>();
         for (LeaveRequest request : result.getRecords()) {
             rows.add(List.of(
@@ -144,7 +185,8 @@ public class ReportController {
                     formatDateTime(request.getCreateTime())
             ));
         }
-        writeExport(response, ExportFormat.fromNullable(format), "请假统计", "leave-request", headers, rows);
+
+        writeExport(response, ExportFormat.fromNullable(format), "\u8bf7\u5047\u7edf\u8ba1", "leave-request", headers, rows);
     }
 
     @GetMapping("/formats")
@@ -173,8 +215,10 @@ public class ReportController {
 
             String fileName = filePrefix + "-" + LocalDate.now() + "." + ext;
             String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
-            response.setHeader("Content-Disposition",
-                    "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''" + encodedFileName);
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''" + encodedFileName
+            );
             response.getOutputStream().write(bytes);
             response.getOutputStream().flush();
         } catch (Exception e) {

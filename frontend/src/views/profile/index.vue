@@ -5,7 +5,7 @@
         <div class="user-info">
           <el-avatar :size="88" :src="user.avatar || defaultAvatar" />
           <div class="user-name">{{ user.realName || user.username }}</div>
-          <div class="user-role">{{ user.role || '-' }}</div>
+          <div class="user-role">{{ roleLabel }}</div>
         </div>
         <el-descriptions :column="1" border>
           <el-descriptions-item label="用户名">{{ user.username || '-' }}</el-descriptions-item>
@@ -43,7 +43,7 @@
                     >
                       <AppButton variant="secondary" :loading="uploadingAvatar">上传头像</AppButton>
                     </el-upload>
-                    <div class="avatar-tip">支持 jpg/png/gif/webp，大小不超过 5MB</div>
+                    <div class="avatar-tip">支持常见图片格式，大小不超过 5 兆字节</div>
                   </div>
                 </div>
               </el-form-item>
@@ -89,7 +89,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
@@ -154,6 +154,13 @@ const pwdRules = {
     }
   ]
 }
+
+const roleLabel = computed(() => {
+  if (user.role === 'ADMIN') return '管理员'
+  if (user.role === 'TEACHER') return '教师'
+  if (user.role === 'STUDENT') return '学生'
+  return user.role || '-'
+})
 
 function resetFromUser() {
   form.realName = user.realName || ''

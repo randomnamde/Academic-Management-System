@@ -19,7 +19,10 @@ public class Score {
     
     @TableField(exist = false)
     private String studentName;
-    
+
+    @TableField(exist = false)
+    private String className;
+
     private Long courseArrangementId;
     
     @TableField(exist = false)

@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-neutralx-50 px-4 py-10 md:px-6">
     <div class="mx-auto grid w-full max-w-5xl gap-4 lg:grid-cols-[1.1fr,0.9fr]">
       <section class="app-panel p-6">
-        <p class="text-[12px] uppercase tracking-[0.08em] text-slatex-500">Academic Administration</p>
+        <p class="text-[12px] uppercase tracking-[0.08em] text-slatex-500">教务管理</p>
         <h1 class="mt-2 text-[30px] font-semibold tracking-tight text-primary-900">学生管理系统</h1>
         <p class="mt-2 text-[13px] text-slatex-600">统一处理学生、课程、成绩、考勤与权限管理任务。</p>
 
@@ -28,7 +28,7 @@
             <School class="h-5 w-5" />
           </div>
           <h2 class="text-[22px] font-semibold tracking-tight text-primary-900">身份验证</h2>
-          <p class="mt-1 text-[12px] text-slatex-500">Student Management System</p>
+          <p class="mt-1 text-[12px] text-slatex-500">学生管理平台</p>
         </header>
 
         <AppTabs v-model="activeTab" :items="tabs" />
@@ -117,6 +117,18 @@ const runtimeMetrics = reactive({
 
 let runtimeMetricsTimer = null
 
+function formatNodeStatus(value) {
+  const key = String(value || '').trim().toUpperCase()
+  const map = {
+    ONLINE: '在线',
+    OFFLINE: '离线',
+    DEGRADED: '降级',
+    HEALTHY: '正常',
+    UNHEALTHY: '异常'
+  }
+  return map[key] || (value ? String(value) : '--')
+}
+
 function validateLogin() {
   if (!loginForm.username.trim()) {
     ElMessage.error('请输入用户名')
@@ -198,11 +210,11 @@ async function fetchRuntimeMetrics() {
   try {
     const res = await getRuntimeMetrics()
     const data = res.data || {}
-    runtimeMetrics.nodeStatus = data.nodeStatus || '--'
+    runtimeMetrics.nodeStatus = formatNodeStatus(data.nodeStatus)
     runtimeMetrics.gatewayConcurrency = data.gatewayConcurrency ?? '--'
-    runtimeMetrics.syncDelayMs = data.syncDelayMs != null ? `${data.syncDelayMs}ms` : '--'
+    runtimeMetrics.syncDelayMs = data.syncDelayMs != null ? `${data.syncDelayMs}毫秒` : '--'
   } catch (_e) {
-    runtimeMetrics.nodeStatus = 'Degraded'
+    runtimeMetrics.nodeStatus = '异常'
     runtimeMetrics.gatewayConcurrency = '--'
     runtimeMetrics.syncDelayMs = '--'
   }

@@ -1,10 +1,10 @@
 <template>
   <div class="forbidden-page">
     <el-card class="forbidden-card">
-      <p class="error-kicker">Access Control</p>
+      <p class="error-kicker">权限提示</p>
       <h1>403</h1>
       <p class="error-title">当前账号没有访问该页面的权限</p>
-      <p class="error-desc">如果你认为这是异常，请联系管理员开通权限后重试。</p>
+      <p class="error-desc">如果你认为这是异常，请联系管理员开通权限后再试。</p>
       <el-button type="primary" @click="$router.push('/dashboard')">返回首页</el-button>
     </el-card>
   </div>
@@ -32,7 +32,6 @@
 
 .error-kicker {
   margin: 0 0 8px;
-  text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: 12px;
   color: #4f8190;

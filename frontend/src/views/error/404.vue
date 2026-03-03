@@ -1,7 +1,7 @@
 <template>
   <div class="notfound-page">
     <el-card class="notfound-card">
-      <p class="error-kicker">Navigation</p>
+      <p class="error-kicker">页面导航</p>
       <h1>404</h1>
       <p class="error-title">页面不存在或已被移动</p>
       <p class="error-desc">请检查地址是否正确，或返回首页继续使用系统。</p>
@@ -32,7 +32,6 @@
 
 .error-kicker {
   margin: 0 0 8px;
-  text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: 12px;
   color: #4f8190;

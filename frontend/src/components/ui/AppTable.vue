@@ -6,7 +6,7 @@
           <th
             v-for="column in columns"
             :key="column.key"
-            :style="column.width ? { width: withUnit(column.width) } : null"
+            :style="headerStyle(column)"
             :class="alignClass(column.align)"
           >
             {{ column.title }}
@@ -24,6 +24,7 @@
           <td
             v-for="column in columns"
             :key="column.key"
+            :style="cellStyle(column)"
             :class="alignClass(column.align)"
           >
             <slot :name="`cell-${column.key}`" :row="row" :index="index">
@@ -57,6 +58,25 @@ function alignClass(align = 'left') {
 
 function withUnit(value) {
   return typeof value === 'number' ? `${value}px` : value
+}
+
+function normalizeAlign(align = 'left') {
+  if (align === 'center' || align === 'right') return align
+  return 'left'
+}
+
+function headerStyle(column = {}) {
+  const style = {
+    textAlign: normalizeAlign(column.align)
+  }
+  if (column.width) style.width = withUnit(column.width)
+  return style
+}
+
+function cellStyle(column = {}) {
+  return {
+    textAlign: normalizeAlign(column.align)
+  }
 }
 </script>
 

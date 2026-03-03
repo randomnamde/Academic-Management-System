@@ -58,8 +58,9 @@ a {
 .el-card {
   border-radius: var(--sms-radius-panel);
   border: 1px solid var(--sms-border);
-  box-shadow: none;
-  background: var(--sms-bg-panel);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  background: rgba(252, 253, 254, 0.72);
+  backdrop-filter: blur(10px) saturate(136%);
 }
 
 .el-card__header {
@@ -168,6 +169,8 @@ a {
 .el-dialog {
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(14px) saturate(138%);
 }
 
 .el-dialog__header {

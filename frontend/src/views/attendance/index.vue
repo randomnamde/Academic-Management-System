@@ -5,8 +5,8 @@
         <AppButton variant="secondary">导出报表</AppButton>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="csv">导出 CSV</el-dropdown-item>
-            <el-dropdown-item command="xlsx">导出 Excel</el-dropdown-item>
+            <el-dropdown-item command="csv">导出逗号分隔文件</el-dropdown-item>
+            <el-dropdown-item command="xlsx">导出电子表格文件</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -15,10 +15,10 @@
 
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item v-if="canFilterStudent" label="学生ID">
+        <el-form-item v-if="canFilterStudent" label="学生学号">
           <el-input-number v-model="searchForm.studentId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="排课ID">
+        <el-form-item label="排课编号">
           <el-select
             v-model="searchForm.courseArrangementId"
             clearable
@@ -55,9 +55,9 @@
     <template #table>
       <el-table :data="tableData" v-loading="loading" stripe>
         <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="studentId" label="学生ID" width="90" />
+        <el-table-column prop="studentId" label="学生学号" width="90" />
         <el-table-column prop="studentName" label="学生" width="120" />
-        <el-table-column prop="courseArrangementId" label="排课ID" width="90" />
+        <el-table-column prop="courseArrangementId" label="排课编号" width="90" />
         <el-table-column prop="courseName" label="课程" width="140" />
         <el-table-column prop="attendanceDate" label="日期" width="120" />
         <el-table-column prop="checkInTime" label="签到" width="100" />
@@ -89,12 +89,12 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="学生ID" prop="studentId">
+            <el-form-item label="学生学号" prop="studentId">
               <el-input-number v-model="form.studentId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="排课ID" prop="courseArrangementId">
+            <el-form-item label="排课编号" prop="courseArrangementId">
               <el-select
                 v-model="form.courseArrangementId"
                 filterable
@@ -209,8 +209,8 @@ const form = reactive({
 })
 
 const rules = {
-  studentId: [{ required: true, message: '请输入学生ID', trigger: 'change' }],
-  courseArrangementId: [{ required: true, message: '请输入排课ID', trigger: 'change' }],
+  studentId: [{ required: true, message: '请输入学生学号', trigger: 'change' }],
+  courseArrangementId: [{ required: true, message: '请输入排课编号', trigger: 'change' }],
   attendanceDate: [{ required: true, message: '请选择日期', trigger: 'change' }],
   status: [{ required: true, message: '请选择状态', trigger: 'change' }]
 }
@@ -248,7 +248,7 @@ async function fetchList() {
 
 function formatArrangementLabel(item) {
   const parts = [item.semester, item.courseName, item.className].filter(Boolean)
-  return parts.length ? `${parts.join(' | ')} (ID:${item.id})` : `排课ID:${item.id}`
+  return parts.length ? `${parts.join(' | ')} (编号:${item.id})` : `排课编号:${item.id}`
 }
 
 async function fetchArrangementOptions() {
@@ -322,3 +322,4 @@ onMounted(async () => {
   await fetchList()
 })
 </script>
+

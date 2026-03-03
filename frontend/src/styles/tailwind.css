@@ -26,8 +26,8 @@
   }
 
   .app-panel {
-    @apply rounded-md border border-neutralx-200 bg-panel;
-    box-shadow: none;
+    @apply rounded-md border border-neutralx-200 bg-white/70 backdrop-blur-md;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
   }
 
   .app-panel-header {
@@ -39,7 +39,7 @@
   }
 
   .app-toolbar {
-    @apply rounded-md border border-neutralx-200 bg-white p-3;
+    @apply rounded-md border border-neutralx-200 bg-white/75 p-3 backdrop-blur-sm;
   }
 
   .app-input,
@@ -118,7 +118,7 @@
   }
 
   .app-modal-panel {
-    @apply relative z-50 mx-auto w-[min(92vw,760px)] rounded-md border border-neutralx-200 bg-white p-4;
+    @apply relative z-50 mx-auto w-[min(92vw,760px)] rounded-md border border-neutralx-200 bg-white/85 p-4 backdrop-blur-lg;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
   }
 }

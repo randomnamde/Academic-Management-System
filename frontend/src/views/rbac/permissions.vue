@@ -1,8 +1,8 @@
 ﻿<template>
   <div class="app-page space-y-3">
-    <AppCard title="Role & Permission / 权限矩阵" content-class="p-4 space-y-3">
+    <AppCard title="权限中心 / 权限矩阵" content-class="p-4 space-y-3">
       <div class="grid gap-2 md:grid-cols-[1fr_auto]">
-        <el-input v-model="keyword" clearable placeholder="按路由名过滤，例如 Score" />
+        <el-input v-model="keyword" clearable placeholder="按路由名称过滤，例如 成绩管理" />
         <AppButton variant="secondary" @click="keyword = ''">清空过滤</AppButton>
       </div>
 
@@ -19,7 +19,7 @@
       </AppTable>
     </AppCard>
 
-    <AppCard title="动作权限（Action Codes）" content-class="p-4">
+    <AppCard title="操作权限（权限编码）" content-class="p-4">
       <div class="flex flex-wrap gap-1.5">
         <span v-for="action in actionCodes" :key="action" class="app-tag-warning">{{ action }}</span>
       </div>
@@ -39,16 +39,16 @@ const tableDensity = computed(() => store.getters.tableDensity)
 const keyword = ref('')
 
 const matrixRows = [
-  { route: 'Dashboard', admin: true, teacher: true, student: true },
-  { route: 'Student', admin: true, teacher: true, student: false },
-  { route: 'Class', admin: true, teacher: true, student: false },
-  { route: 'Score', admin: true, teacher: true, student: true },
-  { route: 'Analytics', admin: true, teacher: true, student: true },
-  { route: 'RBACUsers', admin: true, teacher: false, student: false },
-  { route: 'RBACRoles', admin: true, teacher: false, student: false },
-  { route: 'RBACPermissions', admin: true, teacher: false, student: false },
-  { route: 'RBACAudit', admin: true, teacher: false, student: false },
-  { route: 'System', admin: true, teacher: false, student: false }
+  { route: '首页总览', routeCode: 'Dashboard', admin: true, teacher: true, student: true },
+  { route: '学生管理', routeCode: 'Student', admin: true, teacher: true, student: false },
+  { route: '班级管理', routeCode: 'Class', admin: true, teacher: true, student: false },
+  { route: '成绩管理', routeCode: 'Score', admin: true, teacher: true, student: true },
+  { route: '统计分析', routeCode: 'Analytics', admin: true, teacher: true, student: true },
+  { route: '权限用户', routeCode: 'RBACUsers', admin: true, teacher: false, student: false },
+  { route: '角色模板', routeCode: 'RBACRoles', admin: true, teacher: false, student: false },
+  { route: '权限矩阵', routeCode: 'RBACPermissions', admin: true, teacher: false, student: false },
+  { route: '审计日志', routeCode: 'RBACAudit', admin: true, teacher: false, student: false },
+  { route: '系统偏好', routeCode: 'System', admin: true, teacher: false, student: false }
 ]
 
 const actionCodes = [
@@ -66,15 +66,15 @@ const actionCodes = [
 ]
 
 const columns = [
-  { key: 'route', title: 'Route Name' },
-  { key: 'admin', title: 'Admin', width: 120, align: 'center' },
-  { key: 'teacher', title: 'Teacher', width: 120, align: 'center' },
-  { key: 'student', title: 'Student', width: 120, align: 'center' }
+  { key: 'route', title: '路由名称' },
+  { key: 'admin', title: '管理员', width: 120, align: 'center' },
+  { key: 'teacher', title: '教师', width: 120, align: 'center' },
+  { key: 'student', title: '学生', width: 120, align: 'center' }
 ]
 
 const filteredRows = computed(() => {
   const key = keyword.value.trim().toLowerCase()
   if (!key) return matrixRows
-  return matrixRows.filter((row) => row.route.toLowerCase().includes(key))
+  return matrixRows.filter((row) => row.route.toLowerCase().includes(key) || row.routeCode.toLowerCase().includes(key))
 })
 </script>

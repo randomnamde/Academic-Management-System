@@ -6,13 +6,13 @@
 
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="课程ID">
+        <el-form-item label="课程编号">
           <el-input-number v-model="searchForm.courseId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="教师ID">
+        <el-form-item label="教师编号">
           <el-input-number v-model="searchForm.teacherId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="班级ID">
+        <el-form-item label="班级编号">
           <el-input-number v-model="searchForm.classId" :min="1" style="width: 140px" />
         </el-form-item>
         <el-form-item label="学期">
@@ -66,17 +66,17 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="8">
-            <el-form-item label="课程ID" prop="courseId">
+            <el-form-item label="课程编号" prop="courseId">
               <el-input-number v-model="form.courseId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="教师ID" prop="teacherId">
+            <el-form-item label="教师编号" prop="teacherId">
               <el-input-number v-model="form.teacherId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="班级ID" prop="classId">
+            <el-form-item label="班级编号" prop="classId">
               <el-input-number v-model="form.classId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
@@ -165,9 +165,9 @@ const form = reactive({
 })
 
 const rules = {
-  courseId: [{ required: true, message: '请输入课程ID', trigger: 'change' }],
-  teacherId: [{ required: true, message: '请输入教师ID', trigger: 'change' }],
-  classId: [{ required: true, message: '请输入班级ID', trigger: 'change' }],
+  courseId: [{ required: true, message: '请输入课程编号', trigger: 'change' }],
+  teacherId: [{ required: true, message: '请输入教师编号', trigger: 'change' }],
+  classId: [{ required: true, message: '请输入班级编号', trigger: 'change' }],
   semester: [{ required: true, message: '请输入学期', trigger: 'blur' }],
   schedule: [{ required: true, message: '请输入时间安排', trigger: 'blur' }],
   capacity: [{ required: true, message: '请输入容量', trigger: 'change' }]
@@ -267,3 +267,4 @@ async function handleDelete(row) {
 
 onMounted(fetchList)
 </script>
+

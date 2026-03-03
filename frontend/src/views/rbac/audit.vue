@@ -1,8 +1,8 @@
 ﻿<template>
-  <CrudPageShell title="Role & Permission / 审计日志">
+  <CrudPageShell title="权限中心 / 审计日志">
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="用户ID">
+        <el-form-item label="用户编号">
           <el-input-number v-model="searchForm.userId" :min="1" style="width: 140px" />
         </el-form-item>
         <el-form-item label="状态">
@@ -12,7 +12,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="操作">
-          <el-input v-model="searchForm.operation" clearable placeholder="Controller#method" />
+          <el-input v-model="searchForm.operation" clearable placeholder="操作标识，如 学生管理#查询列表" />
         </el-form-item>
         <el-form-item>
           <AppButton @click="handleSearch">查询</AppButton>
@@ -71,11 +71,11 @@ const searchForm = reactive({
 })
 
 const columns = [
-  { key: 'userId', title: '用户ID', width: 100 },
+  { key: 'userId', title: '用户编号', width: 100 },
   { key: 'operation', title: '操作', width: 220 },
   { key: 'method', title: '请求', width: 220 },
-  { key: 'ip', title: 'IP', width: 140 },
-  { key: 'duration', title: '耗时(ms)', width: 120, align: 'right' },
+  { key: 'ip', title: '来源地址', width: 140 },
+  { key: 'duration', title: '耗时(毫秒)', width: 120, align: 'right' },
   { key: 'status', title: '状态', width: 110, align: 'center' },
   { key: 'errorMsg', title: '错误信息' },
   { key: 'createTime', title: '时间', width: 170 }
@@ -119,3 +119,4 @@ onMounted(fetchList)
   justify-content: flex-end;
 }
 </style>
+

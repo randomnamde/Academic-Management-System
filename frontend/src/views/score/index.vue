@@ -5,8 +5,8 @@
         <AppButton variant="secondary">导出报表</AppButton>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="csv">导出 CSV</el-dropdown-item>
-            <el-dropdown-item command="xlsx">导出 Excel</el-dropdown-item>
+            <el-dropdown-item command="csv">导出逗号分隔文件</el-dropdown-item>
+            <el-dropdown-item command="xlsx">导出电子表格文件</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -15,7 +15,7 @@
 
     <template #filters>
       <div class="grid grid-cols-12 gap-2">
-        <el-input-number v-if="canFilterStudent" v-model="searchForm.studentId" :min="1" class="col-span-12 md:col-span-2" placeholder="学生ID" />
+        <el-input-number v-if="canFilterStudent" v-model="searchForm.studentId" :min="1" class="col-span-12 md:col-span-2" placeholder="学生学号" />
         <el-select
           v-model="searchForm.courseArrangementId"
           clearable
@@ -35,11 +35,14 @@
 
     <template #table>
       <AppTable :columns="columns" :rows="tableData" :loading="loading" :density="tableDensity">
+        <template #cell-className="{ row }">
+          {{ resolveClassName(row) }}
+        </template>
         <template #cell-status="{ row }">
-          <AppBadge :type="statusBadgeType(row.status)">{{ row.status }}</AppBadge>
+          <AppBadge :type="statusBadgeType(row.status)">{{ statusLabel(row.status) }}</AppBadge>
         </template>
         <template #cell-actions="{ row }">
-          <div v-if="canEditScore" class="flex justify-end gap-2">
+          <div v-if="canEditScore" class="flex w-full justify-start gap-2">
             <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="openEdit(row)">编辑</button>
             <button class="text-[12px] text-state-danger hover:opacity-80" @click="handleDelete(row)">删除</button>
           </div>
@@ -64,12 +67,12 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="96px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="学生ID" prop="studentId">
+            <el-form-item label="学生学号" prop="studentId">
               <el-input-number v-model="form.studentId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="排课ID" prop="courseArrangementId">
+            <el-form-item label="排课编号" prop="courseArrangementId">
               <el-select v-model="form.courseArrangementId" filterable style="width: 100%" placeholder="请选择排课">
                 <el-option v-for="item in arrangementOptions" :key="item.id" :label="formatArrangementLabel(item)" :value="item.id" />
               </el-select>
@@ -142,21 +145,31 @@ const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
 const arrangementOptions = ref([])
+const arrangementClassMap = computed(() => {
+  const map = new Map()
+  arrangementOptions.value.forEach((item) => {
+    if (item?.id != null && item.className) {
+      map.set(item.id, item.className)
+    }
+  })
+  return map
+})
 
 const columns = computed(() => {
   const base = [
-    { key: 'studentId', title: '学生ID', width: 100 },
-    { key: 'studentName', title: '学生', width: 120 },
-    { key: 'courseName', title: '课程', width: 140 },
-    { key: 'semester', title: '学期', width: 130 },
-    { key: 'usualScore', title: '平时', width: 80, align: 'right' },
-    { key: 'midtermScore', title: '期中', width: 80, align: 'right' },
-    { key: 'finalScore', title: '期末', width: 80, align: 'right' },
-    { key: 'totalScore', title: '总评', width: 80, align: 'right' },
-    { key: 'gpa', title: 'GPA', width: 80, align: 'right' },
-    { key: 'status', title: '状态', width: 110, align: 'center' }
+    { key: 'studentId', title: '学生学号', width: 100, align: 'left' },
+    { key: 'studentName', title: '学生', width: 120, align: 'left' },
+    { key: 'className', title: '班级', width: 140, align: 'left' },
+    { key: 'courseName', title: '课程', width: 140, align: 'left' },
+    { key: 'semester', title: '学期', width: 130, align: 'left' },
+    { key: 'usualScore', title: '平时', width: 80, align: 'left' },
+    { key: 'midtermScore', title: '期中', width: 80, align: 'left' },
+    { key: 'finalScore', title: '期末', width: 80, align: 'left' },
+    { key: 'totalScore', title: '总评', width: 80, align: 'left' },
+    { key: 'gpa', title: '绩点', width: 80, align: 'left' },
+    { key: 'status', title: '状态', width: 110, align: 'left' }
   ]
-  if (canEditScore.value) base.push({ key: 'actions', title: '操作', width: 140, align: 'right' })
+  if (canEditScore.value) base.push({ key: 'actions', title: '操作', width: 140, align: 'left' })
   return base
 })
 
@@ -181,8 +194,8 @@ const form = reactive({
 })
 
 const rules = {
-  studentId: [{ required: true, message: '请输入学生ID', trigger: 'change' }],
-  courseArrangementId: [{ required: true, message: '请输入排课ID', trigger: 'change' }]
+  studentId: [{ required: true, message: '请输入学生学号', trigger: 'change' }],
+  courseArrangementId: [{ required: true, message: '请输入排课编号', trigger: 'change' }]
 }
 
 function resetForm() {
@@ -217,12 +230,19 @@ async function fetchList() {
 
 function formatArrangementLabel(item) {
   const parts = [item.semester, item.courseName, item.className].filter(Boolean)
-  return parts.length ? `ID:${item.id} | ${parts.join(' | ')}` : `ID:${item.id}`
+  return parts.length ? `编号:${item.id} | ${parts.join(' | ')}` : `编号:${item.id}`
 }
 
 async function fetchArrangementOptions() {
-  const res = await getCourseArrangementOptions({ status: 1 })
+  const res = await getCourseArrangementOptions()
   arrangementOptions.value = Array.isArray(res.data) ? res.data : []
+}
+
+function resolveClassName(row) {
+  if (row?.className) return row.className
+  const arrangementId = row?.courseArrangementId
+  if (arrangementId == null) return '-'
+  return arrangementClassMap.value.get(arrangementId) || '-'
 }
 
 async function handleExport(format) {
@@ -278,6 +298,13 @@ function statusBadgeType(status) {
   return 'info'
 }
 
+function statusLabel(status) {
+  if (status === 'NORMAL') return '正常'
+  if (status === 'MAKEUP') return '补考'
+  if (status === 'RETAKE') return '重修'
+  return '-'
+}
+
 async function submit() {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
@@ -312,3 +339,4 @@ onMounted(async () => {
   justify-content: flex-end;
 }
 </style>
+

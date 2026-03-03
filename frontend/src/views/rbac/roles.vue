@@ -1,6 +1,6 @@
 ﻿<template>
   <div class="app-page space-y-3">
-    <AppCard title="Role & Permission / 角色模板" content-class="p-4">
+    <AppCard title="权限中心 / 角色模板" content-class="p-4">
       <p class="text-[13px] text-slatex-600">
         角色模板采用最小授权原则。当前界面用于查看权限边界，后续可扩展为可编辑模板并对接后端策略引擎。
       </p>
@@ -37,9 +37,9 @@ const roleMeta = {
 }
 
 const routeMap = {
-  ADMIN: ['Dashboard', 'Student', 'Class', 'Score', 'Statistics', 'RBAC', 'System'],
-  TEACHER: ['Dashboard', 'Student', 'Class', 'Score', 'Statistics'],
-  STUDENT: ['Dashboard', 'Score', 'Statistics']
+  ADMIN: ['首页总览', '学生管理', '班级管理', '成绩管理', '统计分析', '权限中心', '系统偏好'],
+  TEACHER: ['首页总览', '学生管理', '班级管理', '成绩管理', '统计分析'],
+  STUDENT: ['首页总览', '成绩管理', '统计分析']
 }
 
 const actionMap = {

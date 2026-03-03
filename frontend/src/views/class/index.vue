@@ -63,7 +63,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="班主任ID">
+            <el-form-item label="班主任编号">
               <el-input-number v-model="form.teacherId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
@@ -117,7 +117,7 @@ const columns = computed(() => {
     { key: 'className', title: '班级名称', width: 160 },
     { key: 'grade', title: '年级', width: 90 },
     { key: 'major', title: '专业', width: 170 },
-    { key: 'teacherId', title: '班主任ID', width: 110 },
+    { key: 'teacherId', title: '班主任编号', width: 110 },
     { key: 'studentCount', title: '人数', width: 90, align: 'right' },
     { key: 'status', title: '状态', width: 100, align: 'center' }
   ]
@@ -243,3 +243,4 @@ onMounted(fetchList)
   justify-content: flex-end;
 }
 </style>
+

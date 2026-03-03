@@ -1,7 +1,5 @@
-﻿<template>
+<template>
   <router-view v-slot="{ Component, route }">
-    <transition name="app-fade" mode="out-in" appear>
-      <component :is="Component" :key="route.fullPath" />
-    </transition>
+    <component :is="Component" :key="route.meta?.public ? route.fullPath : route.matched?.[0]?.path || route.path" />
   </router-view>
 </template>

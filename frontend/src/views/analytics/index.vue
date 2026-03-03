@@ -19,10 +19,10 @@
         <el-form-item label="学期">
           <el-input v-model="filters.semester" clearable placeholder="如 2026-2027-1" />
         </el-form-item>
-        <el-form-item v-if="userRole !== 'STUDENT'" label="班级ID">
+        <el-form-item v-if="userRole !== 'STUDENT'" label="班级编号">
           <el-input-number v-model="filters.classId" :min="1" controls-position="right" />
         </el-form-item>
-        <el-form-item v-if="userRole === 'ADMIN'" label="教师ID">
+        <el-form-item v-if="userRole === 'ADMIN'" label="教师编号">
           <el-input-number v-model="filters.teacherId" :min="1" controls-position="right" />
         </el-form-item>
         <el-form-item label="粒度">
@@ -212,6 +212,32 @@ const scoreTrendRef = ref(null)
 let attendanceTrendChart = null
 let scoreTrendChart = null
 
+const chartTheme = {
+  fontFamily: "'IBM Plex Sans','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif",
+  text: '#334155',
+  axis: '#64748B',
+  grid: 'rgba(148, 163, 184, 0.22)',
+  border: '#E2E8F0',
+  tooltipBg: 'rgba(252, 253, 254, 0.96)',
+  primary: '#163454',
+  primarySoft: '#2A527A',
+  secondary: '#64748B'
+}
+
+const baseAxisLabel = {
+  color: chartTheme.axis,
+  fontSize: 11,
+  fontFamily: chartTheme.fontFamily
+}
+
+const baseTooltip = {
+  backgroundColor: chartTheme.tooltipBg,
+  borderColor: chartTheme.border,
+  borderWidth: 1,
+  textStyle: { color: chartTheme.text, fontSize: 12, fontFamily: chartTheme.fontFamily },
+  extraCssText: 'box-shadow:0 1px 2px rgba(15,23,42,.08);border-radius:6px;'
+}
+
 function formatDate(date) {
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')
@@ -359,28 +385,37 @@ function renderAttendanceTrend(records) {
   const labels = records.map((item) => item.periodLabel)
   const values = records.map((item) => Number(item.count || 0))
   attendanceTrendChart.setOption({
-    tooltip: { trigger: 'axis' },
-    grid: { top: 20, left: 40, right: 20, bottom: 30 },
+    color: [chartTheme.primarySoft],
+    tooltip: {
+      ...baseTooltip,
+      trigger: 'axis',
+      axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(148,163,184,0.08)' } }
+    },
+    grid: { top: 18, left: 40, right: 16, bottom: 26 },
     xAxis: {
       type: 'category',
       data: labels,
-      axisLabel: { color: '#4d6f80' }
+      axisLabel: baseAxisLabel,
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: chartTheme.border } }
     },
     yAxis: {
       type: 'value',
       minInterval: 1,
-      axisLabel: { color: '#4d6f80' },
-      splitLine: { lineStyle: { color: 'rgba(93, 147, 155, 0.2)' } }
+      axisLabel: baseAxisLabel,
+      axisTick: { show: false },
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: chartTheme.grid } }
     },
     series: [
       {
         name: '异常考勤',
         type: 'bar',
-        barWidth: 18,
+        barWidth: 16,
         data: values,
         itemStyle: {
-          borderRadius: [8, 8, 0, 0],
-          color: '#1b8e88'
+          borderRadius: [3, 3, 0, 0],
+          color: chartTheme.primarySoft
         }
       }
     ]
@@ -394,13 +429,23 @@ function renderScoreTrend(records) {
   const pass = records.map((item) => Number(item.passRate || 0))
   const excellent = records.map((item) => Number(item.excellentRate || 0))
   scoreTrendChart.setOption({
-    tooltip: { trigger: 'axis' },
-    legend: { data: ['均分', '及格率', '优秀率'], top: 0 },
-    grid: { top: 36, left: 40, right: 20, bottom: 30 },
+    color: [chartTheme.primary, chartTheme.primarySoft, chartTheme.secondary],
+    tooltip: { ...baseTooltip, trigger: 'axis' },
+    legend: {
+      data: ['均分', '及格率', '优秀率'],
+      top: 0,
+      itemWidth: 8,
+      itemHeight: 8,
+      icon: 'circle',
+      textStyle: { color: chartTheme.axis, fontSize: 11, fontFamily: chartTheme.fontFamily }
+    },
+    grid: { top: 34, left: 40, right: 36, bottom: 26 },
     xAxis: {
       type: 'category',
       data: labels,
-      axisLabel: { color: '#4d6f80' }
+      axisLabel: baseAxisLabel,
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: chartTheme.border } }
     },
     yAxis: [
       {
@@ -408,15 +453,22 @@ function renderScoreTrend(records) {
         name: '分值',
         min: 0,
         max: 100,
-        axisLabel: { color: '#4d6f80' },
-        splitLine: { lineStyle: { color: 'rgba(93, 147, 155, 0.2)' } }
+        nameTextStyle: { color: chartTheme.axis, fontSize: 11, fontFamily: chartTheme.fontFamily, padding: [0, 0, 0, 8] },
+        axisLabel: baseAxisLabel,
+        axisTick: { show: false },
+        axisLine: { show: false },
+        splitLine: { lineStyle: { color: chartTheme.grid } }
       },
       {
         type: 'value',
         name: '百分比',
         min: 0,
         max: 100,
-        axisLabel: { formatter: '{value}%' }
+        nameTextStyle: { color: chartTheme.axis, fontSize: 11, fontFamily: chartTheme.fontFamily, padding: [0, 8, 0, 0] },
+        axisLabel: { ...baseAxisLabel, formatter: '{value}%' },
+        axisTick: { show: false },
+        axisLine: { show: false },
+        splitLine: { show: false }
       }
     ],
     series: [
@@ -425,8 +477,10 @@ function renderScoreTrend(records) {
         type: 'line',
         smooth: true,
         data: avg,
-        lineStyle: { color: '#177c77', width: 3 },
-        itemStyle: { color: '#177c77' }
+        symbolSize: 6,
+        lineStyle: { color: chartTheme.primary, width: 2.25 },
+        itemStyle: { color: chartTheme.primary, borderColor: '#FFFFFF', borderWidth: 1 },
+        areaStyle: { color: 'rgba(22, 52, 84, 0.08)' }
       },
       {
         name: '及格率',
@@ -434,8 +488,9 @@ function renderScoreTrend(records) {
         smooth: true,
         yAxisIndex: 1,
         data: pass,
-        lineStyle: { color: '#3b8fa4', width: 2 },
-        itemStyle: { color: '#3b8fa4' }
+        symbolSize: 5,
+        lineStyle: { color: chartTheme.primarySoft, width: 2 },
+        itemStyle: { color: chartTheme.primarySoft, borderColor: '#FFFFFF', borderWidth: 1 }
       },
       {
         name: '优秀率',
@@ -443,8 +498,9 @@ function renderScoreTrend(records) {
         smooth: true,
         yAxisIndex: 1,
         data: excellent,
-        lineStyle: { color: '#6e9f5f', width: 2 },
-        itemStyle: { color: '#6e9f5f' }
+        symbolSize: 5,
+        lineStyle: { color: chartTheme.secondary, width: 2 },
+        itemStyle: { color: chartTheme.secondary, borderColor: '#FFFFFF', borderWidth: 1 }
       }
     ]
   })
@@ -594,4 +650,5 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
 }
 </style>
+
 

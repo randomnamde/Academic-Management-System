@@ -122,7 +122,7 @@ public class CourseArrangementController {
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     public ResultVO<List<CourseArrangement>> options(@RequestParam(required = false) Long teacherId,
                                                      @RequestParam(required = false) Long classId,
-                                                     @RequestParam(defaultValue = "1") Integer status,
+                                                     @RequestParam(required = false) Integer status,
                                                      Authentication authentication) {
         SysUser user = currentUserService.getCurrentUser(authentication);
         if (user.getRole() == SysUser.Role.TEACHER) {

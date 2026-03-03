@@ -1,46 +1,50 @@
 ﻿<template>
-  <div class="min-h-screen bg-neutralx-50 text-slatex-900">
-    <div class="grid min-h-screen" :style="gridStyle">
+  <div class="h-screen overflow-hidden bg-neutralx-50 text-slatex-900">
+    <div class="grid h-full" :style="gridStyle">
       <aside
-        class="hidden border-r border-neutralx-200 bg-panel md:flex md:flex-col"
+        class="glass-lite hidden h-screen border-r border-neutralx-200 bg-panel md:flex md:flex-col"
         :style="{ width: isCollapsed ? '72px' : '236px' }"
       >
         <div class="flex h-14 items-center border-b border-neutralx-200 px-4">
-          <h1 v-if="!isCollapsed" class="text-[13px] font-semibold tracking-tight text-primary-900">Academic OS</h1>
-          <span v-else class="text-[12px] font-semibold text-primary-900">AO</span>
+          <div class="inline-flex h-6 w-6 items-center justify-center rounded-sm border border-neutralx-200 bg-white/70 text-primary-800">
+            <Shield class="h-3.5 w-3.5" />
+          </div>
+          <h1 v-if="!isCollapsed" class="ml-2 text-[13px] font-semibold tracking-tight text-primary-900">Academic Management System</h1>
+          <span v-else class="text-[12px] font-semibold text-primary-900">AMS</span>
         </div>
 
         <nav class="flex-1 overflow-y-auto p-2">
           <section v-for="group in visibleMenuGroups" :key="group.key" class="mb-4">
-            <p v-if="!isCollapsed" class="mb-1 px-2 text-[11px] font-medium uppercase tracking-[0.08em] text-slatex-500">
-              {{ group.title }}
+            <p v-if="!isCollapsed" class="mb-1 flex items-center justify-start gap-1 px-2 text-[15px] font-semibold tracking-[0.01em] text-slatex-500">
+              <component :is="group.icon || 'Menu'" class="h-3 w-3" />
+              <span>{{ group.title }}</span>
             </p>
             <router-link
               v-for="item in group.items"
               :key="item.path"
               :to="item.path"
-              class="mb-1 flex h-8 items-center gap-2 rounded-sm px-2 text-[13px] font-medium transition-all duration-180"
+              class="mb-1 flex h-8 items-center justify-center gap-2 rounded-sm px-2 text-[14px] font-medium transition-all duration-180"
               :class="isActive(item.path)
                 ? 'bg-neutralx-100 text-primary-800'
                 : 'text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900'"
               :title="isCollapsed ? item.title : ''"
             >
               <component :is="item.icon || 'Menu'" class="h-3.5 w-3.5 shrink-0" />
-              <span v-if="!isCollapsed" class="truncate">{{ item.title }}</span>
+              <span v-if="!isCollapsed" class="truncate text-center">{{ item.title }}</span>
             </router-link>
           </section>
         </nav>
 
         <div class="border-t border-neutralx-200 p-2">
           <button
-            class="flex h-8 w-full items-center gap-2 rounded-sm px-2 text-[13px] text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900"
+            class="flex h-8 w-full items-center justify-center gap-2 rounded-sm px-2 text-[13px] text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900"
             @click="handleCommand('profile')"
           >
             <User class="h-3.5 w-3.5" />
             <span v-if="!isCollapsed">个人中心</span>
           </button>
           <button
-            class="mt-1 flex h-8 w-full items-center gap-2 rounded-sm px-2 text-[13px] text-state-danger hover:bg-red-50"
+            class="mt-1 flex h-8 w-full items-center justify-center gap-2 rounded-sm px-2 text-[13px] text-state-danger hover:bg-red-50"
             @click="handleCommand('logout')"
           >
             <LogOut class="h-3.5 w-3.5" />
@@ -49,8 +53,8 @@
         </div>
       </aside>
 
-      <section class="min-w-0">
-        <header class="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-neutralx-200 bg-panel px-3 md:px-5">
+      <section class="flex h-screen min-w-0 flex-col">
+        <header class="glass-lite z-20 flex h-14 shrink-0 items-center justify-between border-b border-neutralx-200 bg-panel px-3 md:px-5">
           <div class="flex min-w-0 items-center gap-2">
             <button
               class="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-neutralx-200 bg-white text-slatex-600 hover:bg-neutralx-100"
@@ -86,7 +90,7 @@
 
               <div
                 v-if="noticePopoverVisible"
-                class="absolute right-0 z-30 mt-2 w-80 rounded-md border border-neutralx-200 bg-white p-2 shadow-pop"
+                class="glass-lite absolute right-0 z-30 mt-2 w-80 rounded-md border border-neutralx-200 bg-white p-2 shadow-pop"
               >
                 <div class="mb-1 flex items-center justify-between px-1">
                   <p class="text-[12px] font-semibold text-primary-900">最新公告</p>
@@ -119,21 +123,35 @@
 
               <div
                 v-if="userMenuVisible"
-                class="absolute right-0 z-30 mt-2 w-36 rounded-md border border-neutralx-200 bg-white p-1 shadow-pop"
+                class="glass-lite absolute right-0 z-30 mt-2 w-40 rounded-md border border-neutralx-200 bg-white p-1.5 shadow-pop"
               >
-                <button class="menu-item" @click="handleCommand('profile')">个人中心</button>
-                <button class="menu-item" @click="handleCommand('password')">修改密码</button>
-                <button class="menu-item text-state-danger" @click="handleCommand('logout')">退出登录</button>
+                <div class="menu-section">
+                  <button class="menu-item" @click="handleCommand('profile')">个人中心</button>
+                  <button class="menu-item" @click="handleCommand('password')">修改密码</button>
+                </div>
+                <div class="menu-divider"></div>
+                <div class="menu-section">
+                  <button class="menu-item text-state-danger" @click="handleCommand('logout')">退出登录</button>
+                </div>
               </div>
             </div>
           </div>
         </header>
 
-        <main class="p-3 md:p-4">
+        <main class="flex-1 overflow-y-auto p-3 md:p-4">
           <router-view v-slot="{ Component, route: activeRoute }">
-            <Transition name="app-fade" mode="out-in">
-              <component :is="Component" :key="activeRoute.fullPath" />
-            </Transition>
+            <KeepAlive>
+              <component
+                :is="Component"
+                v-if="activeRoute.meta?.keepAlive !== false"
+                :key="String(activeRoute.name || activeRoute.path)"
+              />
+            </KeepAlive>
+            <component
+              :is="Component"
+              v-if="activeRoute.meta?.keepAlive === false"
+              :key="String(activeRoute.name || activeRoute.path)"
+            />
           </router-view>
         </main>
       </section>
@@ -142,20 +160,26 @@
     <Transition name="app-fade">
       <div v-if="mobileMenuVisible" class="fixed inset-0 z-40 md:hidden">
         <div class="absolute inset-0 bg-slatex-900/35" @click="mobileMenuVisible = false"></div>
-        <div class="absolute left-0 top-0 h-full w-72 border-r border-neutralx-200 bg-panel p-2">
+        <div class="glass-lite absolute left-0 top-0 h-full w-72 border-r border-neutralx-200 bg-panel p-2">
           <div class="mb-2 flex h-10 items-center justify-between border-b border-neutralx-200 px-2">
-            <h1 class="text-[13px] font-semibold tracking-tight text-primary-900">Academic OS</h1>
+            <div class="flex items-center gap-1.5">
+              <div class="inline-flex h-6 w-6 items-center justify-center rounded-sm border border-neutralx-200 bg-white/70 text-primary-800">
+                <Shield class="h-3.5 w-3.5" />
+              </div>
+              <h1 class="text-[13px] font-semibold tracking-tight text-primary-900">Academic Management System</h1>
+            </div>
             <button class="rounded-sm px-2 py-1 text-[12px] text-slatex-600 hover:bg-neutralx-100" @click="mobileMenuVisible = false">关闭</button>
           </div>
           <section v-for="group in visibleMenuGroups" :key="`mobile-${group.key}`" class="mb-4">
-            <p class="mb-1 px-2 text-[11px] font-medium uppercase tracking-[0.08em] text-slatex-500">
-              {{ group.title }}
+            <p class="mb-1 flex items-center justify-start gap-1 px-2 text-[15px] font-semibold tracking-[0.01em] text-slatex-500">
+              <component :is="group.icon || 'Menu'" class="h-3 w-3" />
+              <span>{{ group.title }}</span>
             </p>
             <router-link
               v-for="item in group.items"
               :key="`mobile-${item.path}`"
               :to="item.path"
-              class="mb-1 flex h-8 items-center gap-2 rounded-sm px-2 text-[13px] font-medium transition-all duration-180"
+              class="mb-1 flex h-8 items-center justify-center gap-2 rounded-sm px-2 text-[14px] font-medium transition-all duration-180"
               :class="isActive(item.path)
                 ? 'bg-neutralx-100 text-primary-800'
                 : 'text-slatex-600 hover:bg-neutralx-100 hover:text-slatex-900'"
@@ -191,7 +215,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
-import { Bell, ChevronDown, LogOut, PanelLeft, Rows4, User } from 'lucide-vue-next'
+import { Bell, BookOpenCheck, ChevronDown, GraduationCap, LayoutGrid, LogOut, PanelLeft, Rows4, Shield, ShieldCheck, User } from 'lucide-vue-next'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -229,10 +253,17 @@ const isCollapsed = computed(() => !sidebarOpened.value)
 const readAnnouncementStorageKey = computed(() => `announcement:read:${userInfo.value?.id || 'guest'}`)
 
 const groupLabel = {
-  overview: 'Overview',
-  teaching: 'Teaching',
-  assessment: 'Assessment',
-  access: 'Access Control'
+  overview: '总览',
+  teaching: '教学管理',
+  assessment: '考核分析',
+  access: '权限控制'
+}
+
+const groupIcon = {
+  overview: LayoutGrid,
+  teaching: GraduationCap,
+  assessment: BookOpenCheck,
+  access: ShieldCheck
 }
 
 const layoutChildren = computed(() => {
@@ -255,7 +286,8 @@ const visibleMenuGroups = computed(() => {
       if (!groups.has(key)) {
         groups.set(key, {
           key,
-          title: groupLabel[key] || 'Others',
+          title: groupLabel[key] || '其他',
+          icon: groupIcon[key] || 'Menu',
           items: []
         })
       }
@@ -434,13 +466,30 @@ onUnmounted(() => {
   border-radius: 6px;
   padding: 6px 8px;
   text-align: left;
-  font-size: 12px;
+  font-size: 14px;
   color: #475569;
   transition: all 180ms ease;
+}
+
+.menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-divider {
+  margin: 4px 0;
+  border-top: 1px solid #e2e8f0;
 }
 
 .menu-item:hover {
   background: #f1f5f9;
   color: #1e2938;
+}
+
+.glass-lite {
+  background: rgba(252, 253, 254, 0.66);
+  border-color: rgba(226, 232, 240, 0.74);
+  backdrop-filter: blur(14px) saturate(138%);
 }
 </style>

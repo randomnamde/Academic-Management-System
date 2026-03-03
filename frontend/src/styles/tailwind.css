@@ -128,38 +128,61 @@
 
   .app-btn-primary {
     @apply app-btn;
-    color: var(--text-on-accent);
-    border: 1px solid var(--accent-600);
-    background: linear-gradient(145deg, var(--accent-500), var(--accent-600));
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--accent-500) 34%, transparent);
+    color: var(--button-primary-text);
+    border: 1px solid var(--button-primary-bg);
+    background: var(--button-primary-bg);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--button-primary-bg) 30%, transparent);
   }
 
   .app-btn-primary:hover {
-    border-color: var(--accent-700);
-    background: linear-gradient(145deg, var(--accent-600), var(--accent-700));
+    border-color: var(--button-primary-bg-hover);
+    background: var(--button-primary-bg-hover);
+  }
+
+  .app-btn-primary:active,
+  .app-btn-primary:focus-visible {
+    border-color: var(--button-primary-bg-hover);
+    background: var(--button-primary-bg-hover);
   }
 
   .app-btn-secondary {
     @apply app-btn;
-    border: 1px solid color-mix(in srgb, var(--panel-border) 92%, transparent);
-    background: color-mix(in srgb, var(--surface-base) 84%, transparent);
-    color: var(--text-secondary);
+    border: 1px solid var(--button-secondary-border);
+    background: var(--button-secondary-bg);
+    color: var(--button-secondary-text);
   }
 
   .app-btn-secondary:hover {
-    background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
-    color: var(--text-primary);
+    border-color: var(--button-secondary-border-hover);
+    background: var(--button-secondary-bg-hover);
+    color: var(--button-secondary-text);
+  }
+
+  .app-btn-secondary:active,
+  .app-btn-secondary:focus-visible {
+    border-color: var(--button-secondary-border-hover);
+    background: var(--button-secondary-bg-hover);
+    color: var(--button-secondary-text);
   }
 
   .app-btn-danger {
     @apply app-btn;
-    color: var(--text-on-accent);
-    border: 1px solid var(--danger);
-    background: color-mix(in srgb, var(--danger) 90%, #8a2230);
+    color: var(--button-danger-text);
+    border: 1px solid var(--button-danger-bg);
+    background: var(--button-danger-bg);
   }
 
   .app-btn-danger:hover {
-    filter: brightness(0.96);
+    border-color: var(--button-danger-bg-hover);
+    background: var(--button-danger-bg-hover);
+    color: var(--button-danger-text);
+  }
+
+  .app-btn-danger:active,
+  .app-btn-danger:focus-visible {
+    border-color: var(--button-danger-bg-hover);
+    background: var(--button-danger-bg-hover);
+    color: var(--button-danger-text);
   }
 
   .app-table-wrap {

@@ -114,31 +114,55 @@ a {
 }
 
 .el-button:not(.el-button--primary):not(.el-button--danger):not(.is-link):not(.is-text) {
-  color: var(--text-primary);
-  border-color: color-mix(in srgb, var(--panel-border) 88%, transparent);
-  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+  color: var(--button-secondary-text);
+  border-color: var(--button-secondary-border);
+  background: var(--button-secondary-bg);
 }
 
 .el-button:not(.el-button--primary):not(.el-button--danger):not(.is-link):not(.is-text):hover {
-  color: var(--text-primary);
-  border-color: color-mix(in srgb, var(--accent-500) 24%, var(--panel-border));
-  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  color: var(--button-secondary-text);
+  border-color: var(--button-secondary-border-hover);
+  background: var(--button-secondary-bg-hover);
+}
+
+.el-button:not(.el-button--primary):not(.el-button--danger):not(.is-link):not(.is-text):active,
+.el-button:not(.el-button--primary):not(.el-button--danger):not(.is-link):not(.is-text):focus-visible {
+  color: var(--button-secondary-text);
+  border-color: var(--button-secondary-border-hover);
+  background: var(--button-secondary-bg-hover);
 }
 
 .el-button--primary {
-  background: linear-gradient(145deg, var(--accent-500), var(--accent-600));
-  border-color: var(--accent-600);
-  color: var(--text-on-accent);
+  background: var(--button-primary-bg);
+  border-color: var(--button-primary-bg);
+  color: var(--button-primary-text);
 }
 
 .el-button--primary:hover {
-  background: linear-gradient(145deg, var(--accent-600), var(--accent-700));
-  border-color: var(--accent-700);
-  color: var(--text-on-accent);
+  background: var(--button-primary-bg-hover);
+  border-color: var(--button-primary-bg-hover);
+  color: var(--button-primary-text);
+}
+
+.el-button--primary:focus-visible,
+.el-button--primary:active {
+  background: var(--button-primary-bg-hover);
+  border-color: var(--button-primary-bg-hover);
+  color: var(--button-primary-text);
 }
 
 .el-button--danger {
-  color: var(--text-on-accent);
+  background: var(--button-danger-bg);
+  border-color: var(--button-danger-bg);
+  color: var(--button-danger-text);
+}
+
+.el-button--danger:hover,
+.el-button--danger:focus-visible,
+.el-button--danger:active {
+  background: var(--button-danger-bg-hover);
+  border-color: var(--button-danger-bg-hover);
+  color: var(--button-danger-text);
 }
 
 .el-button.is-link,

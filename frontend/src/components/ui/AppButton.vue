@@ -37,16 +37,16 @@ const props = defineProps({
 defineEmits(['click'])
 
 const toneClass = {
-  default: 'border border-[var(--accent-600)] bg-[var(--accent-600)] text-[var(--text-on-accent)] hover:bg-[var(--accent-700)] hover:border-[var(--accent-700)] shadow-soft',
-  accent: 'border border-[var(--accent-600)] bg-[var(--accent-600)] text-[var(--text-on-accent)] hover:bg-[var(--accent-700)] hover:border-[var(--accent-700)] shadow-soft',
-  neutral: 'border border-neutralx-200 bg-transparent text-[var(--text-primary)] hover:bg-neutralx-100'
+  default: 'border border-[var(--button-primary-bg)] bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] hover:border-[var(--button-primary-bg-hover)] active:bg-[var(--button-primary-bg-hover)] active:border-[var(--button-primary-bg-hover)] shadow-soft',
+  accent: 'border border-[var(--button-primary-bg)] bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] hover:border-[var(--button-primary-bg-hover)] active:bg-[var(--button-primary-bg-hover)] active:border-[var(--button-primary-bg-hover)] shadow-soft',
+  neutral: 'border border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] hover:bg-[var(--button-secondary-bg-hover)] hover:border-[var(--button-secondary-border-hover)] active:bg-[var(--button-secondary-bg-hover)] active:border-[var(--button-secondary-border-hover)]'
 }
 
 const variantClass = {
   primary: '',
-  secondary: 'border border-neutralx-200 bg-[var(--surface-base)] text-[var(--text-primary)] hover:bg-neutralx-100',
-  ghost: 'border border-transparent bg-transparent text-[var(--text-primary)] hover:bg-neutralx-100 hover:text-[var(--text-primary)]',
-  danger: 'border border-state-danger bg-state-danger text-[var(--text-on-accent)] hover:opacity-90',
+  secondary: 'border border-[var(--button-secondary-border)] bg-[var(--button-secondary-bg)] text-[var(--button-secondary-text)] hover:bg-[var(--button-secondary-bg-hover)] hover:border-[var(--button-secondary-border-hover)] active:bg-[var(--button-secondary-bg-hover)] active:border-[var(--button-secondary-border-hover)]',
+  ghost: 'border border-transparent bg-transparent text-[var(--text-primary)] hover:bg-[var(--button-secondary-bg-hover)] hover:text-[var(--text-primary)]',
+  danger: 'border border-[var(--button-danger-bg)] bg-[var(--button-danger-bg)] text-[var(--button-danger-text)] hover:bg-[var(--button-danger-bg-hover)] hover:border-[var(--button-danger-bg-hover)] active:bg-[var(--button-danger-bg-hover)] active:border-[var(--button-danger-bg-hover)]',
   text: 'border border-transparent bg-transparent text-[var(--accent-500)] hover:text-[var(--accent-600)]'
 }
 

@@ -41,6 +41,36 @@ a {
   opacity: 0;
 }
 
+.app-shell-motion-enter-active,
+.app-shell-motion-leave-active {
+  transition:
+    opacity 240ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 240ms ease;
+}
+
+.app-shell-motion-enter-from,
+.app-shell-motion-leave-to {
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
+  filter: blur(4px);
+}
+
+.page-motion-enter-active,
+.page-motion-leave-active {
+  transition:
+    opacity 220ms ease,
+    transform 250ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 220ms ease;
+}
+
+.page-motion-enter-from,
+.page-motion-leave-to {
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
+  filter: blur(3px);
+}
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -381,5 +411,22 @@ a {
 
 :root[data-theme='dark'] .glass-lite {
   backdrop-filter: blur(10px) saturate(120%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell-motion-enter-active,
+  .app-shell-motion-leave-active,
+  .page-motion-enter-active,
+  .page-motion-leave-active {
+    transition-duration: 0.01ms !important;
+  }
+
+  .app-shell-motion-enter-from,
+  .app-shell-motion-leave-to,
+  .page-motion-enter-from,
+  .page-motion-leave-to {
+    transform: none;
+    filter: none;
+  }
 }
 

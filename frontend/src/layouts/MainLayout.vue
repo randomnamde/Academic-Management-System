@@ -171,18 +171,19 @@
 
         <main id="main-content" tabindex="-1" class="flex-1 overflow-y-auto p-3 md:p-4">
           <router-view v-slot="{ Component, route: activeRoute }">
-            <KeepAlive>
+            <Transition name="page-motion" mode="out-in">
+              <KeepAlive v-if="activeRoute.meta?.keepAlive !== false">
+                <component
+                  :is="Component"
+                  :key="String(activeRoute.name || activeRoute.path)"
+                />
+              </KeepAlive>
               <component
                 :is="Component"
-                v-if="activeRoute.meta?.keepAlive !== false"
+                v-else
                 :key="String(activeRoute.name || activeRoute.path)"
               />
-            </KeepAlive>
-            <component
-              :is="Component"
-              v-if="activeRoute.meta?.keepAlive === false"
-              :key="String(activeRoute.name || activeRoute.path)"
-            />
+            </Transition>
           </router-view>
         </main>
       </section>

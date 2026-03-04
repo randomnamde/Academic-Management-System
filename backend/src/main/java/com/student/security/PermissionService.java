@@ -22,7 +22,7 @@ public class PermissionService {
     }
 
     public List<String> resolvePermissions(SysUser.Role role) {
-        RoleCode roleCode = RoleCode.fromLegacy(role);
+        RoleCode roleCode = RoleCode.fromUserRole(role);
         if (roleCode == null) {
             return List.of();
         }

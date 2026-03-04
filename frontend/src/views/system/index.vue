@@ -103,7 +103,7 @@ const allRoles = computed(() => {
   if (store.state.userInfo?.role) set.add(store.state.userInfo.role)
   return set
 })
-const canEditSemester = computed(() => allRoles.value.has('SCHOOL_ADMIN') || (allRoles.value.has('ADMIN') && !allRoles.value.has('COLLEGE_ADMIN')))
+const canEditSemester = computed(() => allRoles.value.has('SCHOOL_ADMIN'))
 
 const pwdRules = {
   oldPassword: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],

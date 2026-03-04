@@ -35,7 +35,9 @@
         <el-table-column type="index" label="序号" width="60" />
         <el-table-column prop="title" label="标题" min-width="220" />
         <el-table-column prop="type" label="类型" width="100" />
-        <el-table-column prop="targetRole" label="目标角色" width="110" />
+        <el-table-column label="目标角色" width="140">
+          <template #default="{ row }">{{ targetRoleLabel(row.targetRole) }}</template>
+        </el-table-column>
         <el-table-column prop="priority" label="优先级" width="90" />
         <el-table-column prop="isTop" label="置顶" width="80">
           <template #default="{ row }">{{ row.isTop === 1 ? '是' : '否' }}</template>
@@ -94,9 +96,11 @@
             <el-form-item label="目标角色" prop="targetRole">
               <el-select v-model="form.targetRole" style="width: 100%">
                 <el-option label="全部" value="ALL" />
+                <el-option label="学校管理员" value="SCHOOL_ADMIN" />
+                <el-option label="学院管理员" value="COLLEGE_ADMIN" />
+                <el-option label="班主任" value="HOMEROOM_TEACHER" />
+                <el-option label="任课教师" value="COURSE_TEACHER" />
                 <el-option label="学生" value="STUDENT" />
-                <el-option label="教师" value="TEACHER" />
-                <el-option label="管理员" value="ADMIN" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -320,6 +324,18 @@ async function handleStatusChange(row, enabled) {
   await updateAnnouncementStatus(row.id, enabled ? 1 : 0)
   ElMessage.success('状态已更新')
   fetchList()
+}
+
+function targetRoleLabel(targetRole) {
+  const map = {
+    ALL: '全部',
+    SCHOOL_ADMIN: '学校管理员',
+    COLLEGE_ADMIN: '学院管理员',
+    HOMEROOM_TEACHER: '班主任',
+    COURSE_TEACHER: '任课教师',
+    STUDENT: '学生'
+  }
+  return map[targetRole] || targetRole || '-'
 }
 
 onMounted(fetchList)

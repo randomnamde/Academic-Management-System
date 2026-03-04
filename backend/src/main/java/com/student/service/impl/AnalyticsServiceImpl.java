@@ -20,6 +20,7 @@ import com.student.mapper.CourseArrangementMapper;
 import com.student.mapper.StudentMapper;
 import com.student.mapper.ClassMapper;
 import com.student.security.CurrentUserService;
+import com.student.security.RoleCode;
 import com.student.service.AnalyticsService;
 import com.student.service.AttendanceService;
 import com.student.service.LeaveRequestService;
@@ -179,7 +180,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         String normalizedRiskType = normalizeRiskType(riskType);
 
         List<RiskStudentDTO> allRecords;
-        if (scope.role() == SysUser.Role.STUDENT) {
+        if (scope.role().isStudent()) {
             allRecords = new ArrayList<>(switch (normalizedRiskType) {
                 case "low_score" -> collectStudentLowScoreRiskDetails(range, scope, arrangementScope);
                 case "abnormal_attendance" -> collectStudentAbnormalAttendanceRiskDetails(range, scope, arrangementScope);
@@ -217,7 +218,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private Long countStudents(UserScope scope, ArrangementScope arrangementScope) {
-        if (scope.role() == SysUser.Role.STUDENT) {
+        if (scope.role().isStudent()) {
             return 1L;
         }
         if (arrangementScope.enabled()) {
@@ -242,7 +243,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     private Long countPendingApprovals(UserScope scope, ArrangementScope arrangementScope) {
         var query = leaveRequestService.lambdaQuery();
-        if (scope.role() == SysUser.Role.STUDENT) {
+        if (scope.role().isStudent()) {
             query.in(LeaveRequest::getStatus, LeaveRequest.Status.PENDING, LeaveRequest.Status.REJECTED);
         } else {
             query.eq(LeaveRequest::getStatus, LeaveRequest.Status.PENDING);
@@ -266,7 +267,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .between(Score::getCreateTime, range.startDate().atStartOfDay(), range.endDate().plusDays(1).atStartOfDay().minusNanos(1));
         applyScoreUserScope(query, scope);
         applyArrangementScope(query, arrangementScope, Score::getCourseArrangementId);
-        if (scope.role() != SysUser.Role.STUDENT) {
+        if (!scope.role().isStudent()) {
             return query.count();
         }
 
@@ -663,31 +664,33 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private UserScope resolveUserScope(Authentication authentication) {
-        SysUser currentUser = currentUserService.getCurrentUser(authentication);
-        if (currentUser.getRole() == SysUser.Role.STUDENT) {
-            Student student = currentUserService.getCurrentStudent(authentication);
-            return new UserScope(currentUser.getRole(), student.getId(), null, student.getClassId(), null);
+        RoleCode primaryRoleCode = currentUserService.getPrimaryRoleCode(authentication);
+        SysUser.Role primaryRole = RoleCode.toUserRole(primaryRoleCode);
+        if (primaryRole == null) {
+            throw new BusinessException(403, "No valid role found");
         }
-        if (currentUser.getRole() == SysUser.Role.TEACHER) {
+        if (primaryRole.isStudent()) {
+            Student student = currentUserService.getCurrentStudent(authentication);
+            return new UserScope(primaryRole, student.getId(), null, student.getClassId(), null);
+        }
+        if (primaryRole.isTeacherGroup()) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
-            return new UserScope(currentUser.getRole(), null, teacherId, null, null);
+            return new UserScope(primaryRole, null, teacherId, null, null);
         }
         Long managedCollegeId = null;
-        try {
+        if (primaryRole == SysUser.Role.COLLEGE_ADMIN) {
             managedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        } catch (Exception ignored) {
-            managedCollegeId = null;
         }
-        return new UserScope(currentUser.getRole(), null, null, null, managedCollegeId);
+        return new UserScope(primaryRole, null, null, null, managedCollegeId);
     }
 
     private ArrangementScope resolveArrangementScope(AnalyticsFilterDTO filter, UserScope scope) {
         Long teacherId = null;
         Long classId = null;
-        if (scope.role() == SysUser.Role.TEACHER) {
+        if (scope.role().isTeacherGroup()) {
             teacherId = scope.teacherId();
             classId = filter.getClassId();
-        } else if (scope.role() == SysUser.Role.ADMIN) {
+        } else if (scope.role().isAdminGroup()) {
             teacherId = filter.getTeacherId();
             classId = filter.getClassId();
         }
@@ -696,12 +699,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         // Student analytics must stay in "self" scope; classId/teacherId filters are ignored.
         // Optional semester filter is still supported for narrowing personal records.
         boolean enabled;
-        if (scope.role() == SysUser.Role.ADMIN) {
+        if (scope.role().isAdminGroup()) {
             enabled = teacherId != null || classId != null || StringUtils.hasText(semester);
             if (scope.collegeId() != null) {
                 enabled = true;
             }
-        } else if (scope.role() == SysUser.Role.TEACHER) {
+        } else if (scope.role().isTeacherGroup()) {
             enabled = true;
         } else {
             enabled = StringUtils.hasText(semester);
@@ -824,19 +827,19 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private void applyScoreUserScope(com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper<Score> query, UserScope scope) {
-        if (scope.role() == SysUser.Role.STUDENT && scope.studentId() != null) {
+        if (scope.role().isStudent() && scope.studentId() != null) {
             query.eq(Score::getStudentId, scope.studentId());
         }
     }
 
     private void applyAttendanceUserScope(com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper<Attendance> query, UserScope scope) {
-        if (scope.role() == SysUser.Role.STUDENT && scope.studentId() != null) {
+        if (scope.role().isStudent() && scope.studentId() != null) {
             query.eq(Attendance::getStudentId, scope.studentId());
         }
     }
 
     private void applyLeaveUserScope(com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper<LeaveRequest> query, UserScope scope) {
-        if (scope.role() == SysUser.Role.STUDENT && scope.studentId() != null) {
+        if (scope.role().isStudent() && scope.studentId() != null) {
             query.eq(LeaveRequest::getStudentId, scope.studentId());
         }
     }

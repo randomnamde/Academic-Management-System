@@ -70,7 +70,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         Set<RoleCode> roleCodes = getRoleCodes(user.getId());
         if (roleCodes.isEmpty()) {
-            RoleCode fallback = RoleCode.fromLegacy(user.getRole());
+            RoleCode fallback = RoleCode.fromUserRole(user.getRole());
             if (fallback != null) {
                 roleCodes.add(fallback);
             }
@@ -78,14 +78,25 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (roleCodes.isEmpty()) {
             throw new BusinessException("User has no available roles");
         }
-        String primaryRole = roleCodes.iterator().next().name();
-        String token = jwtTokenProvider.generateToken(user, roleCodes.stream().map(RoleCode::name).toList(), primaryRole);
+        List<RoleCode> orderedRoles = RoleCode.sortByPriority(roleCodes);
+        RoleCode primaryRoleCode = orderedRoles.get(0);
+        String primaryRole = primaryRoleCode.name();
+        SysUser.Role primaryUserRole = RoleCode.toUserRole(primaryRoleCode);
+        if (primaryUserRole != null && primaryUserRole != user.getRole()) {
+            SysUser rolePatch = new SysUser();
+            rolePatch.setId(user.getId());
+            rolePatch.setRole(primaryUserRole);
+            userMapper.updateById(rolePatch);
+            user.setRole(primaryUserRole);
+        }
+        String token = jwtTokenProvider.generateToken(user, orderedRoles.stream().map(RoleCode::name).toList(), primaryRole);
 
         LoginVO loginVO = new LoginVO();
         BeanUtils.copyProperties(user, loginVO);
         loginVO.setToken(token);
+        loginVO.setRole(primaryUserRole);
         loginVO.setPrimaryRole(primaryRole);
-        loginVO.setRoles(roleCodes.stream().map(RoleCode::name).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new)));
+        loginVO.setRoles(orderedRoles.stream().map(RoleCode::name).collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new)));
         loginVO.setPermissions(permissionService.resolvePermissions(roleCodes));
         return loginVO;
     }
@@ -203,7 +214,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (result.isEmpty()) {
             SysUser user = userMapper.selectById(userId);
             if (user != null) {
-                RoleCode fallback = RoleCode.fromLegacy(user.getRole());
+                RoleCode fallback = RoleCode.fromUserRole(user.getRole());
                 if (fallback != null) {
                     result.add(fallback);
                 }
@@ -223,12 +234,26 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                         .eq(SysUserRole::getUserId, userId)
                         .eq(SysUserRole::getRoleCode, roleCode.name()));
         if (count != null && count > 0) {
+            syncPrimaryRole(userId);
             return;
         }
         SysUserRole relation = new SysUserRole();
         relation.setUserId(userId);
         relation.setRoleCode(roleCode.name());
         sysUserRoleMapper.insert(relation);
+        syncPrimaryRole(userId);
+    }
+
+    private void syncPrimaryRole(Long userId) {
+        RoleCode primaryRole = RoleCode.selectPrimary(getRoleCodes(userId));
+        SysUser.Role primaryUserRole = RoleCode.toUserRole(primaryRole);
+        if (primaryUserRole == null) {
+            return;
+        }
+        SysUser userPatch = new SysUser();
+        userPatch.setId(userId);
+        userPatch.setRole(primaryUserRole);
+        userMapper.updateById(userPatch);
     }
 
     private String resolveFileExtension(String filename) {

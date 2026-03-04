@@ -56,7 +56,7 @@ public class LeaveRequestController {
     }
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER')")
     public ResultVO<Void> approve(@PathVariable Long id,
                                   @RequestParam boolean approved,
                                   @RequestParam(required = false) String remark,
@@ -72,7 +72,7 @@ public class LeaveRequestController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT', 'ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<LeaveRequest> getById(@PathVariable Long id, Authentication authentication) {
         LeaveRequest leaveRequest = leaveRequestService.getLeaveRequestById(id);
         if (leaveRequest == null) {
@@ -107,7 +107,7 @@ public class LeaveRequestController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT', 'ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Page<LeaveRequest>> list(@RequestParam(defaultValue = "1") Integer page,
                                              @RequestParam(defaultValue = "10") Integer size,
                                              @RequestParam(required = false) Long studentId,
@@ -140,7 +140,7 @@ public class LeaveRequestController {
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT', 'ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<List<LeaveRequest>> getByStudentId(@PathVariable Long studentId, Authentication authentication) {
         if (currentUserService.isStudent(authentication)
                 && !currentUserService.getCurrentStudentId(authentication).equals(studentId)) {
@@ -166,7 +166,7 @@ public class LeaveRequestController {
     }
 
     @GetMapping("/pending")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER')")
     public ResultVO<List<LeaveRequest>> getPending(Authentication authentication) {
         if (currentUserService.isAdmin(authentication)) {
             Page<LeaveRequest> page = leaveRequestService.getLeaveRequestPage(1, 200, null, null, LeaveRequest.Status.PENDING);
@@ -184,14 +184,14 @@ public class LeaveRequestController {
     }
 
     @GetMapping("/cc")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<List<LeaveRequestCc>> getCc(Authentication authentication) {
         Long userId = currentUserService.getCurrentUser(authentication).getId();
         return ResultVO.success(leaveRequestService.getCcList(userId));
     }
 
     @PutMapping("/cc/{id}/read")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> readCc(@PathVariable Long id, Authentication authentication) {
         Long userId = currentUserService.getCurrentUser(authentication).getId();
         leaveRequestService.markCcRead(id, userId);
@@ -208,3 +208,4 @@ public class LeaveRequestController {
         }
     }
 }
+

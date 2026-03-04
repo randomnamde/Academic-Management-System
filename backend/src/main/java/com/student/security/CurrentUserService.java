@@ -53,12 +53,16 @@ public class CurrentUserService {
             }
         }
         if (result.isEmpty()) {
-            RoleCode fallback = RoleCode.fromLegacy(user.getRole());
+            RoleCode fallback = RoleCode.fromUserRole(user.getRole());
             if (fallback != null) {
                 result.add(fallback);
             }
         }
         return result;
+    }
+
+    public RoleCode getPrimaryRoleCode(Authentication authentication) {
+        return RoleCode.selectPrimary(getCurrentRoleCodes(authentication));
     }
 
     public boolean hasRole(Authentication authentication, RoleCode roleCode) {
@@ -112,19 +116,20 @@ public class CurrentUserService {
     }
 
     public boolean isStudent(Authentication authentication) {
-        return hasRole(authentication, RoleCode.STUDENT);
+        return getPrimaryRoleCode(authentication) == RoleCode.STUDENT;
     }
 
     public boolean isTeacher(Authentication authentication) {
-        return hasAnyRole(authentication, RoleCode.HOMEROOM_TEACHER, RoleCode.COURSE_TEACHER);
+        RoleCode primaryRole = getPrimaryRoleCode(authentication);
+        return primaryRole == RoleCode.HOMEROOM_TEACHER || primaryRole == RoleCode.COURSE_TEACHER;
     }
 
     public boolean isAdmin(Authentication authentication) {
-        return hasRole(authentication, RoleCode.SCHOOL_ADMIN);
+        return getPrimaryRoleCode(authentication) == RoleCode.SCHOOL_ADMIN;
     }
 
     public boolean isCollegeAdmin(Authentication authentication) {
-        return hasRole(authentication, RoleCode.COLLEGE_ADMIN);
+        return getPrimaryRoleCode(authentication) == RoleCode.COLLEGE_ADMIN;
     }
 
     public Long resolveManagedCollegeId(Authentication authentication) {
@@ -155,4 +160,3 @@ public class CurrentUserService {
         return resolveManagedCollegeId(authentication);
     }
 }
-

@@ -46,7 +46,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         user.setRealName(teacherDTO.getName());
         user.setPhone(teacherDTO.getPhone());
         user.setEmail(teacherDTO.getEmail());
-        user.setRole(SysUser.Role.TEACHER);
+        user.setRole(SysUser.Role.COURSE_TEACHER);
         user.setStatus(1);
         userMapper.insert(user);
         sysUserService.grantRole(user.getId(), RoleCode.COURSE_TEACHER);

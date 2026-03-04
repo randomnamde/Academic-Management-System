@@ -52,6 +52,6 @@ public class Announcement {
     }
     
     public enum TargetRole {
-        ALL, STUDENT, TEACHER, ADMIN
+        ALL, SCHOOL_ADMIN, COLLEGE_ADMIN, HOMEROOM_TEACHER, COURSE_TEACHER, STUDENT
     }
 }

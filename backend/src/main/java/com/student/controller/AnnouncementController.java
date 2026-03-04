@@ -23,7 +23,7 @@ public class AnnouncementController {
     private final CurrentUserService currentUserService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Page<Announcement>> list(@RequestParam(defaultValue = "1") Integer page,
                                              @RequestParam(defaultValue = "10") Integer size,
                                              @RequestParam(required = false) String title,
@@ -31,26 +31,24 @@ public class AnnouncementController {
                                              @RequestParam(required = false) Announcement.TargetRole targetRole,
                                              @RequestParam(required = false) Integer status,
                                              Authentication authentication) {
-        SysUser currentUser = currentUserService.getCurrentUser(authentication);
-        if (currentUser.getRole() == SysUser.Role.STUDENT) {
+        if (currentUserService.isStudent(authentication)) {
             Student student = currentUserService.getCurrentStudent(authentication);
             return ResultVO.success(
-                    announcementService.getVisibleAnnouncementPage(page, size, title, type, currentUser.getRole(), student.getClassId())
+                    announcementService.getVisibleAnnouncementPage(page, size, title, type, currentUserService.getCurrentRoleCodes(authentication), student.getClassId())
             );
         }
         return ResultVO.success(announcementService.getAnnouncementPage(page, size, title, type, targetRole, status));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Announcement> getById(@PathVariable Long id, Authentication authentication) {
         Announcement announcement = announcementService.getById(id);
         if (announcement == null) {
             return ResultVO.error(404, "Announcement not found");
         }
 
-        SysUser currentUser = currentUserService.getCurrentUser(authentication);
-        if (currentUser.getRole() == SysUser.Role.STUDENT) {
+        if (currentUserService.isStudent(authentication)) {
             Student student = currentUserService.getCurrentStudent(authentication);
             if (!isVisibleForStudent(announcement, student)) {
                 return ResultVO.error(403, "Forbidden");
@@ -60,7 +58,7 @@ public class AnnouncementController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody Announcement announcement, Authentication authentication) {
         SysUser currentUser = currentUserService.getCurrentUser(authentication);
         announcement.setAuthorId(currentUser.getId());
@@ -69,7 +67,7 @@ public class AnnouncementController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> update(@PathVariable Long id, @RequestBody Announcement announcement) {
         announcement.setId(id);
         announcementService.updateAnnouncement(announcement);
@@ -77,14 +75,14 @@ public class AnnouncementController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> delete(@PathVariable Long id) {
         announcementService.removeById(id);
         return ResultVO.success();
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status) {
         announcementService.updateAnnouncementStatus(id, status);
         return ResultVO.success();
@@ -112,3 +110,4 @@ public class AnnouncementController {
         return announcement.getEndTime() == null || !announcement.getEndTime().isBefore(now);
     }
 }
+

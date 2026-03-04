@@ -26,14 +26,14 @@ public class CourseController {
     private final DataScopeService dataScopeService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody @Validated CourseDTO courseDTO) {
         courseService.addCourse(courseDTO);
         return ResultVO.success();
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> update(@PathVariable Long id, @RequestBody @Validated CourseDTO courseDTO) {
         courseDTO.setId(id);
         courseService.updateCourse(courseDTO);
@@ -41,14 +41,14 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> delete(@PathVariable Long id) {
         courseService.deleteCourse(id);
         return ResultVO.success();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Course> getById(@PathVariable Long id, Authentication authentication) {
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
@@ -61,7 +61,7 @@ public class CourseController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Page<Course>> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -90,7 +90,7 @@ public class CourseController {
     }
 
     @GetMapping("/statistics/category")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<CourseCategoryStatisticsDTO> getCategoryStatistics(Authentication authentication) {
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
@@ -108,9 +108,11 @@ public class CourseController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status) {
         courseService.updateCourseStatus(id, status);
         return ResultVO.success();
     }
 }
+
+

@@ -33,7 +33,7 @@ public class AttendanceController {
     private final CourseArrangementMapper courseArrangementMapper;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> record(@RequestBody @Validated AttendanceDTO attendanceDTO, Authentication authentication) {
         assertCollegeAdminArrangementScope(authentication, attendanceDTO.getCourseArrangementId());
         dataScopeService.assertTeacherOwnsArrangement(authentication, attendanceDTO.getCourseArrangementId());
@@ -42,7 +42,7 @@ public class AttendanceController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> update(@PathVariable Long id,
                                  @RequestBody @Validated AttendanceDTO attendanceDTO,
                                  Authentication authentication) {
@@ -60,7 +60,7 @@ public class AttendanceController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> delete(@PathVariable Long id, Authentication authentication) {
         Attendance existing = attendanceService.getAttendanceById(id);
         if (existing == null) {
@@ -73,7 +73,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Attendance> getById(@PathVariable Long id, Authentication authentication) {
         Attendance attendance = attendanceService.getAttendanceById(id);
         if (attendance == null) {
@@ -91,7 +91,7 @@ public class AttendanceController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Page<Attendance>> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -110,7 +110,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<List<Attendance>> getByStudentId(
             @PathVariable Long studentId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -129,7 +129,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/statistics/{studentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Map<String, Object>> getStatistics(
             @PathVariable Long studentId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -148,7 +148,7 @@ public class AttendanceController {
     }
 
     @PostMapping("/batch")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> batchRecord(@RequestBody List<AttendanceDTO> attendanceDTOList, Authentication authentication) {
         for (AttendanceDTO item : attendanceDTOList) {
             assertCollegeAdminArrangementScope(authentication, item.getCourseArrangementId());
@@ -230,3 +230,4 @@ public class AttendanceController {
         return statistics;
     }
 }
+

@@ -55,16 +55,19 @@ public class UserController {
             return ResultVO.error(404, "User not found");
         }
         var roleCodes = sysUserService.getRoleCodes(user.getId());
+        var orderedRoles = com.student.security.RoleCode.sortByPriority(roleCodes);
         UserInfoVO vo = new UserInfoVO();
         BeanUtils.copyProperties(user, vo);
-        vo.setPrimaryRole(roleCodes.isEmpty() ? null : roleCodes.iterator().next().name());
-        vo.setRoles(roleCodes.stream().map(RoleCode::name).collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new)));
+        RoleCode primaryRoleCode = orderedRoles.isEmpty() ? null : orderedRoles.get(0);
+        vo.setRole(RoleCode.toUserRole(primaryRoleCode));
+        vo.setPrimaryRole(primaryRoleCode == null ? null : primaryRoleCode.name());
+        vo.setRoles(orderedRoles.stream().map(RoleCode::name).collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new)));
         vo.setPermissions(permissionService.resolvePermissions(roleCodes));
         return ResultVO.success(vo);
     }
 
     @GetMapping("/list")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Page<SysUser>> list(@RequestParam(defaultValue = "1") Integer page,
                                         @RequestParam(defaultValue = "10") Integer size,
                                         @RequestParam(required = false) String username,
@@ -105,7 +108,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId != null) {
@@ -193,3 +196,4 @@ public class UserController {
         return userIds;
     }
 }
+

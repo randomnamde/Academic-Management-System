@@ -3,15 +3,17 @@ package com.student.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.student.entity.Announcement;
-import com.student.entity.SysUser;
 import com.student.exception.BusinessException;
 import com.student.mapper.AnnouncementMapper;
+import com.student.security.RoleCode;
 import com.student.service.AnnouncementService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Service
 public class AnnouncementServiceImpl extends ServiceImpl<AnnouncementMapper, Announcement> implements AnnouncementService {
@@ -39,19 +41,31 @@ public class AnnouncementServiceImpl extends ServiceImpl<AnnouncementMapper, Ann
                                                          Integer size,
                                                          String title,
                                                          Announcement.Type type,
-                                                         SysUser.Role role,
+                                                         Set<RoleCode> roles,
                                                          Long classId) {
         Page<Announcement> pageParam = new Page<>(page, size);
-        Announcement.TargetRole roleTarget = Announcement.TargetRole.valueOf(role.name());
+        Set<Announcement.TargetRole> roleTargets = new LinkedHashSet<>();
+        if (roles != null) {
+            for (RoleCode role : roles) {
+                try {
+                    roleTargets.add(Announcement.TargetRole.valueOf(role.name()));
+                } catch (IllegalArgumentException ignored) {
+                    // no-op
+                }
+            }
+        }
         LocalDateTime now = LocalDateTime.now();
 
         return lambdaQuery()
                 .like(StringUtils.hasText(title), Announcement::getTitle, title)
                 .eq(type != null, Announcement::getType, type)
                 .eq(Announcement::getStatus, 1)
-                .and(w -> w.eq(Announcement::getTargetRole, Announcement.TargetRole.ALL)
-                           .or()
-                           .eq(Announcement::getTargetRole, roleTarget))
+                .and(w -> {
+                    w.eq(Announcement::getTargetRole, Announcement.TargetRole.ALL);
+                    if (!roleTargets.isEmpty()) {
+                        w.or().in(Announcement::getTargetRole, roleTargets);
+                    }
+                })
                 .and(w -> w.isNull(Announcement::getTargetClassId)
                            .or()
                            .eq(classId != null, Announcement::getTargetClassId, classId))

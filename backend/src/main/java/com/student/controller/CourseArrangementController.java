@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.dto.CourseArrangementDTO;
 import com.student.entity.CourseArrangement;
 import com.student.entity.Student;
-import com.student.entity.SysUser;
 import com.student.security.CurrentUserService;
 import com.student.security.DataScopeService;
 import com.student.service.CourseArrangementService;
@@ -27,11 +26,10 @@ public class CourseArrangementController {
     private final DataScopeService dataScopeService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody @Validated CourseArrangementDTO dto, Authentication authentication) {
         assertCollegeAdminClassScope(authentication, dto.getClassId());
-        SysUser user = currentUserService.getCurrentUser(authentication);
-        if (user.getRole() == SysUser.Role.TEACHER) {
+        if (currentUserService.isTeacher(authentication)) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
             if (!teacherId.equals(dto.getTeacherId())) {
                 return ResultVO.error(403, "Teacher can only create own arrangements");
@@ -42,14 +40,13 @@ public class CourseArrangementController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> update(@PathVariable Long id,
                                  @RequestBody @Validated CourseArrangementDTO dto,
                                  Authentication authentication) {
         assertCollegeAdminClassScope(authentication, dto.getClassId());
         dto.setId(id);
-        SysUser user = currentUserService.getCurrentUser(authentication);
-        if (user.getRole() == SysUser.Role.TEACHER) {
+        if (currentUserService.isTeacher(authentication)) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
             if (!teacherId.equals(dto.getTeacherId())) {
                 return ResultVO.error(403, "Teacher can only update own arrangements");
@@ -60,14 +57,13 @@ public class CourseArrangementController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> delete(@PathVariable Long id, Authentication authentication) {
         CourseArrangement target = courseArrangementService.getArrangementById(id);
         if (target != null) {
             assertCollegeAdminClassScope(authentication, target.getClassId());
         }
-        SysUser user = currentUserService.getCurrentUser(authentication);
-        if (user.getRole() == SysUser.Role.TEACHER) {
+        if (currentUserService.isTeacher(authentication)) {
             CourseArrangement detail = courseArrangementService.getArrangementById(id);
             if (detail == null) {
                 return ResultVO.error(404, "Course arrangement not found");
@@ -82,7 +78,7 @@ public class CourseArrangementController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<CourseArrangement> getById(@PathVariable Long id, Authentication authentication) {
         CourseArrangement detail = courseArrangementService.getArrangementById(id);
         if (detail == null) {
@@ -90,14 +86,13 @@ public class CourseArrangementController {
         }
         assertCollegeAdminClassScope(authentication, detail.getClassId());
 
-        SysUser user = currentUserService.getCurrentUser(authentication);
-        if (user.getRole() == SysUser.Role.TEACHER) {
+        if (currentUserService.isTeacher(authentication)) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
             if (!teacherId.equals(detail.getTeacherId())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
-        if (user.getRole() == SysUser.Role.STUDENT) {
+        if (currentUserService.isStudent(authentication)) {
             Student student = currentUserService.getCurrentStudent(authentication);
             if (student.getClassId() == null || !student.getClassId().equals(detail.getClassId())) {
                 return ResultVO.error(403, "Forbidden");
@@ -107,7 +102,7 @@ public class CourseArrangementController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Page<CourseArrangement>> list(@RequestParam(defaultValue = "1") Integer page,
                                                   @RequestParam(defaultValue = "10") Integer size,
                                                   @RequestParam(required = false) Long courseId,
@@ -120,10 +115,9 @@ public class CourseArrangementController {
         if (scopedCollegeId != null && classId != null) {
             assertCollegeAdminClassScope(authentication, classId);
         }
-        SysUser user = currentUserService.getCurrentUser(authentication);
-        if (user.getRole() == SysUser.Role.TEACHER) {
+        if (currentUserService.isTeacher(authentication)) {
             teacherId = currentUserService.getCurrentTeacherId(authentication);
-        } else if (user.getRole() == SysUser.Role.STUDENT) {
+        } else if (currentUserService.isStudent(authentication)) {
             Student student = currentUserService.getCurrentStudent(authentication);
             classId = student.getClassId();
             status = 1;
@@ -137,7 +131,7 @@ public class CourseArrangementController {
     }
 
     @GetMapping("/options")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<List<CourseArrangement>> options(@RequestParam(required = false) Long teacherId,
                                                      @RequestParam(required = false) Long classId,
                                                      @RequestParam(required = false) Integer status,
@@ -145,10 +139,9 @@ public class CourseArrangementController {
         if (classId != null) {
             assertCollegeAdminClassScope(authentication, classId);
         }
-        SysUser user = currentUserService.getCurrentUser(authentication);
-        if (user.getRole() == SysUser.Role.TEACHER) {
+        if (currentUserService.isTeacher(authentication)) {
             teacherId = currentUserService.getCurrentTeacherId(authentication);
-        } else if (user.getRole() == SysUser.Role.STUDENT) {
+        } else if (currentUserService.isStudent(authentication)) {
             Student student = currentUserService.getCurrentStudent(authentication);
             classId = student.getClassId();
             status = 1;
@@ -173,3 +166,4 @@ public class CourseArrangementController {
         }
     }
 }
+

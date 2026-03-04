@@ -33,7 +33,7 @@ public class ScoreController {
     private final CourseArrangementMapper courseArrangementMapper;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody @Validated ScoreDTO scoreDTO, Authentication authentication) {
         assertCollegeAdminArrangementScope(authentication, scoreDTO.getCourseArrangementId());
         dataScopeService.assertTeacherOwnsArrangement(authentication, scoreDTO.getCourseArrangementId());
@@ -42,7 +42,7 @@ public class ScoreController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> update(@PathVariable Long id,
                                  @RequestBody @Validated ScoreDTO scoreDTO,
                                  Authentication authentication) {
@@ -60,7 +60,7 @@ public class ScoreController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> delete(@PathVariable Long id, Authentication authentication) {
         Score existing = scoreService.getScoreById(id);
         if (existing == null) {
@@ -73,7 +73,7 @@ public class ScoreController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Score> getById(@PathVariable Long id, Authentication authentication) {
         Score score = scoreService.getScoreById(id);
         if (score == null) {
@@ -91,7 +91,7 @@ public class ScoreController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Page<Score>> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -113,7 +113,7 @@ public class ScoreController {
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<List<Score>> getByStudentId(@PathVariable Long studentId, Authentication authentication) {
         Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
         ScoreQueryDTO queryDTO = new ScoreQueryDTO();
@@ -124,7 +124,7 @@ public class ScoreController {
     }
 
     @GetMapping("/course/{courseArrangementId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<List<Score>> getByCourseArrangementId(@PathVariable Long courseArrangementId, Authentication authentication) {
         assertCollegeAdminArrangementScope(authentication, courseArrangementId);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
@@ -133,7 +133,7 @@ public class ScoreController {
     }
 
     @GetMapping("/statistics/{studentId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<ScoreStatisticsDTO> getStatistics(@PathVariable Long studentId, Authentication authentication) {
         if (currentUserService.isStudent(authentication)) {
             studentId = currentUserService.getCurrentStudentId(authentication);
@@ -153,7 +153,7 @@ public class ScoreController {
     }
 
     @GetMapping("/distribution/{courseArrangementId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<List<Map<String, Object>>> getDistribution(@PathVariable Long courseArrangementId, Authentication authentication) {
         assertCollegeAdminArrangementScope(authentication, courseArrangementId);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
@@ -162,7 +162,7 @@ public class ScoreController {
     }
 
     @GetMapping("/rank")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<List<Map<String, Object>>> getClassRank(
             @RequestParam Long classId,
             @RequestParam String semester) {
@@ -171,7 +171,7 @@ public class ScoreController {
     }
 
     @PostMapping("/batch")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> batchAdd(@RequestBody List<ScoreDTO> scoreDTOList, Authentication authentication) {
         for (ScoreDTO item : scoreDTOList) {
             assertCollegeAdminArrangementScope(authentication, item.getCourseArrangementId());
@@ -230,3 +230,4 @@ public class ScoreController {
         return dto;
     }
 }
+

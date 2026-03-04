@@ -33,7 +33,7 @@ public class ClassController {
     private final SysUserService sysUserService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody @Validated Class clazz, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId != null) {
@@ -45,7 +45,7 @@ public class ClassController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> update(@PathVariable Long id, @RequestBody @Validated Class clazz, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId != null) {
@@ -62,7 +62,7 @@ public class ClassController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> delete(@PathVariable Long id, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId != null) {
@@ -76,7 +76,7 @@ public class ClassController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Class> getById(@PathVariable Long id, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId != null) {
@@ -96,7 +96,7 @@ public class ClassController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Page<Class>> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -154,7 +154,7 @@ public class ClassController {
     }
 
     @GetMapping("/teacher/{teacherId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<List<Class>> getByTeacherId(@PathVariable Long teacherId, Authentication authentication) {
         List<Class> classes = classService.getClassesByTeacherId(teacherId);
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
@@ -177,3 +177,4 @@ public class ClassController {
         sysUserService.grantRole(teacher.getUserId(), RoleCode.HOMEROOM_TEACHER);
     }
 }
+

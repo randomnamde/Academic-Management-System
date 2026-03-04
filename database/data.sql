@@ -3,9 +3,9 @@ USE student_management;
 
 -- 插入系统用户（密码：123456，使用BCrypt加密）
 INSERT INTO sys_user (username, password, real_name, phone, email, role, status) VALUES
-('admin', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '管理员', '13800000001', 'admin@school.com', 'ADMIN', 1),
-('teacher001', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '张老师', '13800000002', 'teacher001@school.com', 'TEACHER', 1),
-('teacher002', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '李老师', '13800000003', 'teacher002@school.com', 'TEACHER', 1),
+('admin', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '管理员', '13800000001', 'admin@school.com', 'SCHOOL_ADMIN', 1),
+('teacher001', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '张老师', '13800000002', 'teacher001@school.com', 'COURSE_TEACHER', 1),
+('teacher002', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '李老师', '13800000003', 'teacher002@school.com', 'COURSE_TEACHER', 1),
 ('student001', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '王同学', '13800000004', 'student001@school.com', 'STUDENT', 1),
 ('student002', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '李同学', '13800000005', 'student002@school.com', 'STUDENT', 1);
 
@@ -72,6 +72,7 @@ UPDATE class SET college_id = 1 WHERE college_id IS NULL;
 
 INSERT IGNORE INTO sys_user_role (user_id, role_code) VALUES
 (1, 'SCHOOL_ADMIN'),
+(1, 'COLLEGE_ADMIN'),
 (2, 'COURSE_TEACHER'),
 (2, 'HOMEROOM_TEACHER'),
 (3, 'STUDENT');

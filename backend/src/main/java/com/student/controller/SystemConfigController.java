@@ -20,16 +20,17 @@ public class SystemConfigController {
     private final SysConfigService sysConfigService;
 
     @GetMapping("/current-semester")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT', 'ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Map<String, String>> getCurrentSemester() {
         return ResultVO.success(Map.of("currentSemester", sysConfigService.getCurrentSemester()));
     }
 
     @PutMapping("/current-semester")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
     public ResultVO<Void> setCurrentSemester(@RequestParam String currentSemester) {
         sysConfigService.setCurrentSemester(currentSemester);
         return ResultVO.success();
     }
 }
+
 

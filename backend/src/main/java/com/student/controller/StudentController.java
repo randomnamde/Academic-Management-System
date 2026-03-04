@@ -34,7 +34,7 @@ public class StudentController {
     private final ClassService classService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody @Validated StudentDTO studentDTO, Authentication authentication) {
         assertCollegeClassAccess(authentication, studentDTO.getClassId());
         studentService.addStudent(studentDTO);
@@ -42,7 +42,7 @@ public class StudentController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> update(@PathVariable Long id, @RequestBody @Validated StudentDTO studentDTO, Authentication authentication) {
         Student existing = studentService.getById(id);
         if (existing == null) {
@@ -56,7 +56,7 @@ public class StudentController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> delete(@PathVariable Long id, Authentication authentication) {
         Student existing = studentService.getById(id);
         if (existing == null) {
@@ -68,7 +68,7 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Student> getById(@PathVariable Long id, Authentication authentication) {
         if (currentUserService.isStudent(authentication)) {
             Long currentStudentId = currentUserService.getCurrentStudentId(authentication);
@@ -85,7 +85,7 @@ public class StudentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Page<Student>> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -134,13 +134,13 @@ public class StudentController {
     }
 
     @GetMapping("/statistics/gender")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Map<String, Long>> getGenderStatistics() {
         return ResultVO.success(studentService.getGenderStatistics());
     }
 
     @GetMapping("/class/{classId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<List<Student>> getByClassId(@PathVariable Long classId, Authentication authentication) {
         if (currentUserService.isStudent(authentication)) {
             Student currentStudent = currentUserService.getCurrentStudent(authentication);
@@ -152,7 +152,7 @@ public class StudentController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> updateStatus(@PathVariable Long id, @RequestParam Student.Status status, Authentication authentication) {
         Student existing = studentService.getById(id);
         if (existing == null) {
@@ -164,7 +164,7 @@ public class StudentController {
     }
 
     @GetMapping("/next-no")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<String> getNextStudentNo(
             @RequestParam Long classId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate enrollmentDate,
@@ -191,4 +191,5 @@ public class StudentController {
         assertCollegeClassAccess(authentication, student.getClassId());
     }
 }
+
 

@@ -889,7 +889,7 @@ class SecurityScopeIntegrationTest {
                 "Admin Internal",
                 "Scope test content",
                 "NOTICE",
-                "ADMIN",
+                "SCHOOL_ADMIN",
                 null,
                 1,
                 1L,

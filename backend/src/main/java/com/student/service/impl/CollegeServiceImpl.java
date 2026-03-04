@@ -1,19 +1,17 @@
 package com.student.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.student.dto.CollegeDTO;
 import com.student.entity.College;
 import com.student.entity.SysUser;
-import com.student.entity.SysUserRole;
 import com.student.exception.BusinessException;
 import com.student.mapper.CollegeMapper;
 import com.student.mapper.SysUserMapper;
-import com.student.mapper.SysUserRoleMapper;
 import com.student.security.RoleCode;
 import com.student.service.CollegeService;
+import com.student.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -26,7 +24,7 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
 
     private final CollegeMapper collegeMapper;
     private final SysUserMapper sysUserMapper;
-    private final SysUserRoleMapper sysUserRoleMapper;
+    private final SysUserService sysUserService;
 
     @Override
     public Page<College> getCollegePage(Integer page, Integer size, String keyword, Integer status, Long scopedCollegeId) {
@@ -124,13 +122,7 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
         update.setAdminUserId(adminUserId);
         updateById(update);
 
-        // Compatibility role for legacy ADMIN endpoints and menu controls.
-        SysUser userUpdate = new SysUser();
-        userUpdate.setId(adminUserId);
-        userUpdate.setRole(SysUser.Role.ADMIN);
-        sysUserMapper.updateById(userUpdate);
-
-        ensureRole(adminUserId, RoleCode.COLLEGE_ADMIN.name());
+        sysUserService.grantRole(adminUserId, RoleCode.COLLEGE_ADMIN);
     }
 
     private void assertScope(College college, Long scopedCollegeId) {
@@ -139,16 +131,4 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
         }
     }
 
-    private void ensureRole(Long userId, String roleCode) {
-        Long count = sysUserRoleMapper.selectCount(
-                new LambdaQueryWrapper<SysUserRole>()
-                        .eq(SysUserRole::getUserId, userId)
-                        .eq(SysUserRole::getRoleCode, roleCode));
-        if (count == null || count == 0) {
-            SysUserRole relation = new SysUserRole();
-            relation.setUserId(userId);
-            relation.setRoleCode(roleCode);
-            sysUserRoleMapper.insert(relation);
-        }
-    }
 }

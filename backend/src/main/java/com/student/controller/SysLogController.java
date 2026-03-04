@@ -19,7 +19,7 @@ public class SysLogController {
     private final SysLogService sysLogService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
     public ResultVO<Page<SysLog>> list(@RequestParam(defaultValue = "1") Integer page,
                                        @RequestParam(defaultValue = "20") Integer size,
                                        @RequestParam(required = false) Long userId,
@@ -35,3 +35,4 @@ public class SysLogController {
         return ResultVO.success(result);
     }
 }
+

@@ -239,7 +239,7 @@ const userInfo = computed(() => store.state.userInfo || {})
 const isAuthenticated = computed(() => Boolean(store.state.token))
 const userRole = computed(() => userInfo.value.primaryRole || userInfo.value.role || '')
 const isStudent = computed(() => isAuthenticated.value && userRole.value === 'STUDENT')
-const isTeacher = computed(() => userRole.value === 'TEACHER')
+const isTeacher = computed(() => ['HOMEROOM_TEACHER', 'COURSE_TEACHER'].includes(userRole.value))
 
 const dashboardTitle = computed(() => (isStudent.value ? '个人学习总览' : '教学运营总览'))
 const dashboardDesc = computed(() =>
@@ -482,7 +482,7 @@ const refreshTodos = async () => {
   }
 
   try {
-    if (role === 'ADMIN' || role === 'TEACHER') {
+    if (['SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER'].includes(role)) {
       const leaveRes = await getPendingLeaveRequests()
       const pendingTotal = Array.isArray(leaveRes.data) ? leaveRes.data.length : 0
       if (pendingTotal > 0) {

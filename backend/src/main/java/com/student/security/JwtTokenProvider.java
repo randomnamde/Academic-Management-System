@@ -34,17 +34,22 @@ public class JwtTokenProvider {
     public String generateToken(SysUser user, Collection<String> roleCodes, String primaryRole) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        String roleClaim = (primaryRole != null && !primaryRole.isBlank())
+                ? primaryRole
+                : (user.getRole() == null ? null : user.getRole().name());
 
-        return Jwts.builder()
+        JwtBuilder builder = Jwts.builder()
                 .setSubject(user.getId().toString())
                 .claim("username", user.getUsername())
-                .claim("role", user.getRole().name())
                 .claim("roles", roleCodes)
                 .claim("primaryRole", primaryRole)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+                .signWith(key, SignatureAlgorithm.HS256);
+        if (roleClaim != null) {
+            builder.claim("role", roleClaim);
+        }
+        return builder.compact();
     }
     
     public Long getUserIdFromToken(String token) {

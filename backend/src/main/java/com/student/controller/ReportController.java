@@ -50,7 +50,7 @@ public class ReportController {
     private final CourseArrangementMapper courseArrangementMapper;
 
     @GetMapping("/score")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public void exportScore(@RequestParam(required = false) Long studentId,
                             @RequestParam(required = false) Long courseArrangementId,
                             @RequestParam(required = false) String semester,
@@ -108,7 +108,7 @@ public class ReportController {
     }
 
     @GetMapping("/attendance")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public void exportAttendance(@RequestParam(required = false) Long studentId,
                                  @RequestParam(required = false) Long courseArrangementId,
                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate attendanceDate,
@@ -155,7 +155,7 @@ public class ReportController {
     }
 
     @GetMapping("/leave-request")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public void exportLeaveRequest(@RequestParam(required = false) Long studentId,
                                    @RequestParam(required = false) LeaveRequest.Status status,
                                    @RequestParam(required = false) String format,
@@ -298,3 +298,4 @@ public class ReportController {
                 .toList();
     }
 }
+

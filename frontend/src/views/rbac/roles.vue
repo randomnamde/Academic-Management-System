@@ -6,7 +6,7 @@
       </p>
     </AppCard>
 
-    <section class="grid gap-3 md:grid-cols-3">
+    <section class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       <AppCard v-for="card in roleCards" :key="card.key" :title="card.title" content-class="p-4 space-y-3">
         <div class="space-y-2">
           <div class="text-[12px] text-slatex-500">可访问模块</div>
@@ -31,20 +31,26 @@ import { computed } from 'vue'
 import AppCard from '@/components/ui/AppCard.vue'
 
 const roleMeta = {
-  ADMIN: { title: '管理员' },
-  TEACHER: { title: '教师' },
+  SCHOOL_ADMIN: { title: '学校管理员' },
+  COLLEGE_ADMIN: { title: '学院管理员' },
+  HOMEROOM_TEACHER: { title: '班主任' },
+  COURSE_TEACHER: { title: '任课教师' },
   STUDENT: { title: '学生' }
 }
 
 const routeMap = {
-  ADMIN: ['首页总览', '学生管理', '班级管理', '成绩管理', '统计分析', '权限中心', '系统偏好'],
-  TEACHER: ['首页总览', '学生管理', '班级管理', '成绩管理', '统计分析'],
-  STUDENT: ['首页总览', '成绩管理', '统计分析']
+  SCHOOL_ADMIN: ['首页', '统计分析', '学生管理', '教师管理', '班级管理', '课程管理', '学院管理', '排课管理', '成绩管理', '考勤管理', '请假审批', '通知公告', '个人中心', '系统偏好', '权限用户', '角色模板', '权限矩阵', '审计日志'],
+  COLLEGE_ADMIN: ['首页', '统计分析', '学生管理', '教师管理', '班级管理', '课程管理', '学院管理', '排课管理', '成绩管理', '考勤管理', '请假审批', '通知公告', '个人中心'],
+  HOMEROOM_TEACHER: ['首页', '统计分析', '学生管理', '班级管理', '课程管理', '排课管理', '成绩管理', '考勤管理', '请假审批', '通知公告', '个人中心'],
+  COURSE_TEACHER: ['首页', '统计分析', '学生管理', '班级管理', '课程管理', '排课管理', '成绩管理', '考勤管理', '请假审批', '通知公告', '个人中心'],
+  STUDENT: ['首页', '统计分析', '成绩管理', '考勤管理', '请假审批', '通知公告', '个人中心']
 }
 
 const actionMap = {
-  ADMIN: ['score:create', 'attendance:update', 'announcement:publish', 'leave:approve'],
-  TEACHER: ['score:create', 'attendance:update', 'announcement:publish', 'leave:approve'],
+  SCHOOL_ADMIN: ['*:*', '*'],
+  COLLEGE_ADMIN: ['score:create', 'score:update', 'score:delete', 'attendance:create', 'attendance:update', 'attendance:delete', 'announcement:create', 'announcement:update', 'announcement:delete', 'announcement:publish', 'leave:approve'],
+  HOMEROOM_TEACHER: ['score:create', 'score:update', 'score:delete', 'attendance:create', 'attendance:update', 'attendance:delete', 'announcement:create', 'announcement:update', 'announcement:delete', 'announcement:publish', 'leave:approve'],
+  COURSE_TEACHER: ['score:create', 'score:update', 'score:delete', 'attendance:create', 'attendance:update', 'attendance:delete', 'announcement:create', 'announcement:update', 'announcement:delete', 'announcement:publish'],
   STUDENT: []
 }
 

@@ -156,8 +156,10 @@ const pwdRules = {
 }
 
 const roleLabel = computed(() => {
-  if (user.role === 'ADMIN') return '管理员'
-  if (user.role === 'TEACHER') return '教师'
+  if (user.role === 'SCHOOL_ADMIN') return '学校管理员'
+  if (user.role === 'COLLEGE_ADMIN') return '学院管理员'
+  if (user.role === 'HOMEROOM_TEACHER') return '班主任'
+  if (user.role === 'COURSE_TEACHER') return '任课教师'
   if (user.role === 'STUDENT') return '学生'
   return user.role || '-'
 })

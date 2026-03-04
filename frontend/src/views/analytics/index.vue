@@ -19,10 +19,10 @@
         <el-form-item label="学期">
           <el-input v-model="filters.semester" clearable placeholder="如 2026-2027-1" />
         </el-form-item>
-        <el-form-item v-if="userRole !== 'STUDENT'" label="班级编号">
+        <el-form-item v-if="!isStudent" label="班级编号">
           <el-input-number v-model="filters.classId" :min="1" controls-position="right" />
         </el-form-item>
-        <el-form-item v-if="userRole === 'ADMIN'" label="教师编号">
+        <el-form-item v-if="isAdmin" label="教师编号">
           <el-input-number v-model="filters.teacherId" :min="1" controls-position="right" />
         </el-form-item>
         <el-form-item label="粒度">
@@ -174,8 +174,8 @@ const route = useRoute()
 const loading = ref(false)
 const riskLoading = ref(false)
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-const userRole = userInfo?.primaryRole || userInfo?.role || 'STUDENT'
-const isAdmin = userRole === 'ADMIN'
+const userRole = userInfo?.primaryRole || userInfo?.role || ''
+const isAdmin = userRole === 'SCHOOL_ADMIN' || userRole === 'COLLEGE_ADMIN'
 const isStudent = userRole === 'STUDENT'
 const pendingKpiLabel = isStudent ? '我的待办审批' : '待处理审批'
 const lowScoreKpiLabel = isStudent ? '低分课程统计数' : '低分风险人数'

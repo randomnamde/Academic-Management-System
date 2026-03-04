@@ -3,7 +3,9 @@ package com.student.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.student.entity.Announcement;
-import com.student.entity.SysUser;
+import com.student.security.RoleCode;
+
+import java.util.Set;
 
 public interface AnnouncementService extends IService<Announcement> {
 
@@ -18,7 +20,7 @@ public interface AnnouncementService extends IService<Announcement> {
                                                   Integer size,
                                                   String title,
                                                   Announcement.Type type,
-                                                  SysUser.Role role,
+                                                  Set<RoleCode> roles,
                                                   Long classId);
 
     void createAnnouncement(Announcement announcement);

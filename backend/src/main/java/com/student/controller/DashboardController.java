@@ -13,6 +13,7 @@ import com.student.entity.Class;
 import com.student.mapper.CourseArrangementMapper;
 import com.student.security.CurrentUserService;
 import com.student.security.DataScopeService;
+import com.student.security.RoleCode;
 import com.student.service.AttendanceService;
 import com.student.service.ClassService;
 import com.student.service.CourseService;
@@ -56,13 +57,19 @@ public class DashboardController {
     private final ClassService classService;
 
     @GetMapping("/overview")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<DashboardOverviewDTO> getOverview(Authentication authentication) {
-        if (currentUserService.isCollegeAdmin(authentication)) {
+        RoleCode primaryRoleCode = currentUserService.getPrimaryRoleCode(authentication);
+        if (primaryRoleCode == null) {
+            return ResultVO.error(403, "Forbidden");
+        }
+        if (primaryRoleCode == RoleCode.COLLEGE_ADMIN) {
             return ResultVO.success(buildCollegeOverview(authentication));
         }
-        SysUser currentUser = currentUserService.getCurrentUser(authentication);
-        SysUser.Role role = currentUser.getRole();
+        SysUser.Role role = RoleCode.toUserRole(primaryRoleCode);
+        if (role == null) {
+            return ResultVO.error(403, "Forbidden");
+        }
 
         Long studentId = null;
         Long teacherId = null;
@@ -71,7 +78,7 @@ public class DashboardController {
         Set<Long> courseIds = new HashSet<>();
         Set<Long> teacherIds = new HashSet<>();
 
-        if (role == SysUser.Role.STUDENT) {
+        if (role.isStudent()) {
             Student currentStudent = currentUserService.getCurrentStudent(authentication);
             studentId = currentStudent.getId();
             if (currentStudent.getClassId() != null) {
@@ -95,7 +102,7 @@ public class DashboardController {
                     }
                 }
             }
-        } else if (role == SysUser.Role.TEACHER) {
+        } else if (role.isTeacherGroup()) {
             teacherId = currentUserService.getCurrentTeacherId(authentication);
             teacherIds.add(teacherId);
             List<CourseArrangement> teacherArrangements = courseArrangementMapper.selectList(
@@ -184,9 +191,9 @@ public class DashboardController {
         overview.setPendingApprovalCount((long) leaveRequestService.getPendingRequestsForCollege(collegeId).size());
 
         List<Long> arrangementIdList = arrangementIds.isEmpty() ? List.of() : new ArrayList<>(arrangementIds);
-        overview.setAbnormalTodayCount(countAbnormalByDate(LocalDate.now(), SysUser.Role.TEACHER, null, arrangementIdList));
-        overview.setLowScoreWarningCount(countLowScore(SysUser.Role.TEACHER, null, arrangementIdList));
-        overview.setAbnormalTrend(buildTrend(SysUser.Role.TEACHER, null, arrangementIdList));
+        overview.setAbnormalTodayCount(countAbnormalByDate(LocalDate.now(), SysUser.Role.COURSE_TEACHER, null, arrangementIdList));
+        overview.setLowScoreWarningCount(countLowScore(SysUser.Role.COURSE_TEACHER, null, arrangementIdList));
+        overview.setAbnormalTrend(buildTrend(SysUser.Role.COURSE_TEACHER, null, arrangementIdList));
         return overview;
     }
 
@@ -196,7 +203,7 @@ public class DashboardController {
                                      Set<Long> classIds,
                                      Set<Long> courseIds,
                                      Set<Long> teacherIds) {
-        if (role == SysUser.Role.ADMIN) {
+        if (role.isAdminGroup()) {
             overview.setStudentCount(studentService.lambdaQuery().count());
             overview.setTeacherCount(teacherService.lambdaQuery().count());
             overview.setCourseCount(courseService.lambdaQuery().count());
@@ -217,7 +224,7 @@ public class DashboardController {
             return;
         }
 
-        if (role == SysUser.Role.STUDENT) {
+        if (role.isStudent()) {
             overview.setStudentCount(1L);
             overview.setTeacherCount((long) teacherIds.size());
             overview.setCourseCount((long) courseIds.size());
@@ -278,13 +285,13 @@ public class DashboardController {
     }
 
     private Long countPending(SysUser.Role role, Long studentId, Long teacherId) {
-        if (role == SysUser.Role.STUDENT) {
+        if (role.isStudent()) {
             return leaveRequestService.lambdaQuery()
                     .eq(LeaveRequest::getStudentId, studentId)
                     .eq(LeaveRequest::getStatus, LeaveRequest.Status.PENDING)
                     .count();
         }
-        if (role == SysUser.Role.TEACHER) {
+        if (role.isTeacherGroup()) {
             return (long) leaveRequestService.getPendingRequestsForTeacher(teacherId).size();
         }
         return leaveRequestService.lambdaQuery()
@@ -299,9 +306,9 @@ public class DashboardController {
         var query = attendanceService.lambdaQuery()
                 .eq(Attendance::getAttendanceDate, date)
                 .in(Attendance::getStatus, Attendance.Status.ABSENT, Attendance.Status.LATE);
-        if (role == SysUser.Role.STUDENT) {
+        if (role.isStudent()) {
             query.eq(Attendance::getStudentId, studentId);
-        } else if (role == SysUser.Role.TEACHER) {
+        } else if (role.isTeacherGroup()) {
             if (teacherArrangementIds.isEmpty()) {
                 return 0L;
             }
@@ -312,9 +319,9 @@ public class DashboardController {
 
     private Long countLowScore(SysUser.Role role, Long studentId, List<Long> teacherArrangementIds) {
         var query = scoreService.lambdaQuery().lt(Score::getTotalScore, LOW_SCORE_THRESHOLD);
-        if (role == SysUser.Role.STUDENT) {
+        if (role.isStudent()) {
             query.eq(Score::getStudentId, studentId);
-        } else if (role == SysUser.Role.TEACHER) {
+        } else if (role.isTeacherGroup()) {
             if (teacherArrangementIds.isEmpty()) {
                 return 0L;
             }
@@ -336,3 +343,4 @@ public class DashboardController {
         return trendPoints;
     }
 }
+

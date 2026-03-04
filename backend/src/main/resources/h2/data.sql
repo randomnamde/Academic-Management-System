@@ -1,8 +1,8 @@
 INSERT INTO sys_user (id, username, password, real_name, phone, email, status, role) VALUES
-(1, 'admin', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'Demo Admin', '13800000001', 'admin@school.com', 1, 'ADMIN'),
-(2, 'teacher001', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'Teacher One', '13800000002', 'teacher001@school.com', 1, 'TEACHER'),
+(1, 'admin', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'Demo Admin', '13800000001', 'admin@school.com', 1, 'SCHOOL_ADMIN'),
+(2, 'teacher001', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'Teacher One', '13800000002', 'teacher001@school.com', 1, 'COURSE_TEACHER'),
 (3, 'student001', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'Student One', '13800000003', 'student001@school.com', 1, 'STUDENT'),
-(4, 'college_admin_cs', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'College Admin', '13800000004', 'college-admin@school.com', 1, 'ADMIN');
+(4, 'college_admin_cs', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'College Admin', '13800000004', 'college-admin@school.com', 1, 'COLLEGE_ADMIN');
 
 INSERT INTO college (id, college_code, college_name, description, status, admin_user_id) VALUES
 (1, 'CS', 'Computer Science College', 'Default seeded college', 1, 4);

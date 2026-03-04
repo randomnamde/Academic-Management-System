@@ -7,8 +7,10 @@
         </el-form-item>
         <el-form-item label="角色">
           <el-select v-model="searchForm.role" clearable style="width: 140px">
-            <el-option label="管理员" value="ADMIN" />
-            <el-option label="教师" value="TEACHER" />
+            <el-option label="学校管理员" value="SCHOOL_ADMIN" />
+            <el-option label="学院管理员" value="COLLEGE_ADMIN" />
+            <el-option label="班主任" value="HOMEROOM_TEACHER" />
+            <el-option label="任课教师" value="COURSE_TEACHER" />
             <el-option label="学生" value="STUDENT" />
           </el-select>
         </el-form-item>
@@ -109,15 +111,19 @@ function handleReset() {
 }
 
 function roleLabel(role) {
-  if (role === 'ADMIN') return '管理员'
-  if (role === 'TEACHER') return '教师'
+  if (role === 'SCHOOL_ADMIN') return '学校管理员'
+  if (role === 'COLLEGE_ADMIN') return '学院管理员'
+  if (role === 'HOMEROOM_TEACHER') return '班主任'
+  if (role === 'COURSE_TEACHER') return '任课教师'
   if (role === 'STUDENT') return '学生'
   return role
 }
 
 function roleBadgeType(role) {
-  if (role === 'ADMIN') return 'danger'
-  if (role === 'TEACHER') return 'warning'
+  if (role === 'SCHOOL_ADMIN') return 'danger'
+  if (role === 'COLLEGE_ADMIN') return 'warning'
+  if (role === 'HOMEROOM_TEACHER') return 'info'
+  if (role === 'COURSE_TEACHER') return 'info'
   if (role === 'STUDENT') return 'success'
   return 'info'
 }

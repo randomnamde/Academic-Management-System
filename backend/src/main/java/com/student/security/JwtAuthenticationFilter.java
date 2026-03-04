@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
                 Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
                 String username = jwtTokenProvider.getUsernameFromToken(jwt);
-                String legacyRole = jwtTokenProvider.getRoleFromToken(jwt);
+                String fallbackRole = jwtTokenProvider.getRoleFromToken(jwt);
                 List<String> roles = jwtTokenProvider.getRolesFromToken(jwt);
                 Set<String> authorities = new LinkedHashSet<>();
                 for (String roleCode : roles) {
@@ -46,8 +46,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         authorities.addAll(RoleCode.toAuthorities(Set.of(code)));
                     }
                 }
-                if (authorities.isEmpty() && StringUtils.hasText(legacyRole)) {
-                    authorities.add(legacyRole);
+                if (authorities.isEmpty() && StringUtils.hasText(fallbackRole)) {
+                    RoleCode fallbackCode = RoleCode.from(fallbackRole);
+                    if (fallbackCode != null) {
+                        authorities.add(fallbackCode.name());
+                    }
+                }
+                if (authorities.isEmpty()) {
+                    filterChain.doFilter(request, response);
+                    return;
                 }
                 UserDetails userDetails = User.builder()
                         .username(username)

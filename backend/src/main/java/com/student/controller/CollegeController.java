@@ -21,7 +21,7 @@ public class CollegeController {
     private final CurrentUserService currentUserService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Page<College>> list(@RequestParam(defaultValue = "1") Integer page,
                                         @RequestParam(defaultValue = "10") Integer size,
                                         @RequestParam(required = false) String keyword,
@@ -33,7 +33,7 @@ public class CollegeController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<College> detail(@PathVariable Long id, Authentication authentication) {
         College college = collegeService.getById(id);
         if (college == null) {
@@ -47,13 +47,13 @@ public class CollegeController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
     public ResultVO<College> create(@RequestBody @Validated CollegeDTO dto) {
         return ResultVO.success(collegeService.createCollege(dto));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> update(@PathVariable Long id,
                                  @RequestBody @Validated CollegeDTO dto,
                                  Authentication authentication) {
@@ -63,7 +63,7 @@ public class CollegeController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> updateStatus(@PathVariable Long id,
                                        @RequestParam Integer status,
                                        Authentication authentication) {
@@ -73,7 +73,7 @@ public class CollegeController {
     }
 
     @PutMapping("/{id}/admin")
-    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> bindAdmin(@PathVariable Long id,
                                     @RequestParam Long adminUserId,
                                     Authentication authentication) {
@@ -82,4 +82,5 @@ public class CollegeController {
         return ResultVO.success();
     }
 }
+
 

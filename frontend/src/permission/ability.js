@@ -63,9 +63,6 @@ const ROLE_ROUTE_MAP = {
   STUDENT: new Set([
     'Dashboard',
     'Analytics',
-    'Teacher',
-    'Class',
-    'Course',
     'Score',
     'Attendance',
     'LeaveRequest',
@@ -129,12 +126,7 @@ const ROLE_ACTION_MAP = {
   STUDENT: new Set([])
 }
 
-const normalizeRole = (role) => {
-  const key = (role || '').toUpperCase()
-  if (key === 'ADMIN') return 'SCHOOL_ADMIN'
-  if (key === 'TEACHER') return 'COURSE_TEACHER'
-  return key
-}
+const normalizeRole = (role) => (role || '').toUpperCase()
 
 const normalizePermissions = (permissions) =>
   Array.isArray(permissions) ? new Set(permissions.filter((item) => typeof item === 'string')) : new Set()
@@ -158,4 +150,3 @@ export const canAction = (role, actionCode, permissions = []) => {
   if (permissionSet.has('*:*') || permissionSet.has('*')) return true
   return permissionSet.has(actionCode)
 }
-

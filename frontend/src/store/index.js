@@ -1,18 +1,21 @@
-﻿import { createStore } from 'vuex'
+import { createStore } from 'vuex'
 import Cookies from 'js-cookie'
 import { login, getUserInfo } from '@/api/user'
+import { getStoredThemeMode, syncThemeMode } from '@/composables/useTheme'
+
+const initialUserInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 
 const store = createStore({
   state: {
     token: Cookies.get('token') || '',
-    userInfo: JSON.parse(localStorage.getItem('userInfo') || '{}'),
+    userInfo: initialUserInfo,
     sidebar: {
       opened: localStorage.getItem('sidebar') !== 'false'
     },
     uiPreference: {
       tableDensity: localStorage.getItem('ui:tableDensity') || 'compact',
       sidebarCollapsed: localStorage.getItem('ui:sidebarCollapsed') === 'true',
-      themeMode: localStorage.getItem('ui:themeMode') || 'system'
+      themeMode: getStoredThemeMode(initialUserInfo)
     }
   },
   mutations: {
@@ -23,12 +26,18 @@ const store = createStore({
     SET_USER_INFO(state, userInfo) {
       state.userInfo = userInfo
       localStorage.setItem('userInfo', JSON.stringify(userInfo))
+      const nextThemeMode = getStoredThemeMode(userInfo)
+      state.uiPreference.themeMode = nextThemeMode
+      syncThemeMode(nextThemeMode, userInfo)
     },
     CLEAR_USER(state) {
       state.token = ''
       state.userInfo = {}
       Cookies.remove('token')
       localStorage.removeItem('userInfo')
+      const guestThemeMode = getStoredThemeMode({})
+      state.uiPreference.themeMode = guestThemeMode
+      syncThemeMode(guestThemeMode, {})
     },
     TOGGLE_SIDEBAR(state) {
       state.sidebar.opened = !state.sidebar.opened
@@ -44,7 +53,7 @@ const store = createStore({
     SET_THEME_MODE(state, mode) {
       const next = ['light', 'dark', 'system'].includes(mode) ? mode : 'system'
       state.uiPreference.themeMode = next
-      localStorage.setItem('ui:themeMode', next)
+      syncThemeMode(next, state.userInfo)
     }
   },
   actions: {
@@ -57,7 +66,7 @@ const store = createStore({
       }
       throw new Error(res.message)
     },
-    
+
     async getUserInfo({ commit }) {
       const res = await getUserInfo()
       if (res.code === 200) {
@@ -65,25 +74,24 @@ const store = createStore({
         return res
       }
     },
-    
+
     logout({ commit }) {
       commit('CLEAR_USER')
     }
   },
   getters: {
-    isLoggedIn: state => !!state.token,
-    userRole: state => state.userInfo?.primaryRole || state.userInfo?.role,
-    userRoles: state => {
+    isLoggedIn: (state) => !!state.token,
+    userRole: (state) => state.userInfo?.primaryRole || state.userInfo?.role,
+    userRoles: (state) => {
       const merged = new Set(Array.isArray(state.userInfo?.roles) ? state.userInfo.roles : [])
       if (state.userInfo?.primaryRole) merged.add(state.userInfo.primaryRole)
       if (state.userInfo?.role) merged.add(state.userInfo.role)
       return Array.from(merged)
     },
-    username: state => state.userInfo?.username,
-    tableDensity: state => state.uiPreference.tableDensity,
-    themeMode: state => state.uiPreference.themeMode
+    username: (state) => state.userInfo?.username,
+    tableDensity: (state) => state.uiPreference.tableDensity,
+    themeMode: (state) => state.uiPreference.themeMode
   }
 })
 
 export default store
-

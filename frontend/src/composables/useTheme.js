@@ -1,4 +1,4 @@
-﻿import { computed, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
 
 const STORAGE_KEY = 'ui:themeMode'
@@ -11,6 +11,20 @@ const callbacks = new Set()
 
 function normalizeMode(mode) {
   return VALID_MODES.includes(mode) ? mode : 'system'
+}
+
+function normalizeUserIdentity(userInfo) {
+  if (userInfo && userInfo.id != null && String(userInfo.id).trim() !== '') {
+    return `id:${String(userInfo.id).trim()}`
+  }
+  if (userInfo && userInfo.username && String(userInfo.username).trim()) {
+    return `username:${String(userInfo.username).trim().toLowerCase()}`
+  }
+  return 'guest'
+}
+
+export function getThemeModeStorageKey(userInfo) {
+  return `${STORAGE_KEY}:${normalizeUserIdentity(userInfo)}`
 }
 
 function getSystemTheme() {
@@ -61,28 +75,42 @@ export function watchSystemTheme(callback) {
   }
 }
 
-export function persistThemeMode(mode) {
+export function persistThemeMode(mode, userInfo) {
   if (typeof localStorage === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, normalizeMode(mode))
+  localStorage.setItem(getThemeModeStorageKey(userInfo), normalizeMode(mode))
 }
 
-export function getStoredThemeMode() {
+export function getStoredThemeMode(userInfo) {
   if (typeof localStorage === 'undefined') return 'system'
-  return normalizeMode(localStorage.getItem(STORAGE_KEY))
+  const scopedKey = getThemeModeStorageKey(userInfo)
+  const scopedValue = localStorage.getItem(scopedKey)
+  if (scopedValue != null) {
+    return normalizeMode(scopedValue)
+  }
+
+  // Backward compatibility: migrate from legacy global key.
+  const legacyValue = localStorage.getItem(STORAGE_KEY)
+  const normalized = normalizeMode(legacyValue)
+  if (legacyValue != null) {
+    localStorage.setItem(scopedKey, normalized)
+  }
+  return normalized
 }
 
-export function syncThemeMode(mode) {
+export function syncThemeMode(mode, userInfo) {
   const normalized = normalizeMode(mode)
-  persistThemeMode(normalized)
+  persistThemeMode(normalized, userInfo)
   applyTheme(resolveTheme(normalized))
 }
 
 export function initializeTheme(store) {
-  const initialMode = normalizeMode(store?.state?.uiPreference?.themeMode || getStoredThemeMode())
-  syncThemeMode(initialMode)
+  const userInfo = store?.state?.userInfo || {}
+  const initialMode = normalizeMode(store?.state?.uiPreference?.themeMode || getStoredThemeMode(userInfo))
+  syncThemeMode(initialMode, userInfo)
 
   watchSystemTheme(() => {
-    const currentMode = normalizeMode(store?.state?.uiPreference?.themeMode || getStoredThemeMode())
+    const currentUserInfo = store?.state?.userInfo || {}
+    const currentMode = normalizeMode(store?.state?.uiPreference?.themeMode || getStoredThemeMode(currentUserInfo))
     if (currentMode === 'system') {
       applyTheme(resolveTheme(currentMode))
     }
@@ -97,7 +125,6 @@ export function useTheme(externalStore) {
   const setThemeMode = (nextMode) => {
     const normalized = normalizeMode(nextMode)
     store.commit('SET_THEME_MODE', normalized)
-    syncThemeMode(normalized)
   }
 
   const stop = watchSystemTheme(() => {
@@ -116,4 +143,3 @@ export function useTheme(externalStore) {
     setThemeMode
   }
 }
-

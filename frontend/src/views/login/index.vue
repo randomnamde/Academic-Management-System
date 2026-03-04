@@ -8,7 +8,7 @@
         <span class="typing-text" aria-hidden="true">{{ displayTitle }}</span>
         <span class="typing-caret" aria-hidden="true">|</span>
       </h1>
-      <p class="entry-subtitle">统一教务流程与数据协同</p>
+      <p class="entry-subtitle">学而不思则罔，思而不学则殆</p>
       <AppButton ref="entryButtonRef" class="entry-cta" tone="accent" @click="openLoginCard">登录系统</AppButton>
     </main>
 

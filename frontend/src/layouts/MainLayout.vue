@@ -327,6 +327,7 @@ const themeOptions = [
 ]
 
 const userInfo = computed(() => store.state.userInfo || {})
+const isAuthenticated = computed(() => Boolean(store.state.token))
 const role = computed(() => userInfo.value?.primaryRole || userInfo.value?.role || '')
 const permissions = computed(() => userInfo.value?.permissions || [])
 const sidebarOpened = computed(() => store.state.sidebar?.opened !== false)
@@ -501,6 +502,12 @@ const getPriorityLabel = (priority) => {
 }
 
 const fetchNotificationSummary = async ({ force = false } = {}) => {
+  if (!isAuthenticated.value) {
+    latestAnnouncements.value = []
+    notificationCount.value = 0
+    return
+  }
+
   const now = Date.now()
   if (!force && now - lastNotificationFetchAt.value < notificationCacheTtl && latestAnnouncements.value.length) {
     syncNotificationCount()
@@ -508,7 +515,7 @@ const fetchNotificationSummary = async ({ force = false } = {}) => {
   }
 
   try {
-    const res = await getAnnouncementList({ page: 1, size: 8, status: 1 })
+    const res = await getAnnouncementList({ page: 1, size: 8, status: 1 }, { silent: true })
     latestAnnouncements.value = res.data?.records || []
     lastNotificationFetchAt.value = now
     syncNotificationCount()
@@ -519,6 +526,7 @@ const fetchNotificationSummary = async ({ force = false } = {}) => {
 }
 
 const toggleNoticePopover = async () => {
+  if (!isAuthenticated.value) return
   noticePopoverVisible.value = !noticePopoverVisible.value
   userMenuVisible.value = false
   if (noticePopoverVisible.value) {

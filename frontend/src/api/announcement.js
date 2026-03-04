@@ -1,17 +1,19 @@
 import request from './request'
 
-export function getAnnouncementList(params) {
+export function getAnnouncementList(params, config = {}) {
   return request({
     url: '/announcement',
     method: 'get',
-    params
+    params,
+    ...config
   })
 }
 
-export function getAnnouncementDetail(id) {
+export function getAnnouncementDetail(id, config = {}) {
   return request({
     url: `/announcement/${id}`,
-    method: 'get'
+    method: 'get',
+    ...config
   })
 }
 

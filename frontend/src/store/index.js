@@ -31,13 +31,13 @@ const store = createStore({
       syncThemeMode(nextThemeMode, userInfo)
     },
     CLEAR_USER(state) {
+      const retainedThemeMode = state.uiPreference.themeMode
       state.token = ''
       state.userInfo = {}
       Cookies.remove('token')
       localStorage.removeItem('userInfo')
-      const guestThemeMode = getStoredThemeMode({})
-      state.uiPreference.themeMode = guestThemeMode
-      syncThemeMode(guestThemeMode, {})
+      state.uiPreference.themeMode = retainedThemeMode
+      syncThemeMode(retainedThemeMode, {})
     },
     TOGGLE_SIDEBAR(state) {
       state.sidebar.opened = !state.sidebar.opened

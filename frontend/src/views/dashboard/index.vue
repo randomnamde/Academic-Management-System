@@ -236,8 +236,9 @@ const detail = ref({
 })
 
 const userInfo = computed(() => store.state.userInfo || {})
-const userRole = computed(() => userInfo.value.primaryRole || userInfo.value.role || 'STUDENT')
-const isStudent = computed(() => userRole.value === 'STUDENT')
+const isAuthenticated = computed(() => Boolean(store.state.token))
+const userRole = computed(() => userInfo.value.primaryRole || userInfo.value.role || '')
+const isStudent = computed(() => isAuthenticated.value && userRole.value === 'STUDENT')
 const isTeacher = computed(() => userRole.value === 'TEACHER')
 
 const dashboardTitle = computed(() => (isStudent.value ? '个人学习总览' : '教学运营总览'))

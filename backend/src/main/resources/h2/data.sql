@@ -1,5 +1,5 @@
 INSERT INTO sys_user (id, username, password, real_name, phone, email, status, role) VALUES
-(1, 'demo_admin', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'Demo Admin', '13800000001', 'admin@school.com', 1, 'ADMIN'),
+(1, 'admin', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'Demo Admin', '13800000001', 'admin@school.com', 1, 'ADMIN'),
 (2, 'teacher001', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'Teacher One', '13800000002', 'teacher001@school.com', 1, 'TEACHER'),
 (3, 'student001', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'Student One', '13800000003', 'student001@school.com', 1, 'STUDENT'),
 (4, 'college_admin_cs', '$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y', 'College Admin', '13800000004', 'college-admin@school.com', 1, 'ADMIN');

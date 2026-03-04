@@ -88,7 +88,7 @@ npm run serve
 
 ## 测试账号（H2 初始化数据）
 
-- 管理员：`demo_admin / 123456`
+- 管理员：`admin / 123456`
 - 教师：`teacher001 / 123456`
 - 学生：`student001 / 123456`
 

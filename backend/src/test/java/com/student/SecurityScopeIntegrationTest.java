@@ -238,7 +238,7 @@ class SecurityScopeIntegrationTest {
         jdbcTemplate.update("INSERT INTO teacher (name, status) VALUES ('Scope Teacher', 1)");
 
         String teacherToken = loginAndGetToken("teacher001", "123456");
-        String adminToken = loginAndGetToken("demo_admin", "123456");
+        String adminToken = loginAndGetToken("admin", "123456");
 
         MvcResult teacherResult = mockMvc.perform(get("/dashboard/overview")
                         .header("Authorization", "Bearer " + teacherToken))
@@ -676,7 +676,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void adminCanAccessAnalyticsEndpoints() throws Exception {
-        String token = loginAndGetToken("demo_admin", "123456");
+        String token = loginAndGetToken("admin", "123456");
 
         mockMvc.perform(get("/analytics/overview")
                         .header("Authorization", "Bearer " + token))
@@ -707,7 +707,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void teacherCannotUpdateScoreOutsideTeachingScope() throws Exception {
-        String adminToken = loginAndGetToken("demo_admin", "123456");
+        String adminToken = loginAndGetToken("admin", "123456");
         String teacherToken = loginAndGetToken("teacher001", "123456");
         Long arrangementId = createArrangement(adminToken, 2L);
         Long scoreId = createScore(adminToken, arrangementId);
@@ -733,7 +733,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void homeroomTeacherCanApproveShortLeaveWhenCourseTeacherDiffers() throws Exception {
-        String adminToken = loginAndGetToken("demo_admin", "123456");
+        String adminToken = loginAndGetToken("admin", "123456");
         String studentToken = loginAndGetToken("student001", "123456");
         String teacherToken = loginAndGetToken("teacher001", "123456");
         Long arrangementId = createArrangement(adminToken, 2L);

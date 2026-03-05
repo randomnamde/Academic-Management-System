@@ -1,22 +1,22 @@
 ﻿<template>
-  <CrudPageShell title="权限中心 / 审计日志">
+  <CrudPageShell :title="t('rbac.audit.pageTitle')">
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="用户编号">
+        <el-form-item :label="t('rbac.audit.filterUserId')">
           <el-input-number v-model="searchForm.userId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item :label="t('rbac.audit.filterStatus')">
           <el-select v-model="searchForm.status" clearable style="width: 120px">
-            <el-option label="成功" :value="1" />
-            <el-option label="失败" :value="0" />
+            <el-option :label="t('rbac.common.success')" :value="1" />
+            <el-option :label="t('rbac.common.failed')" :value="0" />
           </el-select>
         </el-form-item>
-        <el-form-item label="操作">
-          <el-input v-model="searchForm.operation" clearable placeholder="操作标识，如 学生管理#查询列表" />
+        <el-form-item :label="t('rbac.audit.filterOperation')">
+          <el-input v-model="searchForm.operation" clearable :placeholder="t('rbac.audit.filterOperationPlaceholder')" />
         </el-form-item>
         <el-form-item>
-          <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
         </el-form-item>
       </el-form>
     </template>
@@ -25,7 +25,7 @@
       <AppTable :columns="columns" :rows="tableData" :loading="loading" :density="tableDensity">
         <template #cell-status="{ row }">
           <AppBadge :type="Number(row.status) === 1 ? 'success' : 'danger'">
-            {{ Number(row.status) === 1 ? '成功' : '失败' }}
+            {{ Number(row.status) === 1 ? t('rbac.common.success') : t('rbac.common.failed') }}
           </AppBadge>
         </template>
       </AppTable>
@@ -49,6 +49,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
@@ -56,6 +57,7 @@ import AppTable from '@/components/ui/AppTable.vue'
 import { getSysLogList } from '@/api/sysLog'
 
 const store = useStore()
+const { t } = useI18n()
 const tableDensity = computed(() => store.getters.tableDensity)
 
 const loading = ref(false)
@@ -70,16 +72,16 @@ const searchForm = reactive({
   operation: ''
 })
 
-const columns = [
-  { key: 'userId', title: '用户编号', width: 100 },
-  { key: 'operation', title: '操作', width: 220 },
-  { key: 'method', title: '请求', width: 220 },
-  { key: 'ip', title: '来源地址', width: 140 },
-  { key: 'duration', title: '耗时(毫秒)', width: 120, align: 'right' },
-  { key: 'status', title: '状态', width: 110, align: 'center' },
-  { key: 'errorMsg', title: '错误信息' },
-  { key: 'createTime', title: '时间', width: 170 }
-]
+const columns = computed(() => [
+  { key: 'userId', title: t('rbac.audit.colUserId'), width: 100 },
+  { key: 'operation', title: t('rbac.audit.colOperation'), width: 220 },
+  { key: 'method', title: t('rbac.audit.colMethod'), width: 220 },
+  { key: 'ip', title: t('rbac.audit.colIp'), width: 140 },
+  { key: 'duration', title: t('rbac.audit.colDuration'), width: 120, align: 'right' },
+  { key: 'status', title: t('rbac.audit.colStatus'), width: 110, align: 'center' },
+  { key: 'errorMsg', title: t('rbac.audit.colErrorMsg') },
+  { key: 'createTime', title: t('rbac.audit.colCreateTime'), width: 170 }
+])
 
 async function fetchList() {
   loading.value = true

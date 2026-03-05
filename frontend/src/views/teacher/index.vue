@@ -1,36 +1,36 @@
 ﻿<template>
-  <CrudPageShell title="教师管理">
+  <CrudPageShell :title="t('teacher.pageTitle')">
     <template #header-actions>
-      <AppButton v-if="!isStudent" @click="openCreate">新增教师</AppButton>
+      <AppButton v-if="!isStudent" @click="openCreate">{{ t('teacher.addTeacher') }}</AppButton>
     </template>
 
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="教师编号">
+        <el-form-item :label="t('teacher.teacherNo')">
           <el-input v-model="searchForm.teacherNo" clearable />
         </el-form-item>
-        <el-form-item label="姓名">
+        <el-form-item :label="t('teacher.name')">
           <el-input v-model="searchForm.name" clearable />
         </el-form-item>
         <el-form-item>
-          <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
         </el-form-item>
       </el-form>
     </template>
 
     <template #table>
       <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="teacherNo" label="教师编号" width="130" />
-        <el-table-column prop="name" label="姓名" width="120" />
-        <el-table-column prop="gender" label="性别" width="90">
-          <template #default="{ row }">{{ row.gender === 'MALE' ? '男' : '女' }}</template>
+        <el-table-column type="index" :label="t('teacher.index')" width="60" />
+        <el-table-column prop="teacherNo" :label="t('teacher.teacherNo')" width="130" />
+        <el-table-column prop="name" :label="t('teacher.name')" width="120" />
+        <el-table-column prop="gender" :label="t('teacher.gender')" width="90">
+          <template #default="{ row }">{{ row.gender === 'MALE' ? t('teacher.genderMale') : t('teacher.genderFemale') }}</template>
         </el-table-column>
-        <el-table-column prop="title" label="职称" width="160" />
-        <el-table-column prop="department" label="院系" />
-        <el-table-column prop="phone" label="电话" width="140" />
-        <el-table-column label="状态" width="110">
+        <el-table-column prop="title" :label="t('teacher.title')" width="160" />
+        <el-table-column prop="department" :label="t('teacher.department')" />
+        <el-table-column prop="phone" :label="t('teacher.phone')" width="140" />
+        <el-table-column :label="t('teacher.status')" width="110">
           <template #default="{ row }">
             <el-switch
               v-if="!isStudent"
@@ -38,14 +38,14 @@
               @change="(val) => handleStatusChange(row, val)"
             />
             <el-tag v-else :type="row.status === 1 ? 'success' : 'info'">
-              {{ row.status === 1 ? '启用' : '停用' }}
+              {{ row.status === 1 ? t('teacher.statusEnabled') : t('teacher.statusDisabled') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column v-if="!isStudent" label="操作" width="180" fixed="right">
+        <el-table-column v-if="!isStudent" :label="t('teacher.actions')" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="openEdit(row)">编辑</el-button>
-            <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
+            <el-button type="primary" link @click="openEdit(row)">{{ t('teacher.edit') }}</el-button>
+            <el-button type="danger" link @click="handleDelete(row)">{{ t('teacher.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -64,16 +64,16 @@
       />
     </template>
 
-    <AppModal v-model="dialogVisible" :title="isEdit ? '编辑教师' : '新增教师'" width="640px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? t('teacher.dialogEditTitle') : t('teacher.dialogAddTitle')" width="640px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="教师编号" prop="teacherNo">
+            <el-form-item :label="t('teacher.teacherNo')" prop="teacherNo">
               <el-input v-model="form.teacherNo" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="姓名" prop="name">
+            <el-form-item :label="t('teacher.name')" prop="name">
               <el-input v-model="form.name" />
             </el-form-item>
           </el-col>
@@ -81,19 +81,19 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="性别" prop="gender">
+            <el-form-item :label="t('teacher.gender')" prop="gender">
               <el-select v-model="form.gender" style="width: 100%">
-                <el-option label="男" value="MALE" />
-                <el-option label="女" value="FEMALE" />
+                <el-option :label="t('teacher.genderMale')" value="MALE" />
+                <el-option :label="t('teacher.genderFemale')" value="FEMALE" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="职称" prop="title">
+            <el-form-item :label="t('teacher.title')" prop="title">
               <el-select v-model="form.title" style="width: 100%">
-                <el-option label="讲师" value="LECTURER" />
-                <el-option label="副教授" value="ASSOCIATE_PROFESSOR" />
-                <el-option label="教授" value="PROFESSOR" />
+                <el-option :label="t('teacher.titleLecturer')" value="LECTURER" />
+                <el-option :label="t('teacher.titleAssociateProfessor')" value="ASSOCIATE_PROFESSOR" />
+                <el-option :label="t('teacher.titleProfessor')" value="PROFESSOR" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -101,28 +101,28 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="院系">
+            <el-form-item :label="t('teacher.department')">
               <el-input v-model="form.department" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="电话">
+            <el-form-item :label="t('teacher.phone')">
               <el-input v-model="form.phone" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="邮箱">
+        <el-form-item :label="t('teacher.email')">
           <el-input v-model="form.email" />
         </el-form-item>
 
-        <el-form-item label="密码" :required="!isEdit">
-          <el-input v-model="form.password" type="password" show-password placeholder="编辑时留空则不修改" />
+        <el-form-item :label="t('teacher.password')" :required="!isEdit">
+          <el-input v-model="form.password" type="password" show-password :placeholder="t('teacher.passwordKeepEmpty')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
-        <AppButton @click="submit">保存</AppButton>
+        <AppButton variant="secondary" @click="dialogVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="submit">{{ t('common.save') }}</AppButton>
       </template>
     </AppModal>
   </CrudPageShell>
@@ -132,6 +132,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -144,6 +145,7 @@ import {
 } from '@/api/teacher'
 
 const store = useStore()
+const { t } = useI18n()
 const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const isStudent = computed(() => role.value === 'STUDENT')
 
@@ -173,11 +175,11 @@ const form = reactive({
   password: ''
 })
 
-const rules = {
-  teacherNo: [{ required: true, message: '请输入教师编号', trigger: 'blur' }],
-  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  gender: [{ required: true, message: '请选择性别', trigger: 'change' }]
-}
+const rules = computed(() => ({
+  teacherNo: [{ required: true, message: t('teacher.teacherNoRequired'), trigger: 'blur' }],
+  name: [{ required: true, message: t('teacher.nameRequired'), trigger: 'blur' }],
+  gender: [{ required: true, message: t('teacher.genderRequired'), trigger: 'change' }]
+}))
 
 function resetForm() {
   Object.assign(form, {
@@ -245,16 +247,16 @@ async function submit() {
   }
 
   if (!isEdit.value && !payload.password) {
-    ElMessage.error('新增教师必须填写密码')
+    ElMessage.error(t('teacher.passwordRequiredOnCreate'))
     return
   }
 
   if (isEdit.value) {
     await updateTeacher(form.id, payload)
-    ElMessage.success('修改成功')
+    ElMessage.success(t('teacher.updateSuccess'))
   } else {
     await createTeacher(payload)
-    ElMessage.success('新增成功')
+    ElMessage.success(t('teacher.createSuccess'))
   }
   dialogVisible.value = false
   fetchList()
@@ -262,16 +264,16 @@ async function submit() {
 
 async function handleDelete(row) {
   if (isStudent.value) return
-  await ElMessageBox.confirm('确认删除该教师吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('teacher.deleteConfirm'), t('common.tip'), { type: 'warning' })
   await deleteTeacher(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('teacher.deleteSuccess'))
   fetchList()
 }
 
 async function handleStatusChange(row, enabled) {
   if (isStudent.value) return
   await updateTeacherStatus(row.id, enabled ? 1 : 0)
-  ElMessage.success('状态已更新')
+  ElMessage.success(t('teacher.statusUpdated'))
   fetchList()
 }
 

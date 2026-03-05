@@ -1,16 +1,19 @@
 ﻿<template>
   <div class="error-page">
     <el-card class="error-card">
-      <p class="error-kicker">页面导航</p>
+      <p class="error-kicker">{{ t('errorPage.notFound.kicker') }}</p>
       <h1>404</h1>
-      <p class="error-title">页面不存在或已移动</p>
-      <p class="error-desc">请检查地址是否正确，或返回首页继续使用系统。</p>
-      <el-button type="primary" @click="$router.push('/dashboard')">返回首页</el-button>
+      <p class="error-title">{{ t('errorPage.notFound.title') }}</p>
+      <p class="error-desc">{{ t('errorPage.notFound.desc') }}</p>
+      <el-button type="primary" @click="$router.push('/dashboard')">{{ t('errorPage.backHome') }}</el-button>
     </el-card>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 </script>
 
 <style scoped lang="scss">

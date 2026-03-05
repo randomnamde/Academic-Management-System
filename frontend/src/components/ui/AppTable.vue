@@ -15,10 +15,10 @@
       </thead>
       <tbody>
         <tr v-if="loading">
-          <td :colspan="columns.length" class="px-3 py-6 text-center text-[12px] text-slatex-500">加载中...</td>
+          <td :colspan="columns.length" class="px-3 py-6 text-center text-[12px] text-slatex-500">{{ t('common.loading') }}</td>
         </tr>
         <tr v-else-if="!rows.length">
-          <td :colspan="columns.length" class="px-3 py-6 text-center text-[12px] text-slatex-500">暂无数据</td>
+          <td :colspan="columns.length" class="px-3 py-6 text-center text-[12px] text-slatex-500">{{ t('common.noData') }}</td>
         </tr>
         <tr v-else v-for="(row, index) in rows" :key="row[rowKey] ?? index">
           <td
@@ -39,6 +39,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   columns: { type: Array, default: () => [] },
@@ -49,6 +50,7 @@ const props = defineProps({
 })
 
 const densityClass = computed(() => (props.density === 'comfortable' ? 'density-comfortable' : 'density-compact'))
+const { t } = useI18n()
 
 function alignClass(align = 'left') {
   if (align === 'right') return 'text-right'

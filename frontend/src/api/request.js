@@ -2,6 +2,7 @@
 import { ElMessage } from 'element-plus'
 import Cookies from 'js-cookie'
 import router from '@/router'
+import i18n from '@/i18n'
 
 const service = axios.create({
   baseURL: import.meta.env.VITE_APP_BASE_API || '/api',
@@ -28,7 +29,7 @@ service.interceptors.response.use(
 
     if (res.code !== 200) {
       if (!response.config?.silent) {
-        ElMessage.error(res.message || '操作失败')
+        ElMessage.error(res.message || i18n.global.t('request.error.operationFailed'))
       }
 
       if (res.code === 401) {
@@ -43,7 +44,7 @@ service.interceptors.response.use(
   },
   error => {
     console.error('Response error:', error)
-    const message = error.response?.data?.message || '网络错误，请稍后重试'
+    const message = error.response?.data?.message || i18n.global.t('request.error.networkRetry')
     if (!error.config?.silent) {
       ElMessage.error(message)
     }

@@ -24,26 +24,26 @@ const routes = [
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('@/views/dashboard/index.vue'),
-        meta: { title: '首页', icon: 'HomeFilled', roles: ALL_ROLES, menuGroup: 'overview' }
+        meta: { titleKey: 'route.dashboard', icon: 'HomeFilled', roles: ALL_ROLES, menuGroup: 'overview' }
       },
       {
         path: 'analytics',
         name: 'Analytics',
         component: () => import('@/views/analytics/index.vue'),
-        meta: { title: '统计分析', icon: 'DataAnalysis', roles: ALL_ROLES, menuGroup: 'assessment' }
+        meta: { titleKey: 'route.analytics', icon: 'DataAnalysis', roles: ALL_ROLES, menuGroup: 'assessment' }
       },
       {
         path: 'student',
         name: 'Student',
         component: () => import('@/views/student/index.vue'),
-        meta: { title: '学生管理', icon: 'UserFilled', roles: MANAGE_ROLES, menuGroup: 'teaching' }
+        meta: { titleKey: 'route.student', icon: 'UserFilled', roles: MANAGE_ROLES, menuGroup: 'teaching' }
       },
       {
         path: 'teacher',
         name: 'Teacher',
         component: () => import('@/views/teacher/index.vue'),
         meta: {
-          title: '教师管理',
+          titleKey: 'route.teacher',
           icon: 'User',
           roles: MANAGE_ROLES,
           menuGroup: 'teaching'
@@ -54,7 +54,7 @@ const routes = [
         name: 'Class',
         component: () => import('@/views/class/index.vue'),
         meta: {
-          title: '班级管理',
+          titleKey: 'route.class',
           icon: 'School',
           roles: MANAGE_ROLES,
           menuGroup: 'teaching'
@@ -65,7 +65,7 @@ const routes = [
         name: 'Course',
         component: () => import('@/views/course/index.vue'),
         meta: {
-          title: '课程管理',
+          titleKey: 'route.course',
           icon: 'Reading',
           roles: MANAGE_ROLES,
           menuGroup: 'teaching'
@@ -76,7 +76,7 @@ const routes = [
         name: 'College',
         component: () => import('@/views/college/index.vue'),
         meta: {
-          title: '学院管理',
+          titleKey: 'route.college',
           icon: 'School',
           roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'],
           menuGroup: 'teaching'
@@ -86,67 +86,67 @@ const routes = [
         path: 'course-arrangement',
         name: 'CourseArrangement',
         component: () => import('@/views/course-arrangement/index.vue'),
-        meta: { title: '排课管理', icon: 'Tickets', roles: MANAGE_ROLES, menuGroup: 'teaching' }
+        meta: { titleKey: 'route.courseArrangement', icon: 'Tickets', roles: MANAGE_ROLES, menuGroup: 'teaching' }
       },
       {
         path: 'score',
         name: 'Score',
         component: () => import('@/views/score/index.vue'),
-        meta: { title: '成绩管理', icon: 'TrendCharts', roles: ALL_ROLES, menuGroup: 'assessment' }
+        meta: { titleKey: 'route.score', icon: 'TrendCharts', roles: ALL_ROLES, menuGroup: 'assessment' }
       },
       {
         path: 'attendance',
         name: 'Attendance',
         component: () => import('@/views/attendance/index.vue'),
-        meta: { title: '考勤管理', icon: 'Calendar', roles: ALL_ROLES, menuGroup: 'assessment' }
+        meta: { titleKey: 'route.attendance', icon: 'Calendar', roles: ALL_ROLES, menuGroup: 'assessment' }
       },
       {
         path: 'leave-request',
         name: 'LeaveRequest',
         component: () => import('@/views/leave-request/index.vue'),
-        meta: { title: '请假审批', icon: 'DocumentChecked', roles: ALL_ROLES, menuGroup: 'assessment' }
+        meta: { titleKey: 'route.leaveRequest', icon: 'DocumentChecked', roles: ALL_ROLES, menuGroup: 'assessment' }
       },
       {
         path: 'announcement',
         name: 'Announcement',
         component: () => import('@/views/announcement/index.vue'),
-        meta: { title: '通知公告', icon: 'BellFilled', roles: ALL_ROLES, menuGroup: 'assessment' }
+        meta: { titleKey: 'route.announcement', icon: 'BellFilled', roles: ALL_ROLES, menuGroup: 'assessment' }
       },
       {
         path: 'rbac/users',
         name: 'RBACUsers',
         component: () => import('@/views/rbac/users.vue'),
-        meta: { title: '权限用户', icon: 'UserFilled', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
+        meta: { titleKey: 'route.rbacUsers', icon: 'UserFilled', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
       },
       {
         path: 'rbac/roles',
         name: 'RBACRoles',
         component: () => import('@/views/rbac/roles.vue'),
-        meta: { title: '角色模板', icon: 'Postcard', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
+        meta: { titleKey: 'route.rbacRoles', icon: 'Postcard', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
       },
       {
         path: 'rbac/permissions',
         name: 'RBACPermissions',
         component: () => import('@/views/rbac/permissions.vue'),
-        meta: { title: '权限矩阵', icon: 'Operation', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
+        meta: { titleKey: 'route.rbacPermissions', icon: 'Operation', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
       },
       {
         path: 'rbac/audit',
         name: 'RBACAudit',
         component: () => import('@/views/rbac/audit.vue'),
-        meta: { title: '审计日志', icon: 'Document', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
+        meta: { titleKey: 'route.rbacAudit', icon: 'Document', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
       },
       {
         path: 'profile',
         name: 'Profile',
         component: () => import('@/views/profile/index.vue'),
-        meta: { title: '个人中心', roles: ALL_ROLES }
+        meta: { titleKey: 'route.profile', roles: ALL_ROLES }
       },
       {
         path: 'system',
         name: 'System',
         component: () => import('@/views/system/index.vue'),
-        meta: { title: '系统偏好', icon: 'Setting', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
+        meta: { titleKey: 'route.system', icon: 'Setting', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
       }
     ]
   },

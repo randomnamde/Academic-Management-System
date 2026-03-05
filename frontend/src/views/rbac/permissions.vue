@@ -1,25 +1,25 @@
 ﻿<template>
   <div class="app-page space-y-3">
-    <AppCard title="权限中心 / 权限矩阵" content-class="p-4 space-y-3">
+    <AppCard :title="t('rbac.permissions.pageTitle')" content-class="p-4 space-y-3">
       <div class="grid gap-2 md:grid-cols-[1fr_auto]">
-        <el-input v-model="keyword" clearable placeholder="按路由名称过滤，例如 成绩管理" />
-        <AppButton variant="secondary" @click="keyword = ''">清空过滤</AppButton>
+        <el-input v-model="keyword" clearable :placeholder="t('rbac.permissions.keywordPlaceholder')" />
+        <AppButton variant="secondary" @click="keyword = ''">{{ t('rbac.permissions.clearFilter') }}</AppButton>
       </div>
 
       <AppTable :columns="columns" :rows="filteredRows" :density="tableDensity">
         <template #cell-admin="{ row }">
-          <span :class="row.admin ? 'app-tag-success' : 'app-tag-info'">{{ row.admin ? '允许' : '禁止' }}</span>
+          <span :class="row.admin ? 'app-tag-success' : 'app-tag-info'">{{ row.admin ? t('rbac.common.allowed') : t('rbac.common.denied') }}</span>
         </template>
         <template #cell-teacher="{ row }">
-          <span :class="row.teacher ? 'app-tag-success' : 'app-tag-info'">{{ row.teacher ? '允许' : '禁止' }}</span>
+          <span :class="row.teacher ? 'app-tag-success' : 'app-tag-info'">{{ row.teacher ? t('rbac.common.allowed') : t('rbac.common.denied') }}</span>
         </template>
         <template #cell-student="{ row }">
-          <span :class="row.student ? 'app-tag-success' : 'app-tag-info'">{{ row.student ? '允许' : '禁止' }}</span>
+          <span :class="row.student ? 'app-tag-success' : 'app-tag-info'">{{ row.student ? t('rbac.common.allowed') : t('rbac.common.denied') }}</span>
         </template>
       </AppTable>
     </AppCard>
 
-    <AppCard title="操作权限（权限编码）" content-class="p-4">
+    <AppCard :title="t('rbac.permissions.actionTitle')" content-class="p-4">
       <div class="flex flex-wrap gap-1.5">
         <span v-for="action in actionCodes" :key="action" class="app-tag-warning">{{ action }}</span>
       </div>
@@ -30,25 +30,27 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useStore } from 'vuex'
+import { useI18n } from 'vue-i18n'
 import AppCard from '@/components/ui/AppCard.vue'
 import AppTable from '@/components/ui/AppTable.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 
 const store = useStore()
+const { t } = useI18n()
 const tableDensity = computed(() => store.getters.tableDensity)
 const keyword = ref('')
 
 const matrixRows = [
-  { route: '首页总览', routeCode: 'Dashboard', admin: true, teacher: true, student: true },
-  { route: '学生管理', routeCode: 'Student', admin: true, teacher: true, student: false },
-  { route: '班级管理', routeCode: 'Class', admin: true, teacher: true, student: false },
-  { route: '成绩管理', routeCode: 'Score', admin: true, teacher: true, student: true },
-  { route: '统计分析', routeCode: 'Analytics', admin: true, teacher: true, student: true },
-  { route: '权限用户', routeCode: 'RBACUsers', admin: true, teacher: false, student: false },
-  { route: '角色模板', routeCode: 'RBACRoles', admin: true, teacher: false, student: false },
-  { route: '权限矩阵', routeCode: 'RBACPermissions', admin: true, teacher: false, student: false },
-  { route: '审计日志', routeCode: 'RBACAudit', admin: true, teacher: false, student: false },
-  { route: '系统偏好', routeCode: 'System', admin: true, teacher: false, student: false }
+  { routeKey: 'route.dashboard', routeCode: 'Dashboard', admin: true, teacher: true, student: true },
+  { routeKey: 'route.student', routeCode: 'Student', admin: true, teacher: true, student: false },
+  { routeKey: 'route.class', routeCode: 'Class', admin: true, teacher: true, student: false },
+  { routeKey: 'route.score', routeCode: 'Score', admin: true, teacher: true, student: true },
+  { routeKey: 'route.analytics', routeCode: 'Analytics', admin: true, teacher: true, student: true },
+  { routeKey: 'route.rbacUsers', routeCode: 'RBACUsers', admin: true, teacher: false, student: false },
+  { routeKey: 'route.rbacRoles', routeCode: 'RBACRoles', admin: true, teacher: false, student: false },
+  { routeKey: 'route.rbacPermissions', routeCode: 'RBACPermissions', admin: true, teacher: false, student: false },
+  { routeKey: 'route.rbacAudit', routeCode: 'RBACAudit', admin: true, teacher: false, student: false },
+  { routeKey: 'route.system', routeCode: 'System', admin: true, teacher: false, student: false }
 ]
 
 const actionCodes = [
@@ -65,16 +67,17 @@ const actionCodes = [
   'leave:approve'
 ]
 
-const columns = [
-  { key: 'route', title: '路由名称' },
-  { key: 'admin', title: '管理员', width: 120, align: 'center' },
-  { key: 'teacher', title: '教师', width: 120, align: 'center' },
-  { key: 'student', title: '学生', width: 120, align: 'center' }
-]
+const columns = computed(() => [
+  { key: 'route', title: t('rbac.permissions.colRoute') },
+  { key: 'admin', title: t('rbac.permissions.colAdmin'), width: 120, align: 'center' },
+  { key: 'teacher', title: t('rbac.permissions.colTeacher'), width: 120, align: 'center' },
+  { key: 'student', title: t('rbac.permissions.colStudent'), width: 120, align: 'center' }
+])
 
 const filteredRows = computed(() => {
   const key = keyword.value.trim().toLowerCase()
-  if (!key) return matrixRows
-  return matrixRows.filter((row) => row.route.toLowerCase().includes(key) || row.routeCode.toLowerCase().includes(key))
+  const rows = matrixRows.map((item) => ({ ...item, route: t(item.routeKey) }))
+  if (!key) return rows
+  return rows.filter((row) => row.route.toLowerCase().includes(key) || row.routeCode.toLowerCase().includes(key))
 })
 </script>

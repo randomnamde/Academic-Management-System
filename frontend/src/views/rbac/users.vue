@@ -1,26 +1,27 @@
-<template>
-  <CrudPageShell title="权限中心 / 用户管理">
+﻿<template>
+  <CrudPageShell :title="t('rbac.users.pageTitle')">
     <template #header-actions>
-      <AppButton variant="secondary" @click="openImportDialog">批量导入</AppButton>
+      <AppButton variant="secondary" @click="openImportDialog">{{ t('rbac.users.batchImport') }}</AppButton>
     </template>
 
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="用户名">
-          <el-input v-model="searchForm.username" clearable placeholder="请输入用户名" />
+        <el-form-item :label="t('rbac.users.filterUsername')">
+          <el-input v-model="searchForm.username" clearable :placeholder="t('rbac.users.filterUsernamePlaceholder')" />
         </el-form-item>
-        <el-form-item label="角色">
+        <el-form-item :label="t('rbac.users.filterRole')">
           <el-select v-model="searchForm.role" clearable style="width: 140px">
-            <el-option label="学校管理员" value="SCHOOL_ADMIN" />
-            <el-option label="学院管理员" value="COLLEGE_ADMIN" />
-            <el-option label="班主任" value="HOMEROOM_TEACHER" />
-            <el-option label="任课教师" value="COURSE_TEACHER" />
-            <el-option label="学生" value="STUDENT" />
+            <el-option
+              v-for="option in roleOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
         </el-form-item>
       </el-form>
     </template>
@@ -33,7 +34,7 @@
         <template #cell-status="{ row }">
           <div class="flex items-center gap-2">
             <el-switch :model-value="row.status === 1" @change="(val) => handleStatusChange(row, val)" />
-            <span class="text-[12px] text-slatex-500">{{ row.status === 1 ? '启用' : '停用' }}</span>
+            <span class="text-[12px] text-slatex-500">{{ row.status === 1 ? t('rbac.users.statusEnabled') : t('rbac.users.statusDisabled') }}</span>
           </div>
         </template>
       </AppTable>
@@ -52,25 +53,27 @@
       />
     </template>
 
-    <AppModal v-model="importDialogVisible" title="批量导入用户" width="760px">
-      <el-form :model="importForm" label-width="110px">
-        <el-form-item label="导入角色">
+    <AppModal v-model="importDialogVisible" :title="t('rbac.users.importDialogTitle')" width="760px">
+      <el-form :model="importForm" label-width="120px">
+        <el-form-item :label="t('rbac.users.importRole')">
           <el-select v-model="importForm.roleType" style="width: 100%">
-            <el-option label="学院管理员" value="COLLEGE_ADMIN" />
-            <el-option label="班主任" value="HOMEROOM_TEACHER" />
-            <el-option label="任课教师" value="COURSE_TEACHER" />
-            <el-option label="学生" value="STUDENT" />
+            <el-option
+              v-for="option in importRoleOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="文件类型">
+        <el-form-item :label="t('rbac.users.fileType')">
           <el-radio-group v-model="importForm.fileType">
             <el-radio label="xlsx">Excel (.xlsx)</el-radio>
             <el-radio label="csv">CSV (.csv)</el-radio>
           </el-radio-group>
         </el-form-item>
 
-        <el-form-item label="上传文件">
+        <el-form-item :label="t('rbac.users.uploadFile')">
           <el-upload
             ref="uploadRef"
             :auto-upload="false"
@@ -80,42 +83,42 @@
             :on-remove="handleFileRemove"
             :show-file-list="true"
           >
-            <AppButton variant="secondary">选择文件</AppButton>
+            <AppButton variant="secondary">{{ t('rbac.users.selectFile') }}</AppButton>
             <template #tip>
-              <div class="el-upload__tip">请先下载模板并按模板字段填写，单次最多 2000 行。</div>
+              <div class="el-upload__tip">{{ t('rbac.users.uploadTip') }}</div>
             </template>
           </el-upload>
         </el-form-item>
       </el-form>
 
       <div class="import-action-row">
-        <AppButton variant="secondary" :loading="downloadingTemplate" @click="handleDownloadTemplate">下载模板</AppButton>
-        <AppButton :loading="importing" @click="handleImport">开始导入</AppButton>
+        <AppButton variant="secondary" :loading="downloadingTemplate" @click="handleDownloadTemplate">{{ t('rbac.users.downloadTemplate') }}</AppButton>
+        <AppButton :loading="importing" @click="handleImport">{{ t('rbac.users.startImport') }}</AppButton>
       </div>
 
       <div v-if="importResult" class="import-result-box">
         <el-alert
           :type="importResult.failedCount ? 'warning' : 'success'"
-          :title="`导入完成：成功 ${importResult.successCount} 条，失败 ${importResult.failedCount} 条`"
+          :title="t('rbac.users.importFinished', { success: importResult.successCount, failed: importResult.failedCount })"
           show-icon
           :closable="false"
         />
 
         <el-descriptions :column="3" border class="result-summary">
-          <el-descriptions-item label="总行数">{{ importResult.totalCount }}</el-descriptions-item>
-          <el-descriptions-item label="成功">{{ importResult.successCount }}</el-descriptions-item>
-          <el-descriptions-item label="失败">{{ importResult.failedCount }}</el-descriptions-item>
+          <el-descriptions-item :label="t('rbac.users.totalRows')">{{ importResult.totalCount }}</el-descriptions-item>
+          <el-descriptions-item :label="t('rbac.users.successRows')">{{ importResult.successCount }}</el-descriptions-item>
+          <el-descriptions-item :label="t('rbac.users.failedRows')">{{ importResult.failedCount }}</el-descriptions-item>
         </el-descriptions>
 
         <div v-if="importResult.failItems?.length" class="fail-block">
           <div class="fail-header">
-            <span>失败明细</span>
-            <AppButton variant="secondary" @click="exportFailItems">导出失败CSV</AppButton>
+            <span>{{ t('rbac.users.failDetails') }}</span>
+            <AppButton variant="secondary" @click="exportFailItems">{{ t('rbac.users.exportFailCsv') }}</AppButton>
           </div>
           <el-table :data="importResult.failItems" max-height="240" stripe>
-            <el-table-column prop="rowNumber" label="行号" width="80" />
-            <el-table-column prop="message" label="失败原因" min-width="220" />
-            <el-table-column label="原始数据" min-width="260">
+            <el-table-column prop="rowNumber" :label="t('rbac.users.colRowNumber')" width="80" />
+            <el-table-column prop="message" :label="t('rbac.users.colFailReason')" min-width="220" />
+            <el-table-column :label="t('rbac.users.colRawData')" min-width="260">
               <template #default="{ row }">
                 <span class="row-data-text">{{ formatRowData(row.rowData) }}</span>
               </template>
@@ -125,7 +128,7 @@
       </div>
 
       <template #footer>
-        <AppButton variant="secondary" @click="importDialogVisible = false">关闭</AppButton>
+        <AppButton variant="secondary" @click="importDialogVisible = false">{{ t('common.close') }}</AppButton>
       </template>
     </AppModal>
   </CrudPageShell>
@@ -135,6 +138,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
@@ -143,6 +147,7 @@ import AppModal from '@/components/ui/AppModal.vue'
 import { downloadUserImportTemplate, getUserList, importUsers, updateUserStatus } from '@/api/user'
 
 const store = useStore()
+const { t } = useI18n()
 const tableDensity = computed(() => store.getters.tableDensity)
 
 const loading = ref(false)
@@ -156,14 +161,29 @@ const searchForm = reactive({
   role: ''
 })
 
-const columns = [
-  { key: 'username', title: '用户名', width: 180 },
-  { key: 'realName', title: '姓名', width: 160 },
-  { key: 'role', title: '角色', width: 140 },
-  { key: 'phone', title: '电话', width: 160 },
-  { key: 'email', title: '邮箱' },
-  { key: 'status', title: '状态', width: 140 }
-]
+const roleOptions = computed(() => [
+  { value: 'SCHOOL_ADMIN', label: t('roles.schoolAdmin') },
+  { value: 'COLLEGE_ADMIN', label: t('roles.collegeAdmin') },
+  { value: 'HOMEROOM_TEACHER', label: t('roles.homeroomTeacher') },
+  { value: 'COURSE_TEACHER', label: t('roles.courseTeacher') },
+  { value: 'STUDENT', label: t('roles.student') }
+])
+
+const importRoleOptions = computed(() => [
+  { value: 'COLLEGE_ADMIN', label: t('roles.collegeAdmin') },
+  { value: 'HOMEROOM_TEACHER', label: t('roles.homeroomTeacher') },
+  { value: 'COURSE_TEACHER', label: t('roles.courseTeacher') },
+  { value: 'STUDENT', label: t('roles.student') }
+])
+
+const columns = computed(() => [
+  { key: 'username', title: t('rbac.users.colUsername'), width: 180 },
+  { key: 'realName', title: t('rbac.users.colRealName'), width: 160 },
+  { key: 'role', title: t('rbac.users.colRole'), width: 140 },
+  { key: 'phone', title: t('rbac.users.colPhone'), width: 160 },
+  { key: 'email', title: t('rbac.users.colEmail') },
+  { key: 'status', title: t('rbac.users.colStatus'), width: 140 }
+])
 
 const importDialogVisible = ref(false)
 const importForm = reactive({
@@ -206,26 +226,25 @@ function handleReset() {
 }
 
 function roleLabel(role) {
-  if (role === 'SCHOOL_ADMIN') return '学校管理员'
-  if (role === 'COLLEGE_ADMIN') return '学院管理员'
-  if (role === 'HOMEROOM_TEACHER') return '班主任'
-  if (role === 'COURSE_TEACHER') return '任课教师'
-  if (role === 'STUDENT') return '学生'
+  if (role === 'SCHOOL_ADMIN') return t('roles.schoolAdmin')
+  if (role === 'COLLEGE_ADMIN') return t('roles.collegeAdmin')
+  if (role === 'HOMEROOM_TEACHER') return t('roles.homeroomTeacher')
+  if (role === 'COURSE_TEACHER') return t('roles.courseTeacher')
+  if (role === 'STUDENT') return t('roles.student')
   return role
 }
 
 function roleBadgeType(role) {
   if (role === 'SCHOOL_ADMIN') return 'danger'
   if (role === 'COLLEGE_ADMIN') return 'warning'
-  if (role === 'HOMEROOM_TEACHER') return 'info'
-  if (role === 'COURSE_TEACHER') return 'info'
+  if (role === 'HOMEROOM_TEACHER' || role === 'COURSE_TEACHER') return 'info'
   if (role === 'STUDENT') return 'success'
   return 'info'
 }
 
 async function handleStatusChange(row, enabled) {
   await updateUserStatus(row.id, enabled ? 1 : 0)
-  ElMessage.success('状态已更新')
+  ElMessage.success(t('rbac.users.statusUpdated'))
   fetchList()
 }
 
@@ -255,7 +274,7 @@ async function handleDownloadTemplate() {
 
 async function handleImport() {
   if (!selectedFile.value) {
-    ElMessage.error('请先选择导入文件')
+    ElMessage.error(t('rbac.users.selectFileFirst'))
     return
   }
   importing.value = true
@@ -264,7 +283,7 @@ async function handleImport() {
     importResult.value = res.data || null
     const successCount = importResult.value?.successCount || 0
     const failedCount = importResult.value?.failedCount || 0
-    ElMessage.success(`导入完成：成功 ${successCount} 条，失败 ${failedCount} 条`)
+    ElMessage.success(t('rbac.users.importCompleted', { success: successCount, failed: failedCount }))
     if (successCount > 0) {
       fetchList()
     }
@@ -283,7 +302,7 @@ function formatRowData(rowData) {
 function exportFailItems() {
   const failItems = importResult.value?.failItems || []
   if (!failItems.length) {
-    ElMessage.warning('暂无失败数据')
+    ElMessage.warning(t('rbac.users.noFailData'))
     return
   }
 

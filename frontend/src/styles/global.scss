@@ -308,9 +308,10 @@ a {
 .el-dropdown-menu,
 .el-picker-panel,
 .el-popper.is-light {
-  border-color: color-mix(in srgb, var(--panel-border) 84%, transparent);
-  background: var(--surface-popover);
-  backdrop-filter: blur(12px) saturate(126%);
+  border-color: var(--popup-border);
+  background: var(--surface-popup);
+  box-shadow: var(--popup-shadow);
+  backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
 }
 
 .el-select-dropdown__item.hover,
@@ -365,10 +366,10 @@ a {
 
 .el-dialog {
   border-radius: var(--radius-pop);
-  box-shadow: var(--shadow-overlay);
-  border: 1px solid color-mix(in srgb, var(--sms-border) 84%, transparent);
-  background: var(--surface-popover);
-  backdrop-filter: blur(14px) saturate(132%);
+  box-shadow: var(--popup-shadow);
+  border: 1px solid var(--popup-border);
+  background: var(--surface-popup);
+  backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
 }
 
 .el-dialog__header {

@@ -1,30 +1,30 @@
 ﻿<template>
-  <CrudPageShell title="考勤管理">
+  <CrudPageShell :title="t('attendance.pageTitle')">
     <template #header-actions>
       <el-dropdown @command="handleExport">
-        <AppButton variant="secondary">导出报表</AppButton>
+        <AppButton variant="secondary">{{ t('attendance.exportReport') }}</AppButton>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="csv">导出逗号分隔文件</el-dropdown-item>
-            <el-dropdown-item command="xlsx">导出电子表格文件</el-dropdown-item>
+            <el-dropdown-item command="csv">{{ t('attendance.exportCsv') }}</el-dropdown-item>
+            <el-dropdown-item command="xlsx">{{ t('attendance.exportXlsx') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <AppButton v-if="canEditAttendance" class="ml-2" @click="openCreate">新增考勤</AppButton>
+      <AppButton v-if="canEditAttendance" class="ml-2" @click="openCreate">{{ t('attendance.addAttendance') }}</AppButton>
     </template>
 
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item v-if="canFilterStudent" label="学生学号">
+        <el-form-item v-if="canFilterStudent" :label="t('attendance.studentId')">
           <el-input-number v-model="searchForm.studentId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="排课编号">
+        <el-form-item :label="t('attendance.arrangementId')">
           <el-select
             v-model="searchForm.courseArrangementId"
             clearable
             filterable
             style="width: 260px"
-            placeholder="请选择排课"
+            :placeholder="t('attendance.selectArrangement')"
           >
             <el-option
               v-for="item in arrangementOptions"
@@ -34,39 +34,39 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="日期">
+        <el-form-item :label="t('attendance.date')">
           <el-date-picker v-model="searchForm.attendanceDate" type="date" value-format="YYYY-MM-DD" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item :label="t('attendance.status')">
           <el-select v-model="searchForm.status" clearable style="width: 120px">
-            <el-option label="出勤" value="PRESENT" />
-            <el-option label="缺勤" value="ABSENT" />
-            <el-option label="迟到" value="LATE" />
-            <el-option label="请假" value="LEAVE" />
+            <el-option :label="t('attendance.statusPresent')" value="PRESENT" />
+            <el-option :label="t('attendance.statusAbsent')" value="ABSENT" />
+            <el-option :label="t('attendance.statusLate')" value="LATE" />
+            <el-option :label="t('attendance.statusLeave')" value="LEAVE" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
         </el-form-item>
       </el-form>
     </template>
 
     <template #table>
       <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="studentId" label="学生学号" width="90" />
-        <el-table-column prop="studentName" label="学生" width="120" />
-        <el-table-column prop="courseArrangementId" label="排课编号" width="90" />
-        <el-table-column prop="courseName" label="课程" width="140" />
-        <el-table-column prop="attendanceDate" label="日期" width="120" />
-        <el-table-column prop="checkInTime" label="签到" width="100" />
-        <el-table-column prop="checkOutTime" label="签退" width="100" />
-        <el-table-column prop="status" label="状态" width="100" />
-        <el-table-column v-if="canEditAttendance" label="操作" width="170" fixed="right">
+        <el-table-column type="index" :label="t('attendance.index')" width="60" />
+        <el-table-column prop="studentId" :label="t('attendance.studentId')" width="90" />
+        <el-table-column prop="studentName" :label="t('attendance.student')" width="120" />
+        <el-table-column prop="courseArrangementId" :label="t('attendance.arrangementId')" width="90" />
+        <el-table-column prop="courseName" :label="t('attendance.course')" width="140" />
+        <el-table-column prop="attendanceDate" :label="t('attendance.date')" width="120" />
+        <el-table-column prop="checkInTime" :label="t('attendance.checkIn')" width="100" />
+        <el-table-column prop="checkOutTime" :label="t('attendance.checkOut')" width="100" />
+        <el-table-column prop="status" :label="t('attendance.status')" width="100" />
+        <el-table-column v-if="canEditAttendance" :label="t('attendance.actions')" width="170" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="primary" @click="openEdit(row)">{{ t('attendance.edit') }}</el-button>
+            <el-button link type="danger" @click="handleDelete(row)">{{ t('attendance.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -85,21 +85,21 @@
       />
     </template>
 
-    <AppModal v-model="dialogVisible" :title="isEdit ? '编辑考勤' : '新增考勤'" width="640px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? t('attendance.dialogEditTitle') : t('attendance.dialogAddTitle')" width="640px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="学生学号" prop="studentId">
+            <el-form-item :label="t('attendance.studentId')" prop="studentId">
               <el-input-number v-model="form.studentId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="排课编号" prop="courseArrangementId">
+            <el-form-item :label="t('attendance.arrangementId')" prop="courseArrangementId">
               <el-select
                 v-model="form.courseArrangementId"
                 filterable
                 style="width: 100%"
-                placeholder="请选择排课"
+                :placeholder="t('attendance.selectArrangement')"
               >
                 <el-option
                   v-for="item in arrangementOptions"
@@ -114,17 +114,17 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="考勤日期" prop="attendanceDate">
+            <el-form-item :label="t('attendance.attendanceDate')" prop="attendanceDate">
               <el-date-picker v-model="form.attendanceDate" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="状态" prop="status">
+            <el-form-item :label="t('attendance.status')" prop="status">
               <el-select v-model="form.status" style="width: 100%">
-                <el-option label="出勤" value="PRESENT" />
-                <el-option label="缺勤" value="ABSENT" />
-                <el-option label="迟到" value="LATE" />
-                <el-option label="请假" value="LEAVE" />
+                <el-option :label="t('attendance.statusPresent')" value="PRESENT" />
+                <el-option :label="t('attendance.statusAbsent')" value="ABSENT" />
+                <el-option :label="t('attendance.statusLate')" value="LATE" />
+                <el-option :label="t('attendance.statusLeave')" value="LEAVE" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -132,24 +132,24 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="签到时间">
+            <el-form-item :label="t('attendance.checkInTime')">
               <el-time-picker v-model="form.checkInTime" value-format="HH:mm:ss" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="签退时间">
+            <el-form-item :label="t('attendance.checkOutTime')">
               <el-time-picker v-model="form.checkOutTime" value-format="HH:mm:ss" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="备注">
+        <el-form-item :label="t('attendance.remark')">
           <el-input v-model="form.remark" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
-        <AppButton @click="submit">保存</AppButton>
+        <AppButton variant="secondary" @click="dialogVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="submit">{{ t('common.save') }}</AppButton>
       </template>
     </AppModal>
   </CrudPageShell>
@@ -159,6 +159,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -173,6 +174,7 @@ import { getCourseArrangementOptions } from '@/api/courseArrangement'
 import { canAction } from '@/permission/ability'
 
 const store = useStore()
+const { t } = useI18n()
 const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const permissions = computed(() => store.state.userInfo?.permissions || [])
 const canEditAttendance = computed(() =>
@@ -208,12 +210,12 @@ const form = reactive({
   remark: ''
 })
 
-const rules = {
-  studentId: [{ required: true, message: '请输入学生学号', trigger: 'change' }],
-  courseArrangementId: [{ required: true, message: '请输入排课编号', trigger: 'change' }],
-  attendanceDate: [{ required: true, message: '请选择日期', trigger: 'change' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
-}
+const rules = computed(() => ({
+  studentId: [{ required: true, message: t('attendance.studentIdRequired'), trigger: 'change' }],
+  courseArrangementId: [{ required: true, message: t('attendance.arrangementIdRequired'), trigger: 'change' }],
+  attendanceDate: [{ required: true, message: t('attendance.dateRequired'), trigger: 'change' }],
+  status: [{ required: true, message: t('attendance.statusRequired'), trigger: 'change' }]
+}))
 
 function resetForm() {
   Object.assign(form, {
@@ -248,7 +250,7 @@ async function fetchList() {
 
 function formatArrangementLabel(item) {
   const parts = [item.semester, item.courseName, item.className].filter(Boolean)
-  return parts.length ? `${parts.join(' | ')} (编号:${item.id})` : `排课编号:${item.id}`
+  return parts.length ? `${parts.join(' | ')} (${t('attendance.idLabel')}:${item.id})` : `${t('attendance.arrangementId')}:${item.id}`
 }
 
 async function fetchArrangementOptions() {
@@ -264,7 +266,7 @@ async function handleExport(format) {
     status: searchForm.status || undefined,
     format
   })
-  ElMessage.success('导出任务已开始')
+  ElMessage.success(t('attendance.exportStarted'))
 }
 
 function handleSearch() {
@@ -301,19 +303,19 @@ async function submit() {
 
   if (isEdit.value) {
     await updateAttendance(form.id, form)
-    ElMessage.success('修改成功')
+    ElMessage.success(t('attendance.updateSuccess'))
   } else {
     await recordAttendance(form)
-    ElMessage.success('新增成功')
+    ElMessage.success(t('attendance.createSuccess'))
   }
   dialogVisible.value = false
   fetchList()
 }
 
 async function handleDelete(row) {
-  await ElMessageBox.confirm('确认删除该考勤记录吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('attendance.deleteConfirm'), t('common.tip'), { type: 'warning' })
   await deleteAttendance(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('attendance.deleteSuccess'))
   fetchList()
 }
 

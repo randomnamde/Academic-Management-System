@@ -4,6 +4,7 @@ import { useStore } from 'vuex'
 const STORAGE_KEY = 'ui:themeMode'
 const DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)'
 const VALID_MODES = ['system', 'light', 'dark']
+const MODE_SEQUENCE = ['system', 'light', 'dark']
 
 let systemMediaQuery = null
 let systemChangeHandler = null
@@ -127,6 +128,12 @@ export function useTheme(externalStore) {
     store.commit('SET_THEME_MODE', normalized)
   }
 
+  const cycleThemeMode = () => {
+    const index = MODE_SEQUENCE.indexOf(mode.value)
+    const next = MODE_SEQUENCE[(index + 1) % MODE_SEQUENCE.length]
+    setThemeMode(next)
+  }
+
   const stop = watchSystemTheme(() => {
     if (mode.value === 'system') {
       applyTheme(resolveTheme('system'))
@@ -140,6 +147,7 @@ export function useTheme(externalStore) {
   return {
     mode,
     activeTheme,
-    setThemeMode
+    setThemeMode,
+    cycleThemeMode
   }
 }

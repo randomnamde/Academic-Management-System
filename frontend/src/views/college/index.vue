@@ -1,23 +1,23 @@
-<template>
-  <CrudPageShell title="学院管理">
+﻿<template>
+  <CrudPageShell :title="t('college.pageTitle')">
     <template #header-actions>
-      <AppButton @click="openCreate">新增学院</AppButton>
+      <AppButton @click="openCreate">{{ t('college.addCollege') }}</AppButton>
     </template>
 
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="关键字">
-          <el-input v-model="searchForm.keyword" clearable placeholder="学院编码/学院名称" />
+        <el-form-item :label="t('college.keyword')">
+          <el-input v-model="searchForm.keyword" clearable :placeholder="t('college.keywordPlaceholder')" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item :label="t('college.status')">
           <el-select v-model="searchForm.status" clearable style="width: 120px">
-            <el-option label="启用" :value="1" />
-            <el-option label="停用" :value="0" />
+            <el-option :label="t('college.statusEnabled')" :value="1" />
+            <el-option :label="t('college.statusDisabled')" :value="0" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
         </el-form-item>
       </el-form>
     </template>
@@ -25,14 +25,14 @@
     <template #table>
       <AppTable :columns="columns" :rows="tableData" :loading="loading" :density="tableDensity">
         <template #cell-status="{ row }">
-          <AppBadge :type="Number(row.status) === 1 ? 'success' : 'info'">{{ Number(row.status) === 1 ? '启用' : '停用' }}</AppBadge>
+          <AppBadge :type="Number(row.status) === 1 ? 'success' : 'info'">{{ Number(row.status) === 1 ? t('college.statusEnabled') : t('college.statusDisabled') }}</AppBadge>
         </template>
         <template #cell-actions="{ row }">
           <div class="flex justify-end gap-2">
-            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="openEdit(row)">编辑</button>
-            <button class="text-[12px] text-slatex-600 hover:text-slatex-900" @click="openBindAdmin(row)">绑定管理员</button>
+            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="openEdit(row)">{{ t('college.edit') }}</button>
+            <button class="text-[12px] text-slatex-600 hover:text-slatex-900" @click="openBindAdmin(row)">{{ t('college.bindAdmin') }}</button>
             <button class="text-[12px] text-state-danger hover:opacity-80" @click="toggleStatus(row)">
-              {{ Number(row.status) === 1 ? '停用' : '启用' }}
+              {{ Number(row.status) === 1 ? t('college.disable') : t('college.enable') }}
             </button>
           </div>
         </template>
@@ -52,33 +52,33 @@
       />
     </template>
 
-    <AppModal v-model="dialogVisible" :title="isEdit ? '编辑学院' : '新增学院'" width="640px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? t('college.dialogEditTitle') : t('college.dialogAddTitle')" width="640px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
-        <el-form-item label="学院编码" prop="collegeCode">
+        <el-form-item :label="t('college.collegeCode')" prop="collegeCode">
           <el-input v-model="form.collegeCode" />
         </el-form-item>
-        <el-form-item label="学院名称" prop="collegeName">
+        <el-form-item :label="t('college.collegeName')" prop="collegeName">
           <el-input v-model="form.collegeName" />
         </el-form-item>
-        <el-form-item label="描述">
+        <el-form-item :label="t('college.description')">
           <el-input v-model="form.description" type="textarea" :rows="3" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
-        <AppButton @click="submit">保存</AppButton>
+        <AppButton variant="secondary" @click="dialogVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="submit">{{ t('common.save') }}</AppButton>
       </template>
     </AppModal>
 
-    <AppModal v-model="bindVisible" title="绑定学院管理员" width="520px">
-      <el-form label-width="110px">
-        <el-form-item label="管理员用户ID">
+    <AppModal v-model="bindVisible" :title="t('college.bindAdminTitle')" width="520px">
+      <el-form label-width="130px">
+        <el-form-item :label="t('college.adminUserId')">
           <el-input-number v-model="bindAdminUserId" :min="1" style="width: 100%" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <AppButton variant="secondary" @click="bindVisible = false">取消</AppButton>
-        <AppButton @click="submitBindAdmin">确定</AppButton>
+        <AppButton variant="secondary" @click="bindVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="submitBindAdmin">{{ t('common.confirm') }}</AppButton>
       </template>
     </AppModal>
   </CrudPageShell>
@@ -88,6 +88,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
@@ -96,6 +97,7 @@ import AppModal from '@/components/ui/AppModal.vue'
 import { bindCollegeAdmin, createCollege, getCollegeList, updateCollege, updateCollegeStatus } from '@/api/college'
 
 const store = useStore()
+const { t } = useI18n()
 const tableDensity = computed(() => store.getters.tableDensity)
 
 const loading = ref(false)
@@ -110,13 +112,13 @@ const searchForm = reactive({
   status: null
 })
 
-const columns = [
-  { key: 'collegeCode', title: '学院编码', width: 160 },
-  { key: 'collegeName', title: '学院名称', width: 220 },
-  { key: 'description', title: '描述' },
-  { key: 'status', title: '状态', width: 100 },
-  { key: 'actions', title: '操作', width: 250, align: 'right' }
-]
+const columns = computed(() => [
+  { key: 'collegeCode', title: t('college.collegeCode'), width: 160 },
+  { key: 'collegeName', title: t('college.collegeName'), width: 220 },
+  { key: 'description', title: t('college.description') },
+  { key: 'status', title: t('college.status'), width: 100 },
+  { key: 'actions', title: t('college.actions'), width: 250, align: 'right' }
+])
 
 const dialogVisible = ref(false)
 const bindVisible = ref(false)
@@ -130,10 +132,10 @@ const form = reactive({
   description: ''
 })
 
-const rules = {
-  collegeCode: [{ required: true, message: '请输入学院编码', trigger: 'blur' }],
-  collegeName: [{ required: true, message: '请输入学院名称', trigger: 'blur' }]
-}
+const rules = computed(() => ({
+  collegeCode: [{ required: true, message: t('college.collegeCodeRequired'), trigger: 'blur' }],
+  collegeName: [{ required: true, message: t('college.collegeNameRequired'), trigger: 'blur' }]
+}))
 
 function resetForm() {
   Object.assign(form, {
@@ -200,14 +202,14 @@ async function submit() {
       collegeName: form.collegeName,
       description: form.description
     })
-    ElMessage.success('更新成功')
+    ElMessage.success(t('college.updateSuccess'))
   } else {
     await createCollege({
       collegeCode: form.collegeCode,
       collegeName: form.collegeName,
       description: form.description
     })
-    ElMessage.success('新增成功')
+    ElMessage.success(t('college.createSuccess'))
   }
   dialogVisible.value = false
   fetchList()
@@ -216,7 +218,7 @@ async function submit() {
 async function submitBindAdmin() {
   if (!currentCollegeId.value || !bindAdminUserId.value) return
   await bindCollegeAdmin(currentCollegeId.value, bindAdminUserId.value)
-  ElMessage.success('绑定成功')
+  ElMessage.success(t('college.bindSuccess'))
   bindVisible.value = false
   fetchList()
 }
@@ -224,7 +226,7 @@ async function submitBindAdmin() {
 async function toggleStatus(row) {
   const next = Number(row.status) === 1 ? 0 : 1
   await updateCollegeStatus(row.id, next)
-  ElMessage.success('状态已更新')
+  ElMessage.success(t('college.statusUpdated'))
   fetchList()
 }
 
@@ -237,4 +239,3 @@ onMounted(fetchList)
   justify-content: flex-end;
 }
 </style>
-

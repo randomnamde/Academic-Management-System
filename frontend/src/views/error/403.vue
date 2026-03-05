@@ -1,16 +1,19 @@
 ﻿<template>
   <div class="error-page">
     <el-card class="error-card">
-      <p class="error-kicker">权限提示</p>
+      <p class="error-kicker">{{ t('errorPage.forbidden.kicker') }}</p>
       <h1>403</h1>
-      <p class="error-title">当前账号没有访问该页面的权限</p>
-      <p class="error-desc">如需继续访问，请联系管理员为你的角色分配对应权限后重试。</p>
-      <el-button type="primary" @click="$router.push('/dashboard')">返回首页</el-button>
+      <p class="error-title">{{ t('errorPage.forbidden.title') }}</p>
+      <p class="error-desc">{{ t('errorPage.forbidden.desc') }}</p>
+      <el-button type="primary" @click="$router.push('/dashboard')">{{ t('errorPage.backHome') }}</el-button>
     </el-card>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 </script>
 
 <style scoped lang="scss">

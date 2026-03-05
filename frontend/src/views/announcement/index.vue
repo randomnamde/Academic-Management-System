@@ -1,49 +1,49 @@
 ﻿<template>
-  <CrudPageShell title="通知公告">
+  <CrudPageShell :title="t('announcement.pageTitle')">
     <template #header-actions>
-      <AppButton v-if="canManageAnnouncement" @click="openCreate">发布公告</AppButton>
+      <AppButton v-if="canManageAnnouncement" @click="openCreate">{{ t('announcement.publish') }}</AppButton>
     </template>
 
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="标题">
+        <el-form-item :label="t('announcement.title')">
           <el-input v-model="searchForm.title" clearable />
         </el-form-item>
-        <el-form-item label="类型">
+        <el-form-item :label="t('announcement.type')">
           <el-select v-model="searchForm.type" clearable style="width: 140px">
-            <el-option label="通知" value="NOTICE" />
-            <el-option label="新闻" value="NEWS" />
-            <el-option label="活动" value="EVENT" />
-            <el-option label="重要" value="IMPORTANT" />
+            <el-option :label="t('announcement.typeNotice')" value="NOTICE" />
+            <el-option :label="t('announcement.typeNews')" value="NEWS" />
+            <el-option :label="t('announcement.typeEvent')" value="EVENT" />
+            <el-option :label="t('announcement.typeImportant')" value="IMPORTANT" />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item :label="t('announcement.status')">
           <el-select v-model="searchForm.status" clearable style="width: 120px">
-            <el-option label="已发布" :value="1" />
-            <el-option label="已下线" :value="0" />
+            <el-option :label="t('announcement.statusPublished')" :value="1" />
+            <el-option :label="t('announcement.statusOffline')" :value="0" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
         </el-form-item>
       </el-form>
     </template>
 
     <template #table>
       <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="title" label="标题" min-width="220" />
-        <el-table-column prop="type" label="类型" width="100" />
-        <el-table-column label="目标角色" width="140">
+        <el-table-column type="index" :label="t('announcement.index')" width="60" />
+        <el-table-column prop="title" :label="t('announcement.title')" min-width="220" />
+        <el-table-column prop="type" :label="t('announcement.type')" width="100" />
+        <el-table-column :label="t('announcement.targetRole')" width="140">
           <template #default="{ row }">{{ targetRoleLabel(row.targetRole) }}</template>
         </el-table-column>
-        <el-table-column prop="priority" label="优先级" width="90" />
-        <el-table-column prop="isTop" label="置顶" width="80">
-          <template #default="{ row }">{{ row.isTop === 1 ? '是' : '否' }}</template>
+        <el-table-column prop="priority" :label="t('announcement.priority')" width="90" />
+        <el-table-column prop="isTop" :label="t('announcement.isTop')" width="80">
+          <template #default="{ row }">{{ row.isTop === 1 ? t('announcement.yes') : t('announcement.no') }}</template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column v-if="canManageAnnouncement" label="发布" width="90">
+        <el-table-column prop="createTime" :label="t('announcement.createTime')" width="180" />
+        <el-table-column v-if="canManageAnnouncement" :label="t('announcement.publishSwitch')" width="90">
           <template #default="{ row }">
             <el-switch
               :model-value="row.status === 1"
@@ -51,10 +51,10 @@
             />
           </template>
         </el-table-column>
-        <el-table-column v-if="canManageAnnouncement" label="操作" width="170" fixed="right">
+        <el-table-column v-if="canManageAnnouncement" :label="t('announcement.actions')" width="170" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="primary" @click="openEdit(row)">{{ t('announcement.edit') }}</el-button>
+            <el-button link type="danger" @click="handleDelete(row)">{{ t('announcement.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -73,39 +73,39 @@
       />
     </template>
 
-    <AppModal v-model="dialogVisible" :title="isEdit ? '编辑公告' : '发布公告'" width="720px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? t('announcement.dialogEditTitle') : t('announcement.dialogPublishTitle')" width="720px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="标题" prop="title">
+        <el-form-item :label="t('announcement.title')" prop="title">
           <el-input v-model="form.title" />
         </el-form-item>
-        <el-form-item label="内容" prop="content">
+        <el-form-item :label="t('announcement.content')" prop="content">
           <el-input v-model="form.content" type="textarea" :rows="6" />
         </el-form-item>
         <el-row :gutter="16">
           <el-col :span="8">
-            <el-form-item label="类型" prop="type">
+            <el-form-item :label="t('announcement.type')" prop="type">
               <el-select v-model="form.type" style="width: 100%">
-                <el-option label="通知" value="NOTICE" />
-                <el-option label="新闻" value="NEWS" />
-                <el-option label="活动" value="EVENT" />
-                <el-option label="重要" value="IMPORTANT" />
+                <el-option :label="t('announcement.typeNotice')" value="NOTICE" />
+                <el-option :label="t('announcement.typeNews')" value="NEWS" />
+                <el-option :label="t('announcement.typeEvent')" value="EVENT" />
+                <el-option :label="t('announcement.typeImportant')" value="IMPORTANT" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="目标角色" prop="targetRole">
+            <el-form-item :label="t('announcement.targetRole')" prop="targetRole">
               <el-select v-model="form.targetRole" style="width: 100%">
-                <el-option label="全部" value="ALL" />
-                <el-option label="学校管理员" value="SCHOOL_ADMIN" />
-                <el-option label="学院管理员" value="COLLEGE_ADMIN" />
-                <el-option label="班主任" value="HOMEROOM_TEACHER" />
-                <el-option label="任课教师" value="COURSE_TEACHER" />
-                <el-option label="学生" value="STUDENT" />
+                <el-option :label="t('announcement.targetAll')" value="ALL" />
+                <el-option :label="t('roles.schoolAdmin')" value="SCHOOL_ADMIN" />
+                <el-option :label="t('roles.collegeAdmin')" value="COLLEGE_ADMIN" />
+                <el-option :label="t('roles.homeroomTeacher')" value="HOMEROOM_TEACHER" />
+                <el-option :label="t('roles.courseTeacher')" value="COURSE_TEACHER" />
+                <el-option :label="t('roles.student')" value="STUDENT" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="优先级">
+            <el-form-item :label="t('announcement.priority')">
               <el-input-number v-model="form.priority" :min="0" :max="2" style="width: 100%" />
             </el-form-item>
           </el-col>
@@ -113,15 +113,15 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="置顶">
+            <el-form-item :label="t('announcement.isTop')">
               <el-switch v-model="isTopSwitch" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="状态">
+            <el-form-item :label="t('announcement.status')">
               <el-radio-group v-model="form.status">
-                <el-radio :label="1">发布</el-radio>
-                <el-radio :label="0">下线</el-radio>
+                <el-radio :label="1">{{ t('announcement.publishAction') }}</el-radio>
+                <el-radio :label="0">{{ t('announcement.offlineAction') }}</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
@@ -129,12 +129,12 @@
 
         <el-row :gutter="16">
           <el-col :span="8">
-            <el-form-item label="目标班级编号">
+            <el-form-item :label="t('announcement.targetClassId')">
               <el-input-number v-model="form.targetClassId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="生效时间">
+            <el-form-item :label="t('announcement.startTime')">
               <el-date-picker
                 v-model="form.startTime"
                 type="datetime"
@@ -144,7 +144,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="失效时间">
+            <el-form-item :label="t('announcement.endTime')">
               <el-date-picker
                 v-model="form.endTime"
                 type="datetime"
@@ -156,8 +156,8 @@
         </el-row>
       </el-form>
       <template #footer>
-        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
-        <AppButton @click="submit">保存</AppButton>
+        <AppButton variant="secondary" @click="dialogVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="submit">{{ t('common.save') }}</AppButton>
       </template>
     </AppModal>
   </CrudPageShell>
@@ -167,6 +167,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -180,6 +181,7 @@ import {
 import { canAction } from '@/permission/ability'
 
 const store = useStore()
+const { t } = useI18n()
 const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const permissions = computed(() => store.state.userInfo?.permissions || [])
 const canManageAnnouncement = computed(() =>
@@ -220,12 +222,12 @@ const isTopSwitch = computed({
   }
 })
 
-const rules = {
-  title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
-  content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
-  type: [{ required: true, message: '请选择类型', trigger: 'change' }],
-  targetRole: [{ required: true, message: '请选择目标角色', trigger: 'change' }]
-}
+const rules = computed(() => ({
+  title: [{ required: true, message: t('announcement.titleRequired'), trigger: 'blur' }],
+  content: [{ required: true, message: t('announcement.contentRequired'), trigger: 'blur' }],
+  type: [{ required: true, message: t('announcement.typeRequired'), trigger: 'change' }],
+  targetRole: [{ required: true, message: t('announcement.targetRoleRequired'), trigger: 'change' }]
+}))
 
 function resetForm() {
   Object.assign(form, {
@@ -304,36 +306,36 @@ async function submit() {
 
   if (isEdit.value) {
     await updateAnnouncement(form.id, payload)
-    ElMessage.success('修改成功')
+    ElMessage.success(t('announcement.updateSuccess'))
   } else {
     await createAnnouncement(payload)
-    ElMessage.success('发布成功')
+    ElMessage.success(t('announcement.publishSuccess'))
   }
   dialogVisible.value = false
   fetchList()
 }
 
 async function handleDelete(row) {
-  await ElMessageBox.confirm('确认删除该公告吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('announcement.deleteConfirm'), t('common.tip'), { type: 'warning' })
   await deleteAnnouncement(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('announcement.deleteSuccess'))
   fetchList()
 }
 
 async function handleStatusChange(row, enabled) {
   await updateAnnouncementStatus(row.id, enabled ? 1 : 0)
-  ElMessage.success('状态已更新')
+  ElMessage.success(t('announcement.statusUpdated'))
   fetchList()
 }
 
 function targetRoleLabel(targetRole) {
   const map = {
-    ALL: '全部',
-    SCHOOL_ADMIN: '学校管理员',
-    COLLEGE_ADMIN: '学院管理员',
-    HOMEROOM_TEACHER: '班主任',
-    COURSE_TEACHER: '任课教师',
-    STUDENT: '学生'
+    ALL: t('announcement.targetAll'),
+    SCHOOL_ADMIN: t('roles.schoolAdmin'),
+    COLLEGE_ADMIN: t('roles.collegeAdmin'),
+    HOMEROOM_TEACHER: t('roles.homeroomTeacher'),
+    COURSE_TEACHER: t('roles.courseTeacher'),
+    STUDENT: t('roles.student')
   }
   return map[targetRole] || targetRole || '-'
 }

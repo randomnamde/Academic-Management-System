@@ -1,53 +1,53 @@
 ﻿<template>
-  <AnalyticsPageShell title="分析中心">
+  <AnalyticsPageShell :title="t('analytics.pageTitle')">
     <template #filters>
       <div class="filter-header">
-        <h2>分析中心</h2>
-        <p>按时间与维度查看出勤趋势、成绩质量与风险学生分布。</p>
+        <h2>{{ t('analytics.pageTitle') }}</h2>
+        <p>{{ t('analytics.pageDesc') }}</p>
       </div>
       <el-form :inline="true" class="filter-form">
-        <el-form-item label="时间范围">
+        <el-form-item :label="t('analytics.dateRange')">
           <el-date-picker
             v-model="dateRange"
             type="daterange"
             unlink-panels
             value-format="YYYY-MM-DD"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
+            :start-placeholder="t('analytics.startDate')"
+            :end-placeholder="t('analytics.endDate')"
           />
         </el-form-item>
-        <el-form-item label="学期">
-          <el-input v-model="filters.semester" clearable placeholder="如 2026-2027-1" />
+        <el-form-item :label="t('analytics.semester')">
+          <el-input v-model="filters.semester" clearable :placeholder="t('analytics.semesterPlaceholder')" />
         </el-form-item>
-        <el-form-item v-if="!isStudent" label="班级编号">
+        <el-form-item v-if="!isStudent" :label="t('analytics.classId')">
           <el-input-number v-model="filters.classId" :min="1" controls-position="right" />
         </el-form-item>
-        <el-form-item v-if="isAdmin" label="教师编号">
+        <el-form-item v-if="isAdmin" :label="t('analytics.teacherId')">
           <el-input-number v-model="filters.teacherId" :min="1" controls-position="right" />
         </el-form-item>
-        <el-form-item label="粒度">
+        <el-form-item :label="t('analytics.granularity')">
           <el-select v-model="filters.granularity" style="width: 120px">
-            <el-option label="按天" value="day" />
-            <el-option label="按周" value="week" />
-            <el-option label="按月" value="month" />
+            <el-option :label="t('analytics.day')" value="day" />
+            <el-option :label="t('analytics.week')" value="week" />
+            <el-option :label="t('analytics.month')" value="month" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <AppButton :loading="loading" @click="refreshAll">刷新分析</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="resetFilters">重置</AppButton>
+          <AppButton :loading="loading" @click="refreshAll">{{ t('analytics.refresh') }}</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="resetFilters">{{ t('common.reset') }}</AppButton>
         </el-form-item>
       </el-form>
     </template>
 
     <template #insight>
       <p class="text-sm leading-7 text-slate-600">
-        当前查询区间为 {{ dateRange[0] }} 至 {{ dateRange[1] }}，可通过风险类型切换查看低分、异常考勤和审批超时分布。
+        {{ t('analytics.insight', { start: dateRange[0], end: dateRange[1] }) }}
       </p>
     </template>
 
     <template #kpi>
       <AppCard v-if="!isStudent" class="kpi-card" surface="elevated" content-class="kpi-body">
-        <span class="kpi-label">学生规模</span>
+        <span class="kpi-label">{{ t('analytics.studentScale') }}</span>
         <strong class="kpi-value">{{ overview.studentCount }}</strong>
       </AppCard>
       <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
@@ -55,14 +55,14 @@
         <strong class="kpi-value">{{ overview.pendingApprovalCount }}</strong>
       </AppCard>
       <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
-        <span class="kpi-label">出勤率</span>
+        <span class="kpi-label">{{ t('analytics.attendanceRate') }}</span>
         <strong class="kpi-value">{{ formatPercent(overview.attendanceRate) }}</strong>
         <span class="kpi-trend" :class="trendClass(overview.attendanceRateChange)">
           {{ formatDelta(overview.attendanceRateChange) }}
         </span>
       </AppCard>
       <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
-        <span class="kpi-label">审批平均时长(小时)</span>
+        <span class="kpi-label">{{ t('analytics.avgApprovalHours') }}</span>
         <strong class="kpi-value">{{ formatNumber(overview.approvalAvgHours) }}</strong>
         <span class="kpi-trend" :class="trendClass(-overview.approvalAvgHoursChange)">
           {{ formatDelta(overview.approvalAvgHoursChange) }}
@@ -78,64 +78,64 @@
     </template>
 
     <template #charts>
-      <AppCard class="chart-card" title="异常考勤趋势" surface="glass" content-class="p-4">
+      <AppCard class="chart-card" :title="t('analytics.abnormalTrend')" surface="glass" content-class="p-4">
         <div ref="attendanceTrendRef" class="chart-canvas"></div>
       </AppCard>
-      <AppCard class="chart-card" title="成绩质量趋势" surface="glass" content-class="p-4">
+      <AppCard class="chart-card" :title="t('analytics.scoreTrend')" surface="glass" content-class="p-4">
         <div ref="scoreTrendRef" class="chart-canvas"></div>
       </AppCard>
     </template>
 
-    <AppCard class="risk-card" title="风险学生榜单" surface="base" content-class="p-4">
+    <AppCard class="risk-card" :title="t('analytics.riskList')" surface="base" content-class="p-4">
       <template #header>
         <el-radio-group v-model="riskType" size="small" @change="handleRiskTypeChange">
-          <el-radio-button label="low_score">低分风险</el-radio-button>
-          <el-radio-button label="abnormal_attendance">异常考勤</el-radio-button>
-          <el-radio-button label="approval_overdue">审批超时</el-radio-button>
+          <el-radio-button label="low_score">{{ t('analytics.riskLowScore') }}</el-radio-button>
+          <el-radio-button label="abnormal_attendance">{{ t('analytics.riskAbnormalAttendance') }}</el-radio-button>
+          <el-radio-button label="approval_overdue">{{ t('analytics.riskApprovalOverdue') }}</el-radio-button>
         </el-radio-group>
       </template>
 
       <el-table :data="riskRecords" v-loading="riskLoading" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column v-if="!isStudent" prop="studentNo" label="学号" width="140" />
-        <el-table-column v-if="!isStudent" prop="studentName" label="姓名" width="120" />
-        <el-table-column v-if="!isStudent" prop="className" label="班级" min-width="140" />
-        <el-table-column v-if="!isStudent" prop="riskCount" label="风险次数" width="120" />
-        <el-table-column v-if="!isStudent" label="风险值" width="140">
+        <el-table-column type="index" :label="t('analytics.index')" width="60" />
+        <el-table-column v-if="!isStudent" prop="studentNo" :label="t('analytics.studentNo')" width="140" />
+        <el-table-column v-if="!isStudent" prop="studentName" :label="t('analytics.name')" width="120" />
+        <el-table-column v-if="!isStudent" prop="className" :label="t('analytics.className')" min-width="140" />
+        <el-table-column v-if="!isStudent" prop="riskCount" :label="t('analytics.riskCount')" width="120" />
+        <el-table-column v-if="!isStudent" :label="t('analytics.riskValue')" width="140">
           <template #default="{ row }">{{ formatNumber(row.riskValue) }}</template>
         </el-table-column>
 
         <template v-if="isStudent && riskType === 'low_score'">
-          <el-table-column prop="courseName" label="课程" min-width="180" />
-          <el-table-column label="最低分" width="120">
+          <el-table-column prop="courseName" :label="t('analytics.course')" min-width="180" />
+          <el-table-column :label="t('analytics.lowestScore')" width="120">
             <template #default="{ row }">{{ formatNumber(row.score) }}</template>
           </el-table-column>
-          <el-table-column prop="riskCount" label="低分次数" width="120" />
+          <el-table-column prop="riskCount" :label="t('analytics.lowScoreCount')" width="120" />
         </template>
 
         <template v-if="isStudent && riskType === 'abnormal_attendance'">
-          <el-table-column label="日期" width="140">
+          <el-table-column :label="t('analytics.date')" width="140">
             <template #default="{ row }">{{ row.attendanceDate || '-' }}</template>
           </el-table-column>
-          <el-table-column prop="courseName" label="课程" min-width="180" />
-          <el-table-column label="考勤状态" width="120">
+          <el-table-column prop="courseName" :label="t('analytics.course')" min-width="180" />
+          <el-table-column :label="t('analytics.attendanceStatus')" width="120">
             <template #default="{ row }">{{ formatAttendanceStatus(row.attendanceStatus) }}</template>
           </el-table-column>
         </template>
 
         <template v-if="isStudent && riskType === 'approval_overdue'">
-          <el-table-column prop="leaveRequestId" label="审批单号" width="120" />
-          <el-table-column label="提交时间" min-width="180">
+          <el-table-column prop="leaveRequestId" :label="t('analytics.approvalId')" width="120" />
+          <el-table-column :label="t('analytics.submitTime')" min-width="180">
             <template #default="{ row }">{{ formatDateTime(row.submitTime) }}</template>
           </el-table-column>
-          <el-table-column label="超时状态" width="120">
+          <el-table-column :label="t('analytics.overdueStatus')" width="120">
             <template #default="{ row }">
               <el-tag :type="row.overdue ? 'danger' : 'info'" size="small">
-                {{ row.overdue ? '已超时' : '未超时' }}
+                {{ row.overdue ? t('analytics.overdue') : t('analytics.notOverdue') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="超时小时" width="120">
+          <el-table-column :label="t('analytics.overdueHours')" width="120">
             <template #default="{ row }">{{ formatNumber(row.overdueHours) }}</template>
           </el-table-column>
         </template>
@@ -158,6 +158,7 @@
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import AnalyticsPageShell from '@/components/shell/AnalyticsPageShell.vue'
@@ -171,14 +172,15 @@ import { getAnalyticsOverview, getAttendanceTrend, getRiskStudents, getScoreTren
 use([LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
 
 const route = useRoute()
+const { t } = useI18n()
 const loading = ref(false)
 const riskLoading = ref(false)
 const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
 const userRole = userInfo?.primaryRole || userInfo?.role || ''
 const isAdmin = userRole === 'SCHOOL_ADMIN' || userRole === 'COLLEGE_ADMIN'
 const isStudent = userRole === 'STUDENT'
-const pendingKpiLabel = isStudent ? '我的待办审批' : '待处理审批'
-const lowScoreKpiLabel = isStudent ? '低分课程统计数' : '低分风险人数'
+const pendingKpiLabel = isStudent ? t('analytics.myPendingApproval') : t('analytics.pendingApproval')
+const lowScoreKpiLabel = isStudent ? t('analytics.lowScoreCourseCount') : t('analytics.lowScoreRiskPeople')
 
 const today = new Date()
 const thirtyDaysAgo = new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000)
@@ -274,8 +276,8 @@ function formatNumber(value) {
 }
 
 function formatAttendanceStatus(status) {
-  if (status === 'ABSENT') return '缺勤'
-  if (status === 'LATE') return '迟到'
+  if (status === 'ABSENT') return t('attendance.statusAbsent')
+  if (status === 'LATE') return t('attendance.statusLate')
   return status || '-'
 }
 
@@ -365,7 +367,7 @@ async function refreshAll() {
       fetchRiskStudents()
     ])
   } catch (_e) {
-    ElMessage.error('获取分析数据失败')
+    ElMessage.error(t('analytics.loadFailed'))
   } finally {
     loading.value = false
   }
@@ -420,7 +422,7 @@ function renderAttendanceTrend(records) {
     },
     series: [
       {
-        name: '异常考勤',
+        name: t('analytics.abnormalAttendance'),
         type: 'bar',
         barWidth: 16,
         data: values,
@@ -446,7 +448,7 @@ function renderScoreTrend(records) {
     color: [theme.primary, theme.primarySoft, theme.secondary],
     tooltip: { ...baseTooltip, trigger: 'axis' },
     legend: {
-      data: ['均分', '及格率', '优秀率'],
+      data: [t('analytics.avgScore'), t('analytics.passRate'), t('analytics.excellentRate')],
       top: 0,
       itemWidth: 8,
       itemHeight: 8,
@@ -464,7 +466,7 @@ function renderScoreTrend(records) {
     yAxis: [
       {
         type: 'value',
-        name: '分值',
+        name: t('analytics.scoreValue'),
         min: 0,
         max: 100,
         nameTextStyle: { color: theme.axis, fontSize: 11, fontFamily: theme.fontFamily, padding: [0, 0, 0, 8] },
@@ -475,7 +477,7 @@ function renderScoreTrend(records) {
       },
       {
         type: 'value',
-        name: '百分比',
+        name: t('analytics.percentage'),
         min: 0,
         max: 100,
         nameTextStyle: { color: theme.axis, fontSize: 11, fontFamily: theme.fontFamily, padding: [0, 8, 0, 0] },
@@ -487,7 +489,7 @@ function renderScoreTrend(records) {
     ],
     series: [
       {
-        name: '均分',
+        name: t('analytics.avgScore'),
         type: 'line',
         smooth: true,
         data: avg,
@@ -497,7 +499,7 @@ function renderScoreTrend(records) {
         areaStyle: { color: 'rgba(22, 52, 84, 0.08)' }
       },
       {
-        name: '及格率',
+        name: t('analytics.passRate'),
         type: 'line',
         smooth: true,
         yAxisIndex: 1,
@@ -507,7 +509,7 @@ function renderScoreTrend(records) {
         itemStyle: { color: theme.primarySoft, borderColor: theme.canvasEdge, borderWidth: 1 }
       },
       {
-        name: '优秀率',
+        name: t('analytics.excellentRate'),
         type: 'line',
         smooth: true,
         yAxisIndex: 1,

@@ -1,10 +1,10 @@
 ﻿<template>
   <div class="app-page space-y-3">
     <section class="grid gap-3 xl:grid-cols-[1.65fr,1fr]">
-      <AppCard :title="title" surface="glass" content-class="p-4 space-y-3">
+      <AppCard :title="title || t('components.analyticsShell.defaultTitle')" surface="glass" content-class="p-4 space-y-3">
         <slot name="filters" />
       </AppCard>
-      <AppCard title="分析说明" surface="base" content-class="p-4">
+      <AppCard :title="t('components.analyticsShell.insightTitle')" surface="base" content-class="p-4">
         <slot name="insight" />
       </AppCard>
     </section>
@@ -25,11 +25,14 @@
 
 <script setup>
 import AppCard from '@/components/ui/AppCard.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 defineProps({
   title: {
     type: String,
-    default: '分析中心'
+    default: ''
   }
 })
 </script>

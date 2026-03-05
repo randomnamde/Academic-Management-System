@@ -1,15 +1,15 @@
-<template>
+﻿<template>
   <div class="login-entry min-h-screen px-4 py-10 md:px-6">
     <div class="aurora-layer" aria-hidden="true"></div>
 
     <main class="entry-shell mx-auto w-full max-w-4xl">
-      <h1 class="entry-title" aria-label="教务管理平台">
-        <span class="sr-only">教务管理平台</span>
+      <h1 class="entry-title" :aria-label="fullTitle">
+        <span class="sr-only">{{ fullTitle }}</span>
         <span class="typing-text" aria-hidden="true">{{ displayTitle }}</span>
         <span class="typing-caret" aria-hidden="true">|</span>
       </h1>
-      <p class="entry-subtitle">学而不思则罔，思而不学则殆</p>
-      <AppButton ref="entryButtonRef" class="entry-cta" tone="accent" @click="openLoginCard">登录系统</AppButton>
+      <p class="entry-subtitle">{{ t('login.subtitle') }}</p>
+      <AppButton ref="entryButtonRef" class="entry-cta" tone="accent" @click="openLoginCard">{{ t('login.enterSystem') }}</AppButton>
     </main>
 
     <Transition name="login-overlay-fade">
@@ -29,33 +29,33 @@
           aria-modal="true"
           aria-labelledby="login-dialog-title"
         >
-          <button class="close-btn touch-target" aria-label="关闭登录弹窗" @click="closeLoginCard">×</button>
-          <h2 id="login-dialog-title" class="login-title">登录系统</h2>
-          <p class="login-tip">请输入账号和密码</p>
+          <button class="close-btn touch-target" :aria-label="t('login.closeDialog')" @click="closeLoginCard">×</button>
+          <h2 id="login-dialog-title" class="login-title">{{ t('login.enterSystem') }}</h2>
+          <p class="login-tip">{{ t('login.tip') }}</p>
 
           <form class="mt-4 space-y-3" @submit.prevent="handleLogin">
             <div>
-              <label for="login-username" class="mb-1 block text-[13px] font-medium text-slatex-700">用户名</label>
+              <label for="login-username" class="mb-1 block text-[13px] font-medium text-slatex-700">{{ t('login.username') }}</label>
               <AppInput
                 id="login-username"
                 v-model="loginForm.username"
                 name="username"
                 autocomplete="username"
-                placeholder="请输入用户名"
+                :placeholder="t('login.usernamePlaceholder')"
               />
             </div>
             <div>
-              <label for="login-password" class="mb-1 block text-[13px] font-medium text-slatex-700">密码</label>
+              <label for="login-password" class="mb-1 block text-[13px] font-medium text-slatex-700">{{ t('login.password') }}</label>
               <AppInput
                 id="login-password"
                 v-model="loginForm.password"
                 name="password"
                 type="password"
                 autocomplete="current-password"
-                placeholder="请输入密码"
+                :placeholder="t('login.passwordPlaceholder')"
               />
             </div>
-            <AppButton class="submit-btn" tone="accent" block :loading="loading" native-type="submit">登录</AppButton>
+            <AppButton class="submit-btn" tone="accent" block :loading="loading" native-type="submit">{{ t('login.login') }}</AppButton>
           </form>
         </section>
       </div>
@@ -68,13 +68,15 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 
 const store = useStore()
 const router = useRouter()
+const { t, locale } = useI18n()
 
-const fullTitle = '教务管理平台'
+const fullTitle = computed(() => t('login.title'))
 const typingInterval = 110
 const deletingInterval = 80
 const completePause = 1500
@@ -95,7 +97,7 @@ let typingTimer = null
 let motionMediaQuery = null
 let motionMediaHandler = null
 
-const displayTitle = computed(() => (reduceMotion.value ? fullTitle : typedText.value))
+const displayTitle = computed(() => (reduceMotion.value ? fullTitle.value : typedText.value))
 
 function getElementFromRef(target) {
   if (!target) return null
@@ -125,15 +127,15 @@ function scheduleTyping(delay) {
 
 function stepTyping() {
   if (reduceMotion.value) {
-    typedText.value = fullTitle
+    typedText.value = fullTitle.value
     clearTypingTimer()
     return
   }
 
   if (!isDeleting.value) {
     const nextLength = typedText.value.length + 1
-    typedText.value = fullTitle.slice(0, nextLength)
-    if (typedText.value === fullTitle) {
+    typedText.value = fullTitle.value.slice(0, nextLength)
+    if (typedText.value === fullTitle.value) {
       isDeleting.value = true
       scheduleTyping(completePause)
       return
@@ -143,7 +145,7 @@ function stepTyping() {
   }
 
   const nextLength = Math.max(typedText.value.length - 1, 0)
-  typedText.value = fullTitle.slice(0, nextLength)
+  typedText.value = fullTitle.value.slice(0, nextLength)
   if (!typedText.value.length) {
     isDeleting.value = false
     scheduleTyping(restartPause)
@@ -154,7 +156,7 @@ function stepTyping() {
 
 function initTyping() {
   if (reduceMotion.value) {
-    typedText.value = fullTitle
+    typedText.value = fullTitle.value
     return
   }
   typedText.value = ''
@@ -179,11 +181,11 @@ function onOverlayKeydown(event) {
 
 function validateLogin() {
   if (!loginForm.username.trim()) {
-    ElMessage.error('请输入用户名')
+    ElMessage.error(t('login.usernameRequired'))
     return false
   }
   if (!loginForm.password.trim()) {
-    ElMessage.error('请输入密码')
+    ElMessage.error(t('login.passwordRequired'))
     return false
   }
   return true
@@ -195,11 +197,11 @@ async function handleLogin() {
   loading.value = true
   try {
     await store.dispatch('login', loginForm)
-    ElMessage.success('登录成功')
+    ElMessage.success(t('login.loginSuccess'))
     showLoginCard.value = false
     router.push('/dashboard')
   } catch (error) {
-    ElMessage.error(error.message || '登录失败')
+    ElMessage.error(error.message || t('login.loginFailed'))
   } finally {
     loading.value = false
   }
@@ -220,6 +222,13 @@ watch(showLoginCard, (open) => {
   target?.focus?.()
 })
 
+watch(
+  () => locale.value,
+  () => {
+    clearTypingTimer()
+    initTyping()
+  }
+)
 onMounted(() => {
   motionMediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
   motionMediaHandler = () => {
@@ -680,3 +689,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+

@@ -1,35 +1,35 @@
 ﻿<template>
-  <ProfilePageShell title="个人中心">
+  <ProfilePageShell :title="t('profile.pageTitle')">
     <div class="grid gap-4 xl:grid-cols-[320px,1fr]">
-      <AppCard title="账户信息" content-class="p-5">
+      <AppCard :title="t('profile.accountInfo')" content-class="p-5">
         <div class="user-info">
           <el-avatar :size="88" :src="user.avatar || defaultAvatar" />
           <div class="user-name">{{ user.realName || user.username }}</div>
           <div class="user-role">{{ roleLabel }}</div>
         </div>
         <el-descriptions :column="1" border>
-          <el-descriptions-item label="用户名">{{ user.username || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="账号状态">
-            <el-tag :type="user.status === 1 ? 'success' : 'danger'">{{ user.status === 1 ? '启用' : '禁用' }}</el-tag>
+          <el-descriptions-item :label="t('profile.username')">{{ user.username || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('profile.accountStatus')">
+            <el-tag :type="user.status === 1 ? 'success' : 'danger'">{{ user.status === 1 ? t('profile.enabled') : t('profile.disabled') }}</el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ user.createTime || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('profile.createdAt')">{{ user.createTime || '-' }}</el-descriptions-item>
         </el-descriptions>
       </AppCard>
 
-      <AppCard title="资料与安全" content-class="p-5">
+      <AppCard :title="t('profile.infoAndSecurity')" content-class="p-5">
         <el-tabs v-model="activeTab">
-          <el-tab-pane label="个人资料" name="profile">
+          <el-tab-pane :label="t('profile.tabs.profile')" name="profile">
             <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-              <el-form-item label="真实姓名" prop="realName">
+              <el-form-item :label="t('profile.realName')" prop="realName">
                 <el-input v-model="form.realName" />
               </el-form-item>
-              <el-form-item label="手机号">
+              <el-form-item :label="t('profile.phone')">
                 <el-input v-model="form.phone" />
               </el-form-item>
-              <el-form-item label="邮箱">
+              <el-form-item :label="t('profile.email')">
                 <el-input v-model="form.email" />
               </el-form-item>
-              <el-form-item label="头像">
+              <el-form-item :label="t('profile.avatar')">
                 <div class="avatar-upload-row">
                   <el-avatar :size="64" :src="form.avatar || defaultAvatar" />
                   <div class="avatar-upload-actions">
@@ -41,36 +41,36 @@
                       :disabled="uploadingAvatar"
                       accept="image/*"
                     >
-                      <AppButton variant="secondary" :loading="uploadingAvatar">上传头像</AppButton>
+                      <AppButton variant="secondary" :loading="uploadingAvatar">{{ t('profile.uploadAvatar') }}</AppButton>
                     </el-upload>
-                    <div class="avatar-tip">支持常见图片格式，大小不超过 5 兆字节</div>
+                    <div class="avatar-tip">{{ t('profile.avatarTip') }}</div>
                   </div>
                 </div>
               </el-form-item>
-              <el-form-item label="头像地址">
-                <el-input v-model="form.avatar" placeholder="上传后会自动填充，也可手动输入 URL" />
+              <el-form-item :label="t('profile.avatarUrl')">
+                <el-input v-model="form.avatar" :placeholder="t('profile.avatarUrlPlaceholder')" />
               </el-form-item>
               <el-form-item>
-                <AppButton :loading="saving" @click="submit">保存资料</AppButton>
-                <AppButton variant="secondary" class="ml-2" @click="resetFromUser">重置</AppButton>
+                <AppButton :loading="saving" @click="submit">{{ t('profile.saveProfile') }}</AppButton>
+                <AppButton variant="secondary" class="ml-2" @click="resetFromUser">{{ t('common.reset') }}</AppButton>
               </el-form-item>
             </el-form>
           </el-tab-pane>
 
-          <el-tab-pane label="修改密码" name="password">
+          <el-tab-pane :label="t('profile.tabs.password')" name="password">
             <el-form ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="100px">
-              <el-form-item label="旧密码" prop="oldPassword">
+              <el-form-item :label="t('profile.oldPassword')" prop="oldPassword">
                 <el-input v-model="pwdForm.oldPassword" type="password" show-password />
               </el-form-item>
-              <el-form-item label="新密码" prop="newPassword">
+              <el-form-item :label="t('profile.newPassword')" prop="newPassword">
                 <el-input v-model="pwdForm.newPassword" type="password" show-password />
               </el-form-item>
-              <el-form-item label="确认新密码" prop="confirmPassword">
+              <el-form-item :label="t('profile.confirmPassword')" prop="confirmPassword">
                 <el-input v-model="pwdForm.confirmPassword" type="password" show-password />
               </el-form-item>
               <el-form-item>
-                <AppButton :loading="updatingPassword" @click="submitPassword">更新密码</AppButton>
-                <AppButton variant="secondary" class="ml-2" @click="resetPasswordForm">重置</AppButton>
+                <AppButton :loading="updatingPassword" @click="submitPassword">{{ t('profile.updatePassword') }}</AppButton>
+                <AppButton variant="secondary" class="ml-2" @click="resetPasswordForm">{{ t('common.reset') }}</AppButton>
               </el-form-item>
             </el-form>
           </el-tab-pane>
@@ -80,9 +80,9 @@
 
     <template #aside>
       <ul class="space-y-2">
-        <li>建议每 90 天更新一次密码，避免重复使用旧密码。</li>
-        <li>头像建议使用清晰人像，便于班级与教学协作识别。</li>
-        <li>手机号和邮箱建议保持可用，用于接收系统通知。</li>
+        <li>{{ t('profile.securityTip1') }}</li>
+        <li>{{ t('profile.securityTip2') }}</li>
+        <li>{{ t('profile.securityTip3') }}</li>
       </ul>
     </template>
   </ProfilePageShell>
@@ -93,6 +93,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import ProfilePageShell from '@/components/shell/ProfilePageShell.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import AppButton from '@/components/ui/AppButton.vue'
@@ -100,6 +101,7 @@ import { getUserInfo, updatePassword, updateProfile, uploadAvatar } from '@/api/
 
 const route = useRoute()
 const store = useStore()
+const { t } = useI18n()
 const formRef = ref()
 const saving = ref(false)
 const activeTab = ref('profile')
@@ -127,9 +129,9 @@ const form = reactive({
   email: ''
 })
 
-const rules = {
-  realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }]
-}
+const rules = computed(() => ({
+  realName: [{ required: true, message: t('profile.realNameRequired'), trigger: 'blur' }]
+}))
 
 const pwdForm = reactive({
   oldPassword: '',
@@ -137,15 +139,15 @@ const pwdForm = reactive({
   confirmPassword: ''
 })
 
-const pwdRules = {
-  oldPassword: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],
-  newPassword: [{ required: true, message: '请输入新密码', trigger: 'blur' }],
+const pwdRules = computed(() => ({
+  oldPassword: [{ required: true, message: t('profile.oldPasswordRequired'), trigger: 'blur' }],
+  newPassword: [{ required: true, message: t('profile.newPasswordRequired'), trigger: 'blur' }],
   confirmPassword: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
+    { required: true, message: t('profile.confirmPasswordRequired'), trigger: 'blur' },
     {
       validator: (_rule, value, callback) => {
         if (value !== pwdForm.newPassword) {
-          callback(new Error('两次密码不一致'))
+          callback(new Error(t('profile.passwordNotMatch')))
           return
         }
         callback()
@@ -153,14 +155,14 @@ const pwdRules = {
       trigger: 'blur'
     }
   ]
-}
+}))
 
 const roleLabel = computed(() => {
-  if (user.role === 'SCHOOL_ADMIN') return '学校管理员'
-  if (user.role === 'COLLEGE_ADMIN') return '学院管理员'
-  if (user.role === 'HOMEROOM_TEACHER') return '班主任'
-  if (user.role === 'COURSE_TEACHER') return '任课教师'
-  if (user.role === 'STUDENT') return '学生'
+  if (user.role === 'SCHOOL_ADMIN') return t('roles.schoolAdmin')
+  if (user.role === 'COLLEGE_ADMIN') return t('roles.collegeAdmin')
+  if (user.role === 'HOMEROOM_TEACHER') return t('roles.homeroomTeacher')
+  if (user.role === 'COURSE_TEACHER') return t('roles.courseTeacher')
+  if (user.role === 'STUDENT') return t('roles.student')
   return user.role || '-'
 })
 
@@ -186,7 +188,7 @@ async function submit() {
   try {
     await updateProfile({ ...form })
     await fetchUser()
-    ElMessage.success('个人资料已更新')
+    ElMessage.success(t('profile.profileUpdated'))
   } finally {
     saving.value = false
   }
@@ -195,12 +197,12 @@ async function submit() {
 function beforeAvatarUpload(file) {
   const isImage = !!file.type && file.type.startsWith('image/')
   if (!isImage) {
-    ElMessage.error('只能上传图片文件')
+    ElMessage.error(t('profile.onlyImageAllowed'))
     return false
   }
   const isLt5M = file.size / 1024 / 1024 < 5
   if (!isLt5M) {
-    ElMessage.error('头像大小不能超过 5MB')
+    ElMessage.error(t('profile.avatarTooLarge'))
     return false
   }
   return true
@@ -212,7 +214,7 @@ async function handleAvatarUpload(option) {
     const res = await uploadAvatar(option.file)
     form.avatar = res.data || ''
     await fetchUser()
-    ElMessage.success('头像上传成功')
+    ElMessage.success(t('profile.avatarUploaded'))
     option.onSuccess?.(res)
   } catch (error) {
     option.onError?.(error)
@@ -237,7 +239,7 @@ async function submitPassword() {
       oldPassword: pwdForm.oldPassword,
       newPassword: pwdForm.newPassword
     })
-    ElMessage.success('密码已更新')
+    ElMessage.success(t('profile.passwordUpdated'))
     resetPasswordForm()
   } finally {
     updatingPassword.value = false

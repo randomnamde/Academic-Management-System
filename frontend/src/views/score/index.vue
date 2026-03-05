@@ -1,34 +1,34 @@
 ﻿<template>
-  <CrudPageShell title="成绩管理">
+  <CrudPageShell :title="t('score.pageTitle')">
     <template #header-actions>
       <el-dropdown @command="handleExport">
-        <AppButton variant="secondary">导出报表</AppButton>
+        <AppButton variant="secondary">{{ t('score.exportReport') }}</AppButton>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="csv">导出逗号分隔文件</el-dropdown-item>
-            <el-dropdown-item command="xlsx">导出电子表格文件</el-dropdown-item>
+            <el-dropdown-item command="csv">{{ t('score.exportCsv') }}</el-dropdown-item>
+            <el-dropdown-item command="xlsx">{{ t('score.exportXlsx') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <AppButton v-if="canEditScore" class="ml-2" @click="openCreate">新增成绩</AppButton>
+      <AppButton v-if="canEditScore" class="ml-2" @click="openCreate">{{ t('score.addScore') }}</AppButton>
     </template>
 
     <template #filters>
       <div class="grid grid-cols-12 gap-2">
-        <el-input-number v-if="canFilterStudent" v-model="searchForm.studentId" :min="1" class="col-span-12 md:col-span-2" placeholder="学生学号" />
+        <el-input-number v-if="canFilterStudent" v-model="searchForm.studentId" :min="1" class="col-span-12 md:col-span-2" :placeholder="t('score.studentId')" />
         <el-select
           v-model="searchForm.courseArrangementId"
           clearable
           filterable
-          placeholder="排课"
+          :placeholder="t('score.arrangement')"
           class="col-span-12 md:col-span-4"
         >
           <el-option v-for="item in arrangementOptions" :key="item.id" :label="formatArrangementLabel(item)" :value="item.id" />
         </el-select>
-        <el-input v-model="searchForm.semester" clearable placeholder="学期，如 2024-2025-1" class="col-span-12 md:col-span-2" />
+        <el-input v-model="searchForm.semester" clearable :placeholder="t('score.semesterPlaceholder')" class="col-span-12 md:col-span-2" />
         <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-4">
-          <AppButton variant="secondary" @click="handleReset">重置</AppButton>
-          <AppButton @click="handleSearch">查询</AppButton>
+          <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
         </div>
       </div>
     </template>
@@ -43,8 +43,8 @@
         </template>
         <template #cell-actions="{ row }">
           <div v-if="canEditScore" class="flex w-full justify-start gap-2">
-            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="openEdit(row)">编辑</button>
-            <button class="text-[12px] text-state-danger hover:opacity-80" @click="handleDelete(row)">删除</button>
+            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="openEdit(row)">{{ t('score.edit') }}</button>
+            <button class="text-[12px] text-state-danger hover:opacity-80" @click="handleDelete(row)">{{ t('score.delete') }}</button>
           </div>
         </template>
       </AppTable>
@@ -63,17 +63,17 @@
       />
     </template>
 
-    <AppModal v-model="dialogVisible" :title="isEdit ? '编辑成绩' : '新增成绩'" width="640px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? t('score.dialogEditTitle') : t('score.dialogAddTitle')" width="640px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="96px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="学生学号" prop="studentId">
+            <el-form-item :label="t('score.studentId')" prop="studentId">
               <el-input-number v-model="form.studentId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="排课编号" prop="courseArrangementId">
-              <el-select v-model="form.courseArrangementId" filterable style="width: 100%" placeholder="请选择排课">
+            <el-form-item :label="t('score.arrangementId')" prop="courseArrangementId">
+              <el-select v-model="form.courseArrangementId" filterable style="width: 100%" :placeholder="t('score.selectArrangement')">
                 <el-option v-for="item in arrangementOptions" :key="item.id" :label="formatArrangementLabel(item)" :value="item.id" />
               </el-select>
             </el-form-item>
@@ -82,38 +82,38 @@
 
         <el-row :gutter="16">
           <el-col :span="8">
-            <el-form-item label="平时分">
+            <el-form-item :label="t('score.usualScore')">
               <el-input-number v-model="form.usualScore" :min="0" :max="100" :precision="2" :controls="false" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="期中分">
+            <el-form-item :label="t('score.midtermScore')">
               <el-input-number v-model="form.midtermScore" :min="0" :max="100" :precision="2" :controls="false" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="期末分">
+            <el-form-item :label="t('score.finalScore')">
               <el-input-number v-model="form.finalScore" :min="0" :max="100" :precision="2" :controls="false" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="状态">
+        <el-form-item :label="t('score.status')">
           <el-select v-model="form.status" style="width: 100%">
-            <el-option label="正常" value="NORMAL" />
-            <el-option label="补考" value="MAKEUP" />
-            <el-option label="重修" value="RETAKE" />
+            <el-option :label="t('score.statusNormal')" value="NORMAL" />
+            <el-option :label="t('score.statusMakeup')" value="MAKEUP" />
+            <el-option :label="t('score.statusRetake')" value="RETAKE" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="备注">
+        <el-form-item :label="t('score.remark')">
           <el-input v-model="form.remark" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
-        <AppButton @click="submit">保存</AppButton>
+        <AppButton variant="secondary" @click="dialogVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="submit">{{ t('common.save') }}</AppButton>
       </template>
     </AppModal>
   </CrudPageShell>
@@ -123,6 +123,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
@@ -133,6 +134,7 @@ import { getCourseArrangementOptions } from '@/api/courseArrangement'
 import { canAction } from '@/permission/ability'
 
 const store = useStore()
+const { t } = useI18n()
 const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const permissions = computed(() => store.state.userInfo?.permissions || [])
 const tableDensity = computed(() => store.getters.tableDensity)
@@ -157,19 +159,19 @@ const arrangementClassMap = computed(() => {
 
 const columns = computed(() => {
   const base = [
-    { key: 'studentId', title: '学生学号', width: 100, align: 'left' },
-    { key: 'studentName', title: '学生', width: 120, align: 'left' },
-    { key: 'className', title: '班级', width: 140, align: 'left' },
-    { key: 'courseName', title: '课程', width: 140, align: 'left' },
-    { key: 'semester', title: '学期', width: 130, align: 'left' },
-    { key: 'usualScore', title: '平时', width: 80, align: 'left' },
-    { key: 'midtermScore', title: '期中', width: 80, align: 'left' },
-    { key: 'finalScore', title: '期末', width: 80, align: 'left' },
-    { key: 'totalScore', title: '总评', width: 80, align: 'left' },
-    { key: 'gpa', title: '绩点', width: 80, align: 'left' },
-    { key: 'status', title: '状态', width: 110, align: 'left' }
+    { key: 'studentId', title: t('score.studentId'), width: 100, align: 'left' },
+    { key: 'studentName', title: t('score.student'), width: 120, align: 'left' },
+    { key: 'className', title: t('score.className'), width: 140, align: 'left' },
+    { key: 'courseName', title: t('score.courseName'), width: 140, align: 'left' },
+    { key: 'semester', title: t('score.semester'), width: 130, align: 'left' },
+    { key: 'usualScore', title: t('score.usual'), width: 80, align: 'left' },
+    { key: 'midtermScore', title: t('score.midterm'), width: 80, align: 'left' },
+    { key: 'finalScore', title: t('score.final'), width: 80, align: 'left' },
+    { key: 'totalScore', title: t('score.total'), width: 80, align: 'left' },
+    { key: 'gpa', title: t('score.gpa'), width: 80, align: 'left' },
+    { key: 'status', title: t('score.status'), width: 110, align: 'left' }
   ]
-  if (canEditScore.value) base.push({ key: 'actions', title: '操作', width: 140, align: 'left' })
+  if (canEditScore.value) base.push({ key: 'actions', title: t('score.actions'), width: 140, align: 'left' })
   return base
 })
 
@@ -193,10 +195,10 @@ const form = reactive({
   remark: ''
 })
 
-const rules = {
-  studentId: [{ required: true, message: '请输入学生学号', trigger: 'change' }],
-  courseArrangementId: [{ required: true, message: '请输入排课编号', trigger: 'change' }]
-}
+const rules = computed(() => ({
+  studentId: [{ required: true, message: t('score.studentIdRequired'), trigger: 'change' }],
+  courseArrangementId: [{ required: true, message: t('score.arrangementIdRequired'), trigger: 'change' }]
+}))
 
 function resetForm() {
   Object.assign(form, {
@@ -230,7 +232,7 @@ async function fetchList() {
 
 function formatArrangementLabel(item) {
   const parts = [item.semester, item.courseName, item.className].filter(Boolean)
-  return parts.length ? `编号:${item.id} | ${parts.join(' | ')}` : `编号:${item.id}`
+  return parts.length ? `${t('score.idLabel')}:${item.id} | ${parts.join(' | ')}` : `${t('score.idLabel')}:${item.id}`
 }
 
 async function fetchArrangementOptions() {
@@ -252,7 +254,7 @@ async function handleExport(format) {
     semester: searchForm.semester || undefined,
     format
   })
-  ElMessage.success('导出任务已开始')
+  ElMessage.success(t('score.exportStarted'))
 }
 
 function handleSearch() {
@@ -299,9 +301,9 @@ function statusBadgeType(status) {
 }
 
 function statusLabel(status) {
-  if (status === 'NORMAL') return '正常'
-  if (status === 'MAKEUP') return '补考'
-  if (status === 'RETAKE') return '重修'
+  if (status === 'NORMAL') return t('score.statusNormal')
+  if (status === 'MAKEUP') return t('score.statusMakeup')
+  if (status === 'RETAKE') return t('score.statusRetake')
   return '-'
 }
 
@@ -311,19 +313,19 @@ async function submit() {
 
   if (isEdit.value) {
     await updateScore(form.id, form)
-    ElMessage.success('修改成功')
+    ElMessage.success(t('score.updateSuccess'))
   } else {
     await createScore(form)
-    ElMessage.success('新增成功')
+    ElMessage.success(t('score.createSuccess'))
   }
   dialogVisible.value = false
   fetchList()
 }
 
 async function handleDelete(row) {
-  await ElMessageBox.confirm('确认删除该成绩记录吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('score.deleteConfirm'), t('common.tip'), { type: 'warning' })
   await deleteScore(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('score.deleteSuccess'))
   fetchList()
 }
 

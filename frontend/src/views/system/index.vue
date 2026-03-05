@@ -1,66 +1,72 @@
-﻿<template>
+<template>
   <div class="app-page space-y-3">
-    <AppCard title="系统偏好" surface="glass" content-class="p-4">
+    <AppCard :title="t('system.title')" surface="glass" content-class="p-4">
       <div class="grid gap-3 md:grid-cols-2">
         <div class="preference-card rounded-md border border-neutralx-200 p-3">
-          <p class="text-[15px] font-semibold text-primary-900">主题模式</p>
-          <p class="mt-1 text-[13px] text-slatex-500">支持跟随系统、浅色和深色三态切换，刷新后保持当前选择。</p>
-          <div class="mt-3 grid gap-2 sm:grid-cols-3">
-            <button
-              v-for="item in themeOptions"
-              :key="item.value"
-              class="theme-option touch-target"
-              :class="themeMode === item.value ? 'is-active' : ''"
-              @click="setThemeMode(item.value)"
-            >
-              <component :is="item.icon" class="h-4 w-4" />
-              <span>{{ item.label }}</span>
+          <p class="text-[15px] font-semibold text-primary-900">{{ t('system.theme.title') }}</p>
+          <p class="mt-1 text-[13px] text-slatex-500">{{ t('system.theme.desc') }}</p>
+          <div class="mt-3 flex items-center gap-2">
+            <button class="theme-option touch-target is-active" @click="cycleThemeMode">
+              <component :is="currentThemeIcon" class="h-4 w-4" />
+              <span>{{ t('system.theme.current', { mode: t(`theme.mode.${themeMode}`) }) }}</span>
+            </button>
+          </div>
+          <p class="mt-2 text-[12px] text-slatex-500">{{ t('system.theme.cycleHint') }}</p>
+        </div>
+
+        <div class="preference-card rounded-md border border-neutralx-200 p-3">
+          <p class="text-[15px] font-semibold text-primary-900">{{ t('system.language.title') }}</p>
+          <p class="mt-1 text-[13px] text-slatex-500">{{ t('system.language.desc') }}</p>
+          <div class="mt-3 flex items-center gap-2">
+            <button class="theme-option touch-target is-active" @click="toggleLanguage">
+              <Languages class="h-4 w-4" />
+              <span>{{ t('system.language.current', { lang: languageLabel }) }}</span>
             </button>
           </div>
         </div>
 
         <div class="preference-card rounded-md border border-neutralx-200 p-3">
-          <p class="text-[15px] font-semibold text-primary-900">表格密度</p>
-          <p class="mt-1 text-[13px] text-slatex-500">在紧凑与标准模式间切换，影响所有列表与审计视图。</p>
+          <p class="text-[15px] font-semibold text-primary-900">{{ t('system.tableDensity.title') }}</p>
+          <p class="mt-1 text-[13px] text-slatex-500">{{ t('system.tableDensity.desc') }}</p>
           <div class="mt-3 flex items-center gap-2">
-            <AppButton :variant="tableDensity === 'compact' ? 'primary' : 'secondary'" @click="setDensity('compact')">紧凑</AppButton>
-            <AppButton :variant="tableDensity === 'comfortable' ? 'primary' : 'secondary'" @click="setDensity('comfortable')">标准</AppButton>
+            <AppButton :variant="tableDensity === 'compact' ? 'primary' : 'secondary'" @click="setDensity('compact')">{{ t('system.tableDensity.compact') }}</AppButton>
+            <AppButton :variant="tableDensity === 'comfortable' ? 'primary' : 'secondary'" @click="setDensity('comfortable')">{{ t('system.tableDensity.comfortable') }}</AppButton>
           </div>
         </div>
 
         <div class="preference-card rounded-md border border-neutralx-200 p-3">
-          <p class="text-[15px] font-semibold text-primary-900">当前学期</p>
-          <p class="mt-1 text-[13px] text-slatex-500">用于长假无课程场景的任课老师抄送筛选。</p>
+          <p class="text-[15px] font-semibold text-primary-900">{{ t('system.currentSemester.title') }}</p>
+          <p class="mt-1 text-[13px] text-slatex-500">{{ t('system.currentSemester.desc') }}</p>
           <div class="mt-3 flex items-center gap-2">
-            <el-input v-model="currentSemester" :disabled="!canEditSemester" placeholder="例如 2025-2026-2" />
-            <AppButton v-if="canEditSemester" :loading="semesterSaving" @click="saveSemester">保存</AppButton>
+            <el-input v-model="currentSemester" :disabled="!canEditSemester" :placeholder="t('system.currentSemester.placeholder')" />
+            <AppButton v-if="canEditSemester" :loading="semesterSaving" @click="saveSemester">{{ t('system.currentSemester.save') }}</AppButton>
           </div>
-          <p v-if="!canEditSemester" class="mt-2 text-[12px] text-slatex-500">仅学校管理员可修改学期配置。</p>
+          <p v-if="!canEditSemester" class="mt-2 text-[12px] text-slatex-500">{{ t('system.currentSemester.noPermission') }}</p>
         </div>
 
         <div class="preference-card rounded-md border border-neutralx-200 p-3 md:col-span-2">
-          <p class="text-[15px] font-semibold text-primary-900">权限管理入口</p>
-          <p class="mt-1 text-[13px] text-slatex-500">角色、权限矩阵与审计日志已迁移到独立权限中心模块。</p>
+          <p class="text-[15px] font-semibold text-primary-900">{{ t('system.permissionCenter.title') }}</p>
+          <p class="mt-1 text-[13px] text-slatex-500">{{ t('system.permissionCenter.desc') }}</p>
           <div class="mt-3">
-            <AppButton variant="secondary" @click="$router.push('/rbac/users')">进入权限中心</AppButton>
+            <AppButton variant="secondary" @click="$router.push('/rbac/users')">{{ t('system.permissionCenter.enter') }}</AppButton>
           </div>
         </div>
       </div>
     </AppCard>
 
-    <AppCard title="账号安全" surface="base" content-class="p-4">
+    <AppCard :title="t('system.accountSecurity')" surface="base" content-class="p-4">
       <el-form ref="pwdFormRef" :model="passwordForm" :rules="pwdRules" label-width="96px" class="max-w-2xl">
-        <el-form-item label="旧密码" prop="oldPassword">
+        <el-form-item :label="t('system.password.old')" prop="oldPassword">
           <el-input v-model="passwordForm.oldPassword" type="password" show-password />
         </el-form-item>
-        <el-form-item label="新密码" prop="newPassword">
+        <el-form-item :label="t('system.password.new')" prop="newPassword">
           <el-input v-model="passwordForm.newPassword" type="password" show-password />
         </el-form-item>
-        <el-form-item label="确认密码" prop="confirmPassword">
+        <el-form-item :label="t('system.password.confirm')" prop="confirmPassword">
           <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
         </el-form-item>
         <el-form-item>
-          <AppButton :loading="pwdLoading" @click="submitPassword">保存密码</AppButton>
+          <AppButton :loading="pwdLoading" @click="submitPassword">{{ t('system.password.save') }}</AppButton>
         </el-form-item>
       </el-form>
     </AppCard>
@@ -71,22 +77,29 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
-import { Monitor, Moon, SunMedium } from 'lucide-vue-next'
+import { Languages, Monitor, Moon, SunMedium } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import { updatePassword } from '@/api/user'
 import { useTheme } from '@/composables/useTheme'
+import { useLanguage } from '@/composables/useLanguage'
 import { getCurrentSemester, updateCurrentSemester } from '@/api/system'
 
 const store = useStore()
+const { t } = useI18n()
 const tableDensity = computed(() => store.getters.tableDensity)
-const { mode: themeMode, setThemeMode } = useTheme(store)
+const { mode: themeMode, cycleThemeMode } = useTheme(store)
+const { language, toggleLanguage } = useLanguage(store)
 
-const themeOptions = [
-  { value: 'system', label: '系统', icon: Monitor },
-  { value: 'light', label: '浅色', icon: SunMedium },
-  { value: 'dark', label: '深色', icon: Moon }
-]
+const themeIconMap = {
+  system: Monitor,
+  light: SunMedium,
+  dark: Moon
+}
+
+const currentThemeIcon = computed(() => themeIconMap[themeMode.value] || Monitor)
+const languageLabel = computed(() => (language.value === 'en-US' ? t('language.enUS') : t('language.zhCN')))
 
 const passwordForm = reactive({
   oldPassword: '',
@@ -105,15 +118,15 @@ const allRoles = computed(() => {
 })
 const canEditSemester = computed(() => allRoles.value.has('SCHOOL_ADMIN'))
 
-const pwdRules = {
-  oldPassword: [{ required: true, message: '请输入旧密码', trigger: 'blur' }],
-  newPassword: [{ required: true, message: '请输入新密码', trigger: 'blur' }],
+const pwdRules = computed(() => ({
+  oldPassword: [{ required: true, message: t('system.password.oldRequired'), trigger: 'blur' }],
+  newPassword: [{ required: true, message: t('system.password.newRequired'), trigger: 'blur' }],
   confirmPassword: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
+    { required: true, message: t('system.password.confirmRequired'), trigger: 'blur' },
     {
       validator: (_rule, value, callback) => {
         if (value !== passwordForm.newPassword) {
-          callback(new Error('两次密码不一致'))
+          callback(new Error(t('system.password.notMatch')))
           return
         }
         callback()
@@ -121,7 +134,7 @@ const pwdRules = {
       trigger: 'blur'
     }
   ]
-}
+}))
 
 function setDensity(density) {
   store.commit('SET_TABLE_DENSITY', density)
@@ -134,13 +147,13 @@ async function fetchSemester() {
 
 async function saveSemester() {
   if (!currentSemester.value.trim()) {
-    ElMessage.warning('请输入学期值')
+    ElMessage.warning(t('system.currentSemester.emptyWarn'))
     return
   }
   semesterSaving.value = true
   try {
     await updateCurrentSemester(currentSemester.value.trim())
-    ElMessage.success('学期配置已更新')
+    ElMessage.success(t('system.currentSemester.saveSuccess'))
   } finally {
     semesterSaving.value = false
   }
@@ -156,7 +169,7 @@ async function submitPassword() {
       oldPassword: passwordForm.oldPassword,
       newPassword: passwordForm.newPassword
     })
-    ElMessage.success('密码已更新')
+    ElMessage.success(t('system.password.updated'))
     passwordForm.oldPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''

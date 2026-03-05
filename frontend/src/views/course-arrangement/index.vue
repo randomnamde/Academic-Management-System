@@ -1,51 +1,51 @@
 ﻿<template>
-  <CrudPageShell title="排课管理">
+  <CrudPageShell :title="t('courseArrangement.pageTitle')">
     <template #header-actions>
-      <AppButton @click="openCreate">新增排课</AppButton>
+      <AppButton @click="openCreate">{{ t('courseArrangement.addArrangement') }}</AppButton>
     </template>
 
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="课程编号">
+        <el-form-item :label="t('courseArrangement.courseId')">
           <el-input-number v-model="searchForm.courseId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="教师编号">
+        <el-form-item :label="t('courseArrangement.teacherId')">
           <el-input-number v-model="searchForm.teacherId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="班级编号">
+        <el-form-item :label="t('courseArrangement.classId')">
           <el-input-number v-model="searchForm.classId" :min="1" style="width: 140px" />
         </el-form-item>
-        <el-form-item label="学期">
-          <el-input v-model="searchForm.semester" clearable placeholder="如 2024-2025-1" />
+        <el-form-item :label="t('courseArrangement.semester')">
+          <el-input v-model="searchForm.semester" clearable :placeholder="t('courseArrangement.semesterPlaceholder')" />
         </el-form-item>
         <el-form-item>
-          <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
         </el-form-item>
       </el-form>
     </template>
 
     <template #table>
       <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="courseName" label="课程" min-width="130" />
-        <el-table-column prop="teacherName" label="教师" width="120" />
-        <el-table-column prop="className" label="班级" width="120" />
-        <el-table-column prop="semester" label="学期" width="130" />
-        <el-table-column prop="schedule" label="时间安排" min-width="150" />
-        <el-table-column prop="room" label="教室" width="100" />
-        <el-table-column label="人数" width="120">
+        <el-table-column type="index" :label="t('courseArrangement.index')" width="60" />
+        <el-table-column prop="courseName" :label="t('courseArrangement.course')" min-width="130" />
+        <el-table-column prop="teacherName" :label="t('courseArrangement.teacher')" width="120" />
+        <el-table-column prop="className" :label="t('courseArrangement.class')" width="120" />
+        <el-table-column prop="semester" :label="t('courseArrangement.semester')" width="130" />
+        <el-table-column prop="schedule" :label="t('courseArrangement.schedule')" min-width="150" />
+        <el-table-column prop="room" :label="t('courseArrangement.room')" width="100" />
+        <el-table-column :label="t('courseArrangement.people')" width="120">
           <template #default="{ row }">{{ row.enrolledCount || 0 }}/{{ row.capacity || 0 }}</template>
         </el-table-column>
-        <el-table-column label="状态" width="90">
+        <el-table-column :label="t('courseArrangement.status')" width="90">
           <template #default="{ row }">
             <AppBadge :type="statusBadgeType(row.status)">{{ statusLabel(row.status) }}</AppBadge>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column :label="t('courseArrangement.actions')" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="primary" @click="openEdit(row)">{{ t('courseArrangement.edit') }}</el-button>
+            <el-button link type="danger" @click="handleDelete(row)">{{ t('courseArrangement.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -64,21 +64,21 @@
       />
     </template>
 
-    <AppModal v-model="dialogVisible" :title="isEdit ? '编辑排课' : '新增排课'" width="700px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? t('courseArrangement.dialogEditTitle') : t('courseArrangement.dialogAddTitle')" width="700px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="8">
-            <el-form-item label="课程编号" prop="courseId">
+            <el-form-item :label="t('courseArrangement.courseId')" prop="courseId">
               <el-input-number v-model="form.courseId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="教师编号" prop="teacherId">
+            <el-form-item :label="t('courseArrangement.teacherId')" prop="teacherId">
               <el-input-number v-model="form.teacherId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
-            <el-form-item label="班级编号" prop="classId">
+            <el-form-item :label="t('courseArrangement.classId')" prop="classId">
               <el-input-number v-model="form.classId" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
@@ -86,48 +86,49 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="学期" prop="semester">
-              <el-input v-model="form.semester" placeholder="如 2024-2025-1" />
+            <el-form-item :label="t('courseArrangement.semester')" prop="semester">
+              <el-input v-model="form.semester" :placeholder="t('courseArrangement.semesterPlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="教室">
+            <el-form-item :label="t('courseArrangement.room')">
               <el-input v-model="form.room" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="时间安排" prop="schedule">
-          <el-input v-model="form.schedule" placeholder="如 周一 08:00-09:40" />
+        <el-form-item :label="t('courseArrangement.schedule')" prop="schedule">
+          <el-input v-model="form.schedule" :placeholder="t('courseArrangement.schedulePlaceholder')" />
         </el-form-item>
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="容量" prop="capacity">
+            <el-form-item :label="t('courseArrangement.capacity')" prop="capacity">
               <el-input-number v-model="form.capacity" :min="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="状态">
+            <el-form-item :label="t('courseArrangement.status')">
               <el-radio-group v-model="form.status">
-                <el-radio :label="1">启用</el-radio>
-                <el-radio :label="0">停用</el-radio>
+                <el-radio :label="1">{{ t('courseArrangement.statusEnabled') }}</el-radio>
+                <el-radio :label="0">{{ t('courseArrangement.statusDisabled') }}</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
       <template #footer>
-        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
-        <AppButton @click="submit">保存</AppButton>
+        <AppButton variant="secondary" @click="dialogVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="submit">{{ t('common.save') }}</AppButton>
       </template>
     </AppModal>
   </CrudPageShell>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
 import AppButton from '@/components/ui/AppButton.vue'
@@ -138,6 +139,8 @@ import {
   getCourseArrangementList,
   updateCourseArrangement
 } from '@/api/courseArrangement'
+
+const { t } = useI18n()
 
 const loading = ref(false)
 const page = ref(1)
@@ -167,17 +170,17 @@ const form = reactive({
   status: 1
 })
 
-const rules = {
-  courseId: [{ required: true, message: '请输入课程编号', trigger: 'change' }],
-  teacherId: [{ required: true, message: '请输入教师编号', trigger: 'change' }],
-  classId: [{ required: true, message: '请输入班级编号', trigger: 'change' }],
-  semester: [{ required: true, message: '请输入学期', trigger: 'blur' }],
-  schedule: [{ required: true, message: '请输入时间安排', trigger: 'blur' }],
-  capacity: [{ required: true, message: '请输入容量', trigger: 'change' }]
-}
+const rules = computed(() => ({
+  courseId: [{ required: true, message: t('courseArrangement.courseIdRequired'), trigger: 'change' }],
+  teacherId: [{ required: true, message: t('courseArrangement.teacherIdRequired'), trigger: 'change' }],
+  classId: [{ required: true, message: t('courseArrangement.classIdRequired'), trigger: 'change' }],
+  semester: [{ required: true, message: t('courseArrangement.semesterRequired'), trigger: 'blur' }],
+  schedule: [{ required: true, message: t('courseArrangement.scheduleRequired'), trigger: 'blur' }],
+  capacity: [{ required: true, message: t('courseArrangement.capacityRequired'), trigger: 'change' }]
+}))
 
 function statusLabel(status) {
-  return Number(status) === 1 ? '启用' : '停用'
+  return Number(status) === 1 ? t('courseArrangement.statusEnabled') : t('courseArrangement.statusDisabled')
 }
 
 function statusBadgeType(status) {
@@ -259,10 +262,10 @@ async function submit() {
 
   if (isEdit.value) {
     await updateCourseArrangement(form.id, payload)
-    ElMessage.success('修改成功')
+    ElMessage.success(t('courseArrangement.updateSuccess'))
   } else {
     await createCourseArrangement(payload)
-    ElMessage.success('新增成功')
+    ElMessage.success(t('courseArrangement.createSuccess'))
   }
 
   dialogVisible.value = false
@@ -270,9 +273,9 @@ async function submit() {
 }
 
 async function handleDelete(row) {
-  await ElMessageBox.confirm('确认删除该排课吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('courseArrangement.deleteConfirm'), t('common.tip'), { type: 'warning' })
   await deleteCourseArrangement(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('courseArrangement.deleteSuccess'))
   fetchList()
 }
 

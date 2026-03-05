@@ -5,7 +5,7 @@ import store from './store'
 
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import i18n, { setI18nLocale } from './i18n'
 
 import './styles/tokens.css'
 import './styles/base.css'
@@ -31,7 +31,9 @@ window.addEventListener('unhandledrejection', (event) => {
 
 const app = createApp(App)
 
-app.use(ElementPlus, { locale: zhCn })
+app.use(i18n)
+setI18nLocale(store.state.uiPreference?.language)
+app.use(ElementPlus)
 app.use(router)
 app.use(store)
 initializeTheme(store)

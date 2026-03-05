@@ -22,7 +22,7 @@
             <h3 :id="titleId" class="text-[15px] font-semibold tracking-tight text-primary-900">{{ title }}</h3>
             <button
               class="rounded-md border border-transparent px-1.5 py-0.5 text-slatex-500 transition-all duration-180 hover:bg-neutralx-100 touch-target"
-              aria-label="关闭弹窗"
+              :aria-label="t('components.appModal.close')"
               @click="close"
             >
               ×
@@ -42,6 +42,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -51,6 +52,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+const { t } = useI18n()
 
 const panelRef = ref(null)
 const previousActiveElement = ref(null)

@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="app-tabs-root inline-flex rounded-md p-0.5" role="tablist" :aria-label="ariaLabel">
+  <div class="app-tabs-root inline-flex rounded-md p-0.5" role="tablist" :aria-label="resolvedAriaLabel">
     <button
       v-for="(item, index) in items"
       :id="tabId(item.value)"
@@ -19,14 +19,19 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
   items: { type: Array, default: () => [] },
   idPrefix: { type: String, default: 'tabs' },
-  ariaLabel: { type: String, default: '选项卡' }
+  ariaLabel: { type: String, default: '' }
 })
 
 const emit = defineEmits(['update:modelValue'])
+const { t } = useI18n()
+const resolvedAriaLabel = computed(() => props.ariaLabel || t('components.appTabs.ariaLabel'))
 
 const tabId = (value) => `${props.idPrefix}-tab-${value}`
 const panelId = (value) => `${props.idPrefix}-panel-${value}`

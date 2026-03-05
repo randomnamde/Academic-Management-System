@@ -253,16 +253,16 @@
 
   .app-modal-backdrop {
     @apply fixed inset-0 z-40;
-    background: color-mix(in srgb, var(--color-black) 48%, transparent);
+    background: var(--popup-backdrop);
   }
 
   .app-modal-panel {
     @apply relative z-50 mx-auto w-[min(94vw,760px)] p-4;
     border-radius: var(--radius-pop);
-    border: 1px solid var(--panel-border);
-    background: var(--surface-popover);
-    box-shadow: var(--shadow-overlay);
-    backdrop-filter: blur(16px) saturate(128%);
+    border: 1px solid var(--popup-border);
+    background: var(--surface-popup);
+    box-shadow: var(--popup-shadow);
+    backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
   }
 
   .skip-link {

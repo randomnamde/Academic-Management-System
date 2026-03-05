@@ -2,83 +2,83 @@
   <CrudPageShell :title="pageTitle">
     <template #header-actions>
       <el-dropdown @command="handleExport">
-        <AppButton variant="secondary">导出报表</AppButton>
+        <AppButton variant="secondary">{{ t('leaveRequest.exportReport') }}</AppButton>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item command="csv">导出逗号分隔文件</el-dropdown-item>
-            <el-dropdown-item command="xlsx">导出电子表格文件</el-dropdown-item>
+            <el-dropdown-item command="csv">{{ t('leaveRequest.exportCsv') }}</el-dropdown-item>
+            <el-dropdown-item command="xlsx">{{ t('leaveRequest.exportXlsx') }}</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <AppButton v-if="isStudent" class="ml-2" @click="openCreate">发起请假</AppButton>
+      <AppButton v-if="isStudent" class="ml-2" @click="openCreate">{{ t('leaveRequest.submitLeave') }}</AppButton>
     </template>
 
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="状态">
+        <el-form-item :label="t('leaveRequest.status')">
           <el-select v-model="searchForm.status" clearable style="width: 140px">
-            <el-option label="待审批" value="PENDING" />
-            <el-option label="已通过" value="APPROVED" />
-            <el-option label="已驳回" value="REJECTED" />
+            <el-option :label="t('leaveRequest.statusPending')" value="PENDING" />
+            <el-option :label="t('leaveRequest.statusApproved')" value="APPROVED" />
+            <el-option :label="t('leaveRequest.statusRejected')" value="REJECTED" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
         </el-form-item>
       </el-form>
 
       <el-tabs v-if="canApprove" v-model="activeTab" @tab-change="handleTabChange">
-        <el-tab-pane label="待审批" name="pending" />
-        <el-tab-pane label="全部记录" name="all" />
-        <el-tab-pane v-if="canViewCc" label="抄送给我" name="cc" />
+        <el-tab-pane :label="t('leaveRequest.tabPending')" name="pending" />
+        <el-tab-pane :label="t('leaveRequest.tabAll')" name="all" />
+        <el-tab-pane v-if="canViewCc" :label="t('leaveRequest.tabCc')" name="cc" />
       </el-tabs>
     </template>
 
     <template #table>
       <el-table v-if="activeTab !== 'cc'" :data="currentRows" v-loading="loading" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column v-if="!isStudent" prop="studentName" label="学生" width="120" />
-        <el-table-column v-if="!isStudent" prop="className" label="班级" width="120" />
-        <el-table-column prop="courseName" label="课程" width="150" />
-        <el-table-column prop="courseArrangementId" label="排课编号" width="100" />
-        <el-table-column prop="leaveType" label="请假类型" width="100">
+        <el-table-column type="index" :label="t('leaveRequest.index')" width="60" />
+        <el-table-column v-if="!isStudent" prop="studentName" :label="t('leaveRequest.student')" width="120" />
+        <el-table-column v-if="!isStudent" prop="className" :label="t('leaveRequest.class')" width="120" />
+        <el-table-column prop="courseName" :label="t('leaveRequest.course')" width="150" />
+        <el-table-column prop="courseArrangementId" :label="t('leaveRequest.arrangementId')" width="100" />
+        <el-table-column prop="leaveType" :label="t('leaveRequest.leaveType')" width="100">
           <template #default="{ row }">{{ getLeaveTypeText(row.leaveType) }}</template>
         </el-table-column>
-        <el-table-column label="请假时段" min-width="260">
+        <el-table-column :label="t('leaveRequest.leaveRange')" min-width="260">
           <template #default="{ row }">{{ formatRange(row) }}</template>
         </el-table-column>
-        <el-table-column prop="reason" label="请假事由" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="reason" :label="t('leaveRequest.reason')" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="status" :label="t('leaveRequest.status')" width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusTagType(row.status)">{{ getStatusText(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="workflowType" label="流程" width="100">
+        <el-table-column prop="workflowType" :label="t('leaveRequest.workflow')" width="100">
           <template #default="{ row }">{{ getWorkflowTypeText(row.workflowType) }}</template>
         </el-table-column>
-        <el-table-column prop="currentNode" label="当前节点" width="160">
+        <el-table-column prop="currentNode" :label="t('leaveRequest.currentNode')" width="160">
           <template #default="{ row }">{{ getNodeText(row.currentNode) }}</template>
         </el-table-column>
-        <el-table-column prop="createTime" label="提交时间" width="170">
+        <el-table-column prop="createTime" :label="t('leaveRequest.submitTime')" width="170">
           <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="320" fixed="right" class-name="op-cell" label-class-name="op-header-cell">
+        <el-table-column :label="t('leaveRequest.actions')" width="320" fixed="right" class-name="op-cell" label-class-name="op-header-cell">
           <template #header>
-            <span class="op-header-badge">操作</span>
+            <span class="op-header-badge">{{ t('leaveRequest.actions') }}</span>
           </template>
           <template #default="{ row }">
             <div class="op-actions">
-              <el-button link type="primary" @click="openDetail(row)">详情</el-button>
+              <el-button link type="primary" @click="openDetail(row)">{{ t('leaveRequest.detail') }}</el-button>
               <el-dropdown v-if="hasMoreAction(row)" @command="(cmd) => handleRowCommand(cmd, row)">
                 <el-button link type="primary">
-                  更多
+                  {{ t('leaveRequest.more') }}
                   <el-icon><ArrowDown /></el-icon>
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item v-if="isStudent && row.status === 'PENDING'" command="edit">编辑</el-dropdown-item>
-                    <el-dropdown-item v-if="isStudent && row.status === 'PENDING'" command="cancel">撤销</el-dropdown-item>
+                    <el-dropdown-item v-if="isStudent && row.status === 'PENDING'" command="edit">{{ t('leaveRequest.edit') }}</el-dropdown-item>
+                    <el-dropdown-item v-if="isStudent && row.status === 'PENDING'" command="cancel">{{ t('leaveRequest.cancel') }}</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -88,7 +88,7 @@
                 type="success"
                 @click="handleApprove(row, true)"
               >
-                通过
+                {{ t('leaveRequest.approve') }}
               </el-button>
               <el-button
                 v-if="canApprove && row.status === 'PENDING'"
@@ -96,7 +96,7 @@
                 type="danger"
                 @click="handleApprove(row, false)"
               >
-                驳回
+                {{ t('leaveRequest.reject') }}
               </el-button>
             </div>
           </template>
@@ -104,23 +104,23 @@
       </el-table>
 
       <el-table v-else :data="ccData" v-loading="loading" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="leaveRequestId" label="请假单ID" width="120" />
-        <el-table-column prop="remark" label="抄送说明" min-width="260" />
-        <el-table-column prop="createTime" label="抄送时间" width="180">
+        <el-table-column type="index" :label="t('leaveRequest.index')" width="60" />
+        <el-table-column prop="leaveRequestId" :label="t('leaveRequest.leaveId')" width="120" />
+        <el-table-column prop="remark" :label="t('leaveRequest.ccRemark')" min-width="260" />
+        <el-table-column prop="createTime" :label="t('leaveRequest.ccTime')" width="180">
           <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
         </el-table-column>
-        <el-table-column prop="readFlag" label="状态" width="120">
+        <el-table-column prop="readFlag" :label="t('leaveRequest.status')" width="120">
           <template #default="{ row }">
             <el-tag :type="Number(row.readFlag) === 1 ? 'success' : 'warning'">
-              {{ Number(row.readFlag) === 1 ? '已读' : '未读' }}
+              {{ Number(row.readFlag) === 1 ? t('leaveRequest.read') : t('leaveRequest.unread') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column :label="t('leaveRequest.actions')" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetailById(row.leaveRequestId)">查看请假详情</el-button>
-            <el-button v-if="Number(row.readFlag) !== 1" link type="success" @click="markCcReadRow(row)">标记已读</el-button>
+            <el-button link type="primary" @click="openDetailById(row.leaveRequestId)">{{ t('leaveRequest.viewLeaveDetail') }}</el-button>
+            <el-button v-if="Number(row.readFlag) !== 1" link type="success" @click="markCcReadRow(row)">{{ t('leaveRequest.markRead') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -140,17 +140,17 @@
       />
     </template>
 
-    <AppModal v-model="dialogVisible" :title="isEdit ? '编辑请假申请' : '发起请假申请'" width="720px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? t('leaveRequest.dialogEditTitle') : t('leaveRequest.dialogCreateTitle')" width="720px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="排课编号（可选）" prop="courseArrangementId">
+            <el-form-item :label="t('leaveRequest.arrangementOptional')" prop="courseArrangementId">
               <el-select
                 v-model="form.courseArrangementId"
                 clearable
                 filterable
                 style="width: 100%"
-                placeholder="可选：不选则按请假时段与班级流程处理"
+                :placeholder="t('leaveRequest.arrangementOptionalPlaceholder')"
               >
                 <el-option
                   v-for="item in arrangementOptions"
@@ -162,12 +162,12 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="请假类型" prop="leaveType">
+            <el-form-item :label="t('leaveRequest.leaveType')" prop="leaveType">
               <el-select v-model="form.leaveType" style="width: 100%">
-                <el-option label="病假" value="SICK" />
-                <el-option label="事假" value="PERSONAL" />
-                <el-option label="公假" value="OFFICIAL" />
-                <el-option label="其他" value="OTHER" />
+                <el-option :label="t('leaveRequest.typeSick')" value="SICK" />
+                <el-option :label="t('leaveRequest.typePersonal')" value="PERSONAL" />
+                <el-option :label="t('leaveRequest.typeOfficial')" value="OFFICIAL" />
+                <el-option :label="t('leaveRequest.typeOther')" value="OTHER" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -175,7 +175,7 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="开始时间" prop="startTime">
+            <el-form-item :label="t('leaveRequest.startTime')" prop="startTime">
               <el-date-picker
                 v-model="form.startTime"
                 type="datetime"
@@ -185,7 +185,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="结束时间" prop="endTime">
+            <el-form-item :label="t('leaveRequest.endTime')" prop="endTime">
               <el-date-picker
                 v-model="form.endTime"
                 type="datetime"
@@ -196,40 +196,40 @@
           </el-col>
         </el-row>
 
-        <el-form-item label="请假事由" prop="reason">
+        <el-form-item :label="t('leaveRequest.reason')" prop="reason">
           <el-input v-model="form.reason" type="textarea" :rows="4" maxlength="500" show-word-limit />
         </el-form-item>
-        <el-form-item label="附件链接">
-          <el-input v-model="form.attachment" placeholder="可选：填写附件 URL" />
+        <el-form-item :label="t('leaveRequest.attachment')">
+          <el-input v-model="form.attachment" :placeholder="t('leaveRequest.attachmentPlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
-        <AppButton @click="submitForm">提交</AppButton>
+        <AppButton variant="secondary" @click="dialogVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="submitForm">{{ t('leaveRequest.submit') }}</AppButton>
       </template>
     </AppModal>
 
-    <AppModal v-model="detailVisible" title="请假详情" width="780px">
+    <AppModal v-model="detailVisible" :title="t('leaveRequest.detailTitle')" width="780px">
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="学生">{{ detail.studentName || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="班级">{{ detail.className || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="课程">{{ detail.courseName || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="排课编号">{{ detail.courseArrangementId || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="请假类型">{{ getLeaveTypeText(detail.leaveType) }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
+        <el-descriptions-item :label="t('leaveRequest.student')">{{ detail.studentName || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.class')">{{ detail.className || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.course')">{{ detail.courseName || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.arrangementId')">{{ detail.courseArrangementId || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.leaveType')">{{ getLeaveTypeText(detail.leaveType) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.status')">
           <el-tag :type="getStatusTagType(detail.status)">{{ getStatusText(detail.status) }}</el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="流程类型">{{ getWorkflowTypeText(detail.workflowType) }}</el-descriptions-item>
-        <el-descriptions-item label="当前节点">{{ getNodeText(detail.currentNode) }}</el-descriptions-item>
-        <el-descriptions-item label="开始时间">{{ formatDateTime(detail.startTime) }}</el-descriptions-item>
-        <el-descriptions-item label="结束时间">{{ formatDateTime(detail.endTime) }}</el-descriptions-item>
-        <el-descriptions-item label="审批人">{{ detail.approverName || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="审批时间">{{ formatDateTime(detail.approveTime) }}</el-descriptions-item>
-        <el-descriptions-item label="审批备注" :span="2">{{ detail.approveRemark || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="请假事由" :span="2">{{ detail.reason || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.workflowType')">{{ getWorkflowTypeText(detail.workflowType) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.currentNode')">{{ getNodeText(detail.currentNode) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.startTime')">{{ formatDateTime(detail.startTime) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.endTime')">{{ formatDateTime(detail.endTime) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.approver')">{{ detail.approverName || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.approveTime')">{{ formatDateTime(detail.approveTime) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.approveRemark')" :span="2">{{ detail.approveRemark || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('leaveRequest.reason')" :span="2">{{ detail.reason || '-' }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
-        <AppButton variant="secondary" @click="detailVisible = false">关闭</AppButton>
+        <AppButton variant="secondary" @click="detailVisible = false">{{ t('common.close') }}</AppButton>
       </template>
     </AppModal>
   </CrudPageShell>
@@ -240,6 +240,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowDown } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -259,6 +260,7 @@ import {
 } from '@/api/leaveRequest'
 
 const store = useStore()
+const { t } = useI18n()
 
 const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const permissions = computed(() => store.state.userInfo?.permissions || [])
@@ -266,9 +268,9 @@ const isStudent = computed(() => role.value === 'STUDENT')
 const canApprove = computed(() => canAction(role.value, 'leave:approve', permissions.value))
 const canViewCc = computed(() => !isStudent.value)
 const pageTitle = computed(() => {
-  if (isStudent.value) return '请假申请'
-  if (canApprove.value) return '请假审批'
-  return '请假管理'
+  if (isStudent.value) return t('leaveRequest.pageApply')
+  if (canApprove.value) return t('leaveRequest.pageApprove')
+  return t('leaveRequest.pageManage')
 })
 
 const loading = ref(false)
@@ -300,12 +302,12 @@ const form = reactive({
   attachment: ''
 })
 
-const rules = {
-  leaveType: [{ required: true, message: '请选择请假类型', trigger: 'change' }],
-  startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
-  endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }],
-  reason: [{ required: true, message: '请输入请假事由', trigger: 'blur' }]
-}
+const rules = computed(() => ({
+  leaveType: [{ required: true, message: t('leaveRequest.leaveTypeRequired'), trigger: 'change' }],
+  startTime: [{ required: true, message: t('leaveRequest.startTimeRequired'), trigger: 'change' }],
+  endTime: [{ required: true, message: t('leaveRequest.endTimeRequired'), trigger: 'change' }],
+  reason: [{ required: true, message: t('leaveRequest.reasonRequired'), trigger: 'blur' }]
+}))
 
 const usePendingShortcut = computed(() => canApprove.value && activeTab.value === 'pending' && !searchForm.status)
 
@@ -319,19 +321,19 @@ const hasMoreAction = (row) => isStudent.value && row.status === 'PENDING'
 
 const getLeaveTypeText = (type) => {
   const map = {
-    SICK: '病假',
-    PERSONAL: '事假',
-    OFFICIAL: '公假',
-    OTHER: '其他'
+    SICK: t('leaveRequest.typeSick'),
+    PERSONAL: t('leaveRequest.typePersonal'),
+    OFFICIAL: t('leaveRequest.typeOfficial'),
+    OTHER: t('leaveRequest.typeOther')
   }
   return map[type] || type || '-'
 }
 
 const getStatusText = (status) => {
   const map = {
-    PENDING: '待审批',
-    APPROVED: '已通过',
-    REJECTED: '已驳回'
+    PENDING: t('leaveRequest.statusPending'),
+    APPROVED: t('leaveRequest.statusApproved'),
+    REJECTED: t('leaveRequest.statusRejected')
   }
   return map[status] || status || '-'
 }
@@ -347,17 +349,17 @@ const getStatusTagType = (status) => {
 
 const getWorkflowTypeText = (type) => {
   const map = {
-    SHORT: '短假',
-    LONG: '长假'
+    SHORT: t('leaveRequest.workflowShort'),
+    LONG: t('leaveRequest.workflowLong')
   }
   return map[type] || type || '-'
 }
 
 const getNodeText = (node) => {
   const map = {
-    PENDING_HOMEROOM_REVIEW: '待班主任审批',
-    PENDING_COLLEGE_REVIEW: '待学院审批',
-    COMPLETED: '流程完成'
+    PENDING_HOMEROOM_REVIEW: t('leaveRequest.nodeHomeroom'),
+    PENDING_COLLEGE_REVIEW: t('leaveRequest.nodeCollege'),
+    COMPLETED: t('leaveRequest.nodeCompleted')
   }
   return map[node] || node || '-'
 }
@@ -371,7 +373,7 @@ const formatRange = (row) => `${formatDateTime(row.startTime)} ~ ${formatDateTim
 
 const formatArrangementLabel = (item) => {
   const parts = [item.semester, item.courseName, item.className].filter(Boolean)
-  return parts.length ? `${parts.join(' | ')} (编号:${item.id})` : `排课编号:${item.id}`
+  return parts.length ? `${parts.join(' | ')} (${t('leaveRequest.idLabel')}:${item.id})` : `${t('leaveRequest.arrangementId')}:${item.id}`
 }
 
 const resetForm = () => {
@@ -396,7 +398,7 @@ const handleExport = async (format) => {
     status: searchForm.status || undefined,
     format
   })
-  ElMessage.success('导出任务已开始')
+  ElMessage.success(t('leaveRequest.exportStarted'))
 }
 
 const fetchList = async () => {
@@ -466,7 +468,7 @@ const submitForm = async () => {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
   if (new Date(form.startTime).getTime() >= new Date(form.endTime).getTime()) {
-    ElMessage.warning('结束时间必须晚于开始时间')
+    ElMessage.warning(t('leaveRequest.endTimeAfterStart'))
     return
   }
 
@@ -481,10 +483,10 @@ const submitForm = async () => {
 
   if (isEdit.value) {
     await updateLeaveRequest(form.id, payload)
-    ElMessage.success('修改成功')
+    ElMessage.success(t('leaveRequest.updateSuccess'))
   } else {
     await submitLeaveRequest(payload)
-    ElMessage.success('提交成功')
+    ElMessage.success(t('leaveRequest.submitSuccess'))
   }
 
   dialogVisible.value = false
@@ -492,23 +494,23 @@ const submitForm = async () => {
 }
 
 const handleCancel = async (row) => {
-  await ElMessageBox.confirm('确认撤销该请假申请吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('leaveRequest.cancelConfirm'), t('common.tip'), { type: 'warning' })
   await cancelLeaveRequest(row.id)
-  ElMessage.success('撤销成功')
+  ElMessage.success(t('leaveRequest.cancelSuccess'))
   fetchList()
 }
 
 const handleApprove = async (row, approved) => {
-  const actionText = approved ? '通过' : '驳回'
-  const { value } = await ElMessageBox.prompt(`请输入${actionText}备注（可选）`, `${actionText}请假申请`, {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    inputPlaceholder: '请输入备注'
+  const actionText = approved ? t('leaveRequest.approve') : t('leaveRequest.reject')
+  const { value } = await ElMessageBox.prompt(t('leaveRequest.approveRemarkPrompt', { action: actionText }), t('leaveRequest.approveDialogTitle', { action: actionText }), {
+    confirmButtonText: t('common.confirm'),
+    cancelButtonText: t('common.cancel'),
+    inputPlaceholder: t('leaveRequest.remarkPlaceholder')
   }).catch(() => ({ value: null }))
 
   if (value === null) return
   await approveLeaveRequest(row.id, approved, value || '')
-  ElMessage.success(`${actionText}成功`)
+  ElMessage.success(t('leaveRequest.approveSuccess', { action: actionText }))
   fetchList()
 }
 
@@ -536,7 +538,7 @@ const openDetailById = async (id) => {
 
 const markCcReadRow = async (row) => {
   await markLeaveCcRead(row.id)
-  ElMessage.success('已标记为已读')
+  ElMessage.success(t('leaveRequest.markReadSuccess'))
   fetchList()
 }
 

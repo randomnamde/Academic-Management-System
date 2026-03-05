@@ -1,40 +1,40 @@
 ﻿<template>
-  <CrudPageShell title="课程管理">
+  <CrudPageShell :title="t('course.pageTitle')">
     <template #header-actions>
-      <AppButton v-if="!isStudent" @click="openCreate">新增课程</AppButton>
+      <AppButton v-if="!isStudent" @click="openCreate">{{ t('course.addCourse') }}</AppButton>
     </template>
 
     <template #filters>
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="课程代码">
+        <el-form-item :label="t('course.courseCode')">
           <el-input v-model="searchForm.courseCode" clearable />
         </el-form-item>
-        <el-form-item label="课程名称">
+        <el-form-item :label="t('course.courseName')">
           <el-input v-model="searchForm.courseName" clearable />
         </el-form-item>
-        <el-form-item label="类型">
+        <el-form-item :label="t('course.category')">
           <el-select v-model="searchForm.category" clearable style="width: 160px">
-            <el-option label="必修" value="REQUIRED" />
-            <el-option label="选修" value="ELECTIVE" />
-            <el-option label="实践" value="PRACTICAL" />
+            <el-option :label="t('course.categoryRequired')" value="REQUIRED" />
+            <el-option :label="t('course.categoryElective')" value="ELECTIVE" />
+            <el-option :label="t('course.categoryPractical')" value="PRACTICAL" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <AppButton @click="handleSearch">查询</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">重置</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
         </el-form-item>
       </el-form>
     </template>
 
     <template #table>
       <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" label="序号" width="60" />
-        <el-table-column prop="courseCode" label="课程代码" width="120" />
-        <el-table-column prop="courseName" label="课程名称" />
-        <el-table-column prop="credit" label="学分" width="80" />
-        <el-table-column prop="hours" label="学时" width="80" />
-        <el-table-column prop="category" label="类型" width="100" />
-        <el-table-column label="状态" width="100">
+        <el-table-column type="index" :label="t('course.index')" width="60" />
+        <el-table-column prop="courseCode" :label="t('course.courseCode')" width="120" />
+        <el-table-column prop="courseName" :label="t('course.courseName')" />
+        <el-table-column prop="credit" :label="t('course.credit')" width="80" />
+        <el-table-column prop="hours" :label="t('course.hours')" width="80" />
+        <el-table-column prop="category" :label="t('course.category')" width="100" />
+        <el-table-column :label="t('course.status')" width="100">
           <template #default="{ row }">
             <el-switch
               v-if="!isStudent"
@@ -42,14 +42,14 @@
               @change="(val) => handleStatusChange(row, val)"
             />
             <el-tag v-else :type="row.status === 1 ? 'success' : 'info'">
-              {{ row.status === 1 ? '启用' : '停用' }}
+              {{ row.status === 1 ? t('course.statusEnabled') : t('course.statusDisabled') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column v-if="!isStudent" label="操作" width="170" fixed="right">
+        <el-table-column v-if="!isStudent" :label="t('course.actions')" width="170" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button link type="primary" @click="openEdit(row)">{{ t('course.edit') }}</el-button>
+            <el-button link type="danger" @click="handleDelete(row)">{{ t('course.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -68,46 +68,46 @@
       />
     </template>
 
-    <AppModal v-model="dialogVisible" :title="isEdit ? '编辑课程' : '新增课程'" width="600px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? t('course.dialogEditTitle') : t('course.dialogAddTitle')" width="600px">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="课程代码" prop="courseCode">
+        <el-form-item :label="t('course.courseCode')" prop="courseCode">
           <el-input v-model="form.courseCode" />
         </el-form-item>
-        <el-form-item label="课程名称" prop="courseName">
+        <el-form-item :label="t('course.courseName')" prop="courseName">
           <el-input v-model="form.courseName" />
         </el-form-item>
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="学分" prop="credit">
+            <el-form-item :label="t('course.credit')" prop="credit">
               <el-input-number v-model="form.credit" :min="0" :max="10" :precision="1" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="学时" prop="hours">
+            <el-form-item :label="t('course.hours')" prop="hours">
               <el-input-number v-model="form.hours" :min="1" :max="300" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="类型" prop="category">
+        <el-form-item :label="t('course.category')" prop="category">
           <el-select v-model="form.category" style="width: 100%">
-            <el-option label="必修" value="REQUIRED" />
-            <el-option label="选修" value="ELECTIVE" />
-            <el-option label="实践" value="PRACTICAL" />
+            <el-option :label="t('course.categoryRequired')" value="REQUIRED" />
+            <el-option :label="t('course.categoryElective')" value="ELECTIVE" />
+            <el-option :label="t('course.categoryPractical')" value="PRACTICAL" />
           </el-select>
         </el-form-item>
-        <el-form-item label="描述">
+        <el-form-item :label="t('course.description')">
           <el-input v-model="form.description" type="textarea" :rows="3" />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
+        <el-form-item :label="t('course.status')" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio :label="1">启用</el-radio>
-            <el-radio :label="0">禁用</el-radio>
+            <el-radio :label="1">{{ t('course.statusEnabled') }}</el-radio>
+            <el-radio :label="0">{{ t('course.statusDisabled') }}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
       <template #footer>
-        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
-        <AppButton @click="submit">保存</AppButton>
+        <AppButton variant="secondary" @click="dialogVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="submit">{{ t('common.save') }}</AppButton>
       </template>
     </AppModal>
   </CrudPageShell>
@@ -117,6 +117,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -129,6 +130,7 @@ import {
 } from '@/api/course'
 
 const store = useStore()
+const { t } = useI18n()
 const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const isStudent = computed(() => role.value === 'STUDENT')
 
@@ -158,13 +160,13 @@ const form = reactive({
   status: 1
 })
 
-const rules = {
-  courseCode: [{ required: true, message: '请输入课程代码', trigger: 'blur' }],
-  courseName: [{ required: true, message: '请输入课程名称', trigger: 'blur' }],
-  credit: [{ required: true, message: '请输入学分', trigger: 'change' }],
-  hours: [{ required: true, message: '请输入学时', trigger: 'change' }],
-  category: [{ required: true, message: '请选择类型', trigger: 'change' }]
-}
+const rules = computed(() => ({
+  courseCode: [{ required: true, message: t('course.courseCodeRequired'), trigger: 'blur' }],
+  courseName: [{ required: true, message: t('course.courseNameRequired'), trigger: 'blur' }],
+  credit: [{ required: true, message: t('course.creditRequired'), trigger: 'change' }],
+  hours: [{ required: true, message: t('course.hoursRequired'), trigger: 'change' }],
+  category: [{ required: true, message: t('course.categoryRequiredMsg'), trigger: 'change' }]
+}))
 
 function resetForm() {
   Object.assign(form, {
@@ -228,10 +230,10 @@ async function submit() {
 
   if (isEdit.value) {
     await updateCourse(form.id, form)
-    ElMessage.success('修改成功')
+    ElMessage.success(t('course.updateSuccess'))
   } else {
     await createCourse(form)
-    ElMessage.success('新增成功')
+    ElMessage.success(t('course.createSuccess'))
   }
   dialogVisible.value = false
   fetchList()
@@ -239,16 +241,16 @@ async function submit() {
 
 async function handleDelete(row) {
   if (isStudent.value) return
-  await ElMessageBox.confirm('确认删除该课程吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('course.deleteConfirm'), t('common.tip'), { type: 'warning' })
   await deleteCourse(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('course.deleteSuccess'))
   fetchList()
 }
 
 async function handleStatusChange(row, enabled) {
   if (isStudent.value) return
   await updateCourseStatus(row.id, enabled ? 1 : 0)
-  ElMessage.success('状态已更新')
+  ElMessage.success(t('course.statusUpdated'))
   fetchList()
 }
 

@@ -1,41 +1,41 @@
 ﻿<template>
-  <CrudPageShell title="学生管理">
+  <CrudPageShell :title="t('student.pageTitle')">
     <template #header-actions>
-      <AppButton @click="handleAdd">新增学生</AppButton>
+      <AppButton @click="handleAdd">{{ t('student.addStudent') }}</AppButton>
     </template>
 
     <template #filters>
       <div class="grid grid-cols-12 gap-2">
-        <el-input v-model="searchForm.studentNo" clearable placeholder="学号" class="col-span-12 md:col-span-2" />
-        <el-input v-model="searchForm.name" clearable placeholder="姓名" class="col-span-12 md:col-span-2" />
-        <el-select v-model="searchForm.classId" clearable placeholder="班级" class="col-span-12 md:col-span-2">
+        <el-input v-model="searchForm.studentNo" clearable :placeholder="t('student.studentNo')" class="col-span-12 md:col-span-2" />
+        <el-input v-model="searchForm.name" clearable :placeholder="t('student.name')" class="col-span-12 md:col-span-2" />
+        <el-select v-model="searchForm.classId" clearable :placeholder="t('student.class')" class="col-span-12 md:col-span-2">
           <el-option v-for="item in classList" :key="item.id" :label="item.className" :value="item.id" />
         </el-select>
-        <el-select v-model="searchForm.status" clearable placeholder="状态" class="col-span-12 md:col-span-2">
-          <el-option label="在读" value="ENROLLED" />
-          <el-option label="休学" value="SUSPENDED" />
-          <el-option label="毕业" value="GRADUATED" />
-          <el-option label="退学" value="DROPPED" />
+        <el-select v-model="searchForm.status" clearable :placeholder="t('student.status')" class="col-span-12 md:col-span-2">
+          <el-option :label="t('student.statusEnrolled')" value="ENROLLED" />
+          <el-option :label="t('student.statusSuspended')" value="SUSPENDED" />
+          <el-option :label="t('student.statusGraduated')" value="GRADUATED" />
+          <el-option :label="t('student.statusDropped')" value="DROPPED" />
         </el-select>
         <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-4">
-          <AppButton variant="secondary" @click="handleReset">重置</AppButton>
-          <AppButton @click="handleSearch">查询</AppButton>
+          <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
         </div>
       </div>
     </template>
 
     <template #table>
       <AppTable :columns="columns" :rows="studentList" :loading="loading" :density="tableDensity">
-        <template #cell-gender="{ row }">{{ row.gender === 'MALE' ? '男' : '女' }}</template>
+        <template #cell-gender="{ row }">{{ row.gender === 'MALE' ? t('student.genderMale') : t('student.genderFemale') }}</template>
         <template #cell-className="{ row }">{{ row.className || getClassNameById(row.classId) || '-' }}</template>
         <template #cell-status="{ row }">
           <AppBadge :type="statusBadgeType(row.status)">{{ getStatusText(row.status) }}</AppBadge>
         </template>
         <template #cell-actions="{ row }">
           <div class="flex justify-end gap-2">
-            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="handleEdit(row)">编辑</button>
-            <button class="text-[12px] text-slatex-600 hover:text-slatex-900" @click="handleViewScore(row)">成绩</button>
-            <button class="text-[12px] text-state-danger hover:opacity-80" @click="handleDelete(row)">删除</button>
+            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="handleEdit(row)">{{ t('student.edit') }}</button>
+            <button class="text-[12px] text-slatex-600 hover:text-slatex-900" @click="handleViewScore(row)">{{ t('student.viewScore') }}</button>
+            <button class="text-[12px] text-state-danger hover:opacity-80" @click="handleDelete(row)">{{ t('student.delete') }}</button>
           </div>
         </template>
       </AppTable>
@@ -57,12 +57,12 @@
       <el-form :model="form" :rules="rules" ref="formRef" label-width="96px">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="学号" prop="studentNo">
-              <el-input v-model="form.studentNo" disabled placeholder="根据班级与入学日期自动生成" />
+            <el-form-item :label="t('student.studentNo')" prop="studentNo">
+              <el-input v-model="form.studentNo" disabled :placeholder="t('student.autoGeneratePlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="姓名" prop="name">
+            <el-form-item :label="t('student.name')" prop="name">
               <el-input v-model="form.name" />
             </el-form-item>
           </el-col>
@@ -70,16 +70,16 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="性别" prop="gender">
+            <el-form-item :label="t('student.gender')" prop="gender">
               <el-radio-group v-model="form.gender">
-                <el-radio label="MALE">男</el-radio>
-                <el-radio label="FEMALE">女</el-radio>
+                <el-radio label="MALE">{{ t('student.genderMale') }}</el-radio>
+                <el-radio label="FEMALE">{{ t('student.genderFemale') }}</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="班级" prop="classId">
-              <el-select v-model="form.classId" placeholder="请选择班级" style="width: 100%">
+            <el-form-item :label="t('student.class')" prop="classId">
+              <el-select v-model="form.classId" :placeholder="t('student.selectClass')" style="width: 100%">
                 <el-option v-for="item in classList" :key="item.id" :label="item.className" :value="item.id" />
               </el-select>
             </el-form-item>
@@ -88,12 +88,12 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="电话" prop="phone">
+            <el-form-item :label="t('student.phone')" prop="phone">
               <el-input v-model="form.phone" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="邮箱" prop="email">
+            <el-form-item :label="t('student.email')" prop="email">
               <el-input v-model="form.email" />
             </el-form-item>
           </el-col>
@@ -101,28 +101,28 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="身份证号" prop="idCard">
+            <el-form-item :label="t('student.idCard')" prop="idCard">
               <el-input v-model="form.idCard" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="入学日期" prop="enrollmentDate">
+            <el-form-item :label="t('student.enrollmentDate')" prop="enrollmentDate">
               <el-date-picker v-model="form.enrollmentDate" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-form-item label="地址" prop="address">
+        <el-form-item :label="t('student.address')" prop="address">
           <el-input v-model="form.address" type="textarea" :rows="2" />
         </el-form-item>
 
-        <el-form-item label="密码" :required="!isEdit">
-          <el-input v-model="form.password" type="password" show-password :placeholder="isEdit ? '留空则不修改' : '请输入密码'" />
+        <el-form-item :label="t('student.password')" :required="!isEdit">
+          <el-input v-model="form.password" type="password" show-password :placeholder="isEdit ? t('student.passwordKeepEmpty') : t('student.passwordPlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <AppButton variant="secondary" @click="dialogVisible = false">取消</AppButton>
-        <AppButton @click="handleSubmit">确定</AppButton>
+        <AppButton variant="secondary" @click="dialogVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton @click="handleSubmit">{{ t('common.confirm') }}</AppButton>
       </template>
     </AppModal>
   </CrudPageShell>
@@ -133,6 +133,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
@@ -143,6 +144,7 @@ import { getClassList } from '@/api/clazz'
 
 const router = useRouter()
 const store = useStore()
+const { t } = useI18n()
 const tableDensity = computed(() => store.getters.tableDensity)
 
 const studentList = ref([])
@@ -152,16 +154,16 @@ const page = ref(1)
 const size = ref(10)
 const total = ref(0)
 
-const columns = [
-  { key: 'studentNo', title: '学号', width: 140 },
-  { key: 'name', title: '姓名', width: 120 },
-  { key: 'gender', title: '性别', width: 80 },
-  { key: 'className', title: '班级', width: 160 },
-  { key: 'phone', title: '电话', width: 150 },
-  { key: 'email', title: '邮箱' },
-  { key: 'status', title: '状态', width: 110 },
-  { key: 'actions', title: '操作', width: 180, align: 'right' }
-]
+const columns = computed(() => [
+  { key: 'studentNo', title: t('student.studentNo'), width: 140 },
+  { key: 'name', title: t('student.name'), width: 120 },
+  { key: 'gender', title: t('student.gender'), width: 80 },
+  { key: 'className', title: t('student.class'), width: 160 },
+  { key: 'phone', title: t('student.phone'), width: 150 },
+  { key: 'email', title: t('student.email') },
+  { key: 'status', title: t('student.status'), width: 110 },
+  { key: 'actions', title: t('student.actions'), width: 180, align: 'right' }
+])
 
 const searchForm = reactive({
   studentNo: '',
@@ -171,7 +173,8 @@ const searchForm = reactive({
 })
 
 const dialogVisible = ref(false)
-const dialogTitle = ref('新增学生')
+const dialogTitleKey = ref('student.dialogAddTitle')
+const dialogTitle = computed(() => t(dialogTitleKey.value))
 const formRef = ref()
 const isEdit = ref(false)
 
@@ -189,11 +192,11 @@ const form = reactive({
   password: ''
 })
 
-const rules = {
-  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  gender: [{ required: true, message: '请选择性别', trigger: 'change' }],
-  classId: [{ required: true, message: '请选择班级', trigger: 'change' }]
-}
+const rules = computed(() => ({
+  name: [{ required: true, message: t('student.nameRequired'), trigger: 'blur' }],
+  gender: [{ required: true, message: t('student.genderRequired'), trigger: 'change' }],
+  classId: [{ required: true, message: t('student.classRequired'), trigger: 'change' }]
+}))
 
 async function fetchClassList() {
   const res = await getClassList({ page: 1, size: 500 })
@@ -260,7 +263,7 @@ function resetForm() {
 async function handleAdd() {
   await fetchClassList()
   isEdit.value = false
-  dialogTitle.value = '新增学生'
+  dialogTitleKey.value = 'student.dialogAddTitle'
   resetForm()
   dialogVisible.value = true
 }
@@ -268,16 +271,16 @@ async function handleAdd() {
 async function handleEdit(row) {
   await fetchClassList()
   isEdit.value = true
-  dialogTitle.value = '编辑学生'
+  dialogTitleKey.value = 'student.dialogEditTitle'
   resetForm()
   Object.assign(form, row, { password: '' })
   dialogVisible.value = true
 }
 
 async function handleDelete(row) {
-  await ElMessageBox.confirm('确定要删除该学生吗？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm(t('student.deleteConfirm'), t('common.tip'), { type: 'warning' })
   await deleteStudent(row.id)
-  ElMessage.success('删除成功')
+  ElMessage.success(t('student.deleteSuccess'))
   fetchList()
 }
 
@@ -293,16 +296,16 @@ async function handleSubmit() {
   if (!payload.password) delete payload.password
 
   if (!isEdit.value && !payload.password) {
-    ElMessage.error('新增学生必须填写密码')
+    ElMessage.error(t('student.passwordRequiredOnCreate'))
     return
   }
 
   if (isEdit.value) {
     await updateStudent(form.id, payload)
-    ElMessage.success('更新成功')
+    ElMessage.success(t('student.updateSuccess'))
   } else {
     await createStudent(payload)
-    ElMessage.success('添加成功')
+    ElMessage.success(t('student.createSuccess'))
   }
 
   dialogVisible.value = false
@@ -324,7 +327,12 @@ async function refreshStudentNo() {
 }
 
 function getStatusText(status) {
-  const map = { ENROLLED: '在读', SUSPENDED: '休学', GRADUATED: '毕业', DROPPED: '退学' }
+  const map = {
+    ENROLLED: t('student.statusEnrolled'),
+    SUSPENDED: t('student.statusSuspended'),
+    GRADUATED: t('student.statusGraduated'),
+    DROPPED: t('student.statusDropped')
+  }
   return map[status] || status
 }
 

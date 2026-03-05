@@ -1,6 +1,6 @@
 ﻿<template>
   <div class="layout-shell h-screen overflow-hidden text-slatex-900">
-    <a href="#main-content" class="skip-link">跳到主要内容</a>
+    <a href="#main-content" class="skip-link">{{ t('app.skipToMain') }}</a>
 
     <div class="grid h-full" :style="gridStyle">
       <aside
@@ -52,11 +52,11 @@
         <div class="sidebar-divider-top sidebar-account p-2">
           <button class="menu-link sidebar-account-action touch-target" @click="handleCommand('profile')">
             <User class="h-4 w-4" />
-            <span v-if="!isCollapsed" class="menu-label">个人中心</span>
+            <span v-if="!isCollapsed" class="menu-label">{{ t('layout.profile') }}</span>
           </button>
           <button class="menu-link sidebar-account-action touch-target is-danger mt-1" @click="handleCommand('logout')">
             <LogOut class="h-4 w-4" />
-            <span v-if="!isCollapsed" class="menu-label">退出登录</span>
+            <span v-if="!isCollapsed" class="menu-label">{{ t('layout.logout') }}</span>
           </button>
         </div>
       </aside>
@@ -66,7 +66,7 @@
           <div class="header-zone nav-zone flex min-w-0 flex-1 items-center gap-2">
             <button
               class="header-ctl-btn touch-target"
-              :aria-label="mobileMenuVisible ? '关闭导航菜单' : '展开导航菜单'"
+              :aria-label="mobileMenuVisible ? t('layout.collapseNav') : t('layout.expandNav')"
               @click="toggleSidebar"
             >
               <PanelLeft class="h-4 w-4" />
@@ -77,34 +77,37 @@
           <div class="header-zone quick-zone hidden items-center gap-2 lg:flex">
             <button
               class="header-chip touch-target"
-              aria-label="切换表格密度"
+              :aria-label="t('layout.densitySwitch')"
               @click="toggleDensity"
             >
               <Rows4 class="h-3.5 w-3.5" />
-              {{ tableDensity === 'compact' ? '紧凑' : '标准' }}
+              {{ tableDensity === 'compact' ? t('layout.densityCompact') : t('layout.densityStandard') }}
             </button>
-
-            <div class="theme-switch" role="radiogroup" aria-label="主题模式切换">
-              <button
-                v-for="option in themeOptions"
-                :key="option.value"
-                type="button"
-                class="theme-switch-item touch-target"
-                :class="themeMode === option.value ? 'is-active' : ''"
-                :aria-pressed="themeMode === option.value"
-                @click="setThemeMode(option.value)"
-              >
-                <component :is="option.icon" class="h-3.5 w-3.5" />
-                <span>{{ option.label }}</span>
-              </button>
-            </div>
           </div>
 
           <div class="header-zone user-zone flex items-center gap-2">
+            <button
+              class="header-ctl-btn touch-target"
+              :aria-label="t('layout.languageToggle')"
+              :title="`${t('layout.languageToggle')} (${languageLabel})`"
+              @click="toggleLanguage"
+            >
+              <Languages class="h-4 w-4" />
+            </button>
+
+            <button
+              class="header-ctl-btn touch-target"
+              :aria-label="t('layout.themeToggle')"
+              :title="`${t('layout.themeToggle')} (${currentThemeLabel})`"
+              @click="cycleThemeMode"
+            >
+              <component :is="currentThemeIcon" class="h-4 w-4" />
+            </button>
+
             <div class="relative">
               <button
                 class="header-ctl-btn relative touch-target"
-                aria-label="通知公告"
+                :aria-label="t('layout.notifications')"
                 :aria-expanded="noticePopoverVisible ? 'true' : 'false'"
                 aria-haspopup="menu"
                 @click="toggleNoticePopover"
@@ -120,10 +123,10 @@
 
               <div v-if="noticePopoverVisible" class="notice-popover absolute right-0 z-30 mt-2 w-96">
                 <div class="mb-1 flex items-center justify-between px-1">
-                  <p class="text-[12px] font-semibold text-primary-900">最新公告</p>
-                  <button class="text-[11px] text-[var(--accent-600)] hover:underline touch-target" @click="openAnnouncementPage">查看全部</button>
+                  <p class="text-[12px] font-semibold text-primary-900">{{ t('layout.latestAnnouncement') }}</p>
+                  <button class="text-[11px] text-[var(--accent-600)] hover:underline touch-target" @click="openAnnouncementPage">{{ t('layout.viewAll') }}</button>
                 </div>
-                <div v-if="!latestAnnouncements.length" class="py-6 text-center text-[12px] text-slatex-500">暂无公告</div>
+                <div v-if="!latestAnnouncements.length" class="py-6 text-center text-[12px] text-slatex-500">{{ t('layout.noAnnouncement') }}</div>
                 <div v-else class="max-h-72 space-y-1 overflow-y-auto">
                   <button
                     v-for="item in latestAnnouncements"
@@ -145,24 +148,24 @@
             <div class="relative">
               <button
                 class="header-chip touch-target"
-                aria-label="打开用户菜单"
+                :aria-label="t('layout.openUserMenu')"
                 :aria-expanded="userMenuVisible ? 'true' : 'false'"
                 aria-haspopup="menu"
                 @click="userMenuVisible = !userMenuVisible"
               >
                 <img :src="userInfo.avatar || defaultAvatar" alt="avatar" class="h-6 w-6 rounded-md object-cover" />
-                <span class="hidden max-w-24 truncate md:block">{{ userInfo.realName || userInfo.username || '用户' }}</span>
+                <span class="hidden max-w-24 truncate md:block">{{ userInfo.realName || userInfo.username || t('common.user') }}</span>
                 <ChevronDown class="h-3.5 w-3.5 text-slatex-500" />
               </button>
 
               <div v-if="userMenuVisible" class="user-popover absolute right-0 z-30 mt-2 w-44" role="menu">
                 <div class="menu-section">
-                  <button class="menu-item touch-target" role="menuitem" @click="handleCommand('profile')">个人中心</button>
-                  <button class="menu-item touch-target" role="menuitem" @click="handleCommand('password')">修改密码</button>
+                  <button class="menu-item touch-target" role="menuitem" @click="handleCommand('profile')">{{ t('layout.profile') }}</button>
+                  <button class="menu-item touch-target" role="menuitem" @click="handleCommand('password')">{{ t('layout.changePassword') }}</button>
                 </div>
                 <div class="menu-divider"></div>
                 <div class="menu-section">
-                  <button class="menu-item touch-target text-state-danger" role="menuitem" @click="handleCommand('logout')">退出登录</button>
+                  <button class="menu-item touch-target text-state-danger" role="menuitem" @click="handleCommand('logout')">{{ t('layout.logout') }}</button>
                 </div>
               </div>
             </div>
@@ -200,7 +203,7 @@
               </div>
               <h1 class="sidebar-brand-text text-[13px] font-semibold tracking-tight text-primary-900">Academic Management System</h1>
             </div>
-            <button class="mobile-sidebar-close rounded-md px-2 py-1 text-[12px] text-slatex-600 hover:bg-neutralx-100 touch-target" @click="mobileMenuVisible = false">关闭</button>
+            <button class="mobile-sidebar-close rounded-md px-2 py-1 text-[12px] text-slatex-600 hover:bg-neutralx-100 touch-target" @click="mobileMenuVisible = false">{{ t('layout.mobileClose') }}</button>
           </div>
           <section v-for="group in visibleMenuGroups" :key="`mobile-${group.key}`" class="mb-4">
             <button
@@ -232,19 +235,19 @@
       </div>
     </Transition>
 
-    <AppModal v-model="noticeDetailVisible" title="公告详情" width="720px">
+    <AppModal v-model="noticeDetailVisible" :title="t('layout.noticeDialog.title')" width="720px">
       <div class="grid gap-2 text-[13px] text-slatex-700 md:grid-cols-2">
-        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5 md:col-span-2"><strong>标题：</strong>{{ noticeDetail.title || '-' }}</div>
-        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5"><strong>类型：</strong>{{ noticeDetail.type || '-' }}</div>
-        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5"><strong>目标角色：</strong>{{ noticeDetail.targetRole || '-' }}</div>
-        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5 md:col-span-2"><strong>发布时间：</strong>{{ noticeDetail.createTime || '-' }}</div>
+        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5 md:col-span-2"><strong>{{ t('layout.noticeDialog.fieldTitle') }}</strong>{{ noticeDetail.title || '-' }}</div>
+        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5"><strong>{{ t('layout.noticeDialog.fieldType') }}</strong>{{ noticeDetail.type || '-' }}</div>
+        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5"><strong>{{ t('layout.noticeDialog.fieldTargetRole') }}</strong>{{ noticeDetail.targetRole || '-' }}</div>
+        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5 md:col-span-2"><strong>{{ t('layout.noticeDialog.fieldCreateTime') }}</strong>{{ noticeDetail.createTime || '-' }}</div>
       </div>
       <div class="mt-3 rounded-md border border-neutralx-200 p-3 text-[13px] leading-6 text-slatex-700">
-        {{ noticeDetail.content || '暂无内容' }}
+        {{ noticeDetail.content || t('layout.noticeDialog.noContent') }}
       </div>
       <template #footer>
-        <button class="app-btn-secondary" @click="noticeDetailVisible = false">关闭</button>
-        <button class="app-btn-primary" @click="openAnnouncementPage">前往公告列表</button>
+        <button class="app-btn-secondary" @click="noticeDetailVisible = false">{{ t('common.close') }}</button>
+        <button class="app-btn-primary" @click="openAnnouncementPage">{{ t('layout.goAnnouncementList') }}</button>
       </template>
     </AppModal>
   </div>
@@ -260,6 +263,7 @@ import {
   ChevronDown,
   GraduationCap,
   LayoutGrid,
+  Languages,
   LogOut,
   Monitor,
   Moon,
@@ -294,11 +298,15 @@ import AppModal from '@/components/ui/AppModal.vue'
 import { getAnnouncementDetail, getAnnouncementList } from '@/api/announcement'
 import { canRoute } from '@/permission/ability'
 import { useTheme } from '@/composables/useTheme'
+import { useLanguage } from '@/composables/useLanguage'
+import { useI18n } from 'vue-i18n'
 
 const store = useStore()
 const route = useRoute()
 const router = useRouter()
-const { mode: themeMode, setThemeMode } = useTheme(store)
+const { t } = useI18n()
+const { mode: themeMode, cycleThemeMode } = useTheme(store)
+const { language, toggleLanguage } = useLanguage(store)
 
 const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
 
@@ -320,11 +328,15 @@ const noticeDetail = ref({
   createTime: ''
 })
 
-const themeOptions = [
-  { value: 'system', label: '系统', icon: Monitor },
-  { value: 'light', label: '浅色', icon: SunMedium },
-  { value: 'dark', label: '深色', icon: Moon }
-]
+const themeIconMap = {
+  system: Monitor,
+  light: SunMedium,
+  dark: Moon
+}
+
+const currentThemeIcon = computed(() => themeIconMap[themeMode.value] || Monitor)
+const currentThemeLabel = computed(() => t(`theme.mode.${themeMode.value}`))
+const languageLabel = computed(() => (language.value === 'en-US' ? t('language.enUS') : t('language.zhCN')))
 
 const userInfo = computed(() => store.state.userInfo || {})
 const isAuthenticated = computed(() => Boolean(store.state.token))
@@ -336,11 +348,11 @@ const isCollapsed = computed(() => !sidebarOpened.value)
 const readAnnouncementStorageKey = computed(() => `announcement:read:${userInfo.value?.id || 'guest'}`)
 const collapsedGroupKeys = ref([])
 
-const groupLabel = {
-  overview: '总览',
-  teaching: '教学管理',
-  assessment: '考核分析',
-  access: '权限控制'
+const groupTitleKey = {
+  overview: 'menuGroup.overview',
+  teaching: 'menuGroup.teaching',
+  assessment: 'menuGroup.assessment',
+  access: 'menuGroup.access'
 }
 
 const groupIcon = {
@@ -394,14 +406,14 @@ const visibleMenuGroups = computed(() => {
       if (!groups.has(key)) {
         groups.set(key, {
           key,
-          title: groupLabel[key] || '其他',
+          title: t(groupTitleKey[key] || 'menuGroup.other'),
           icon: groupIcon[key] || LayoutGrid,
           items: []
         })
       }
 
       groups.get(key).items.push({
-        title: item.meta?.title || routeName,
+        title: item.meta?.titleKey ? t(item.meta.titleKey) : (item.meta?.title || routeName),
         path: item.path.startsWith('/') ? item.path : `/${item.path}`,
         icon: resolveRouteIcon(item.meta?.icon)
       })
@@ -486,19 +498,19 @@ const syncNotificationCount = () => {
 
 const getTypeLabel = (type) => {
   const map = {
-    SYSTEM: '系统',
-    NOTICE: '通知',
-    ALERT: '提醒'
+    SYSTEM: t('layout.noticeType.system'),
+    NOTICE: t('layout.noticeType.notice'),
+    ALERT: t('layout.noticeType.alert')
   }
-  return map[type] || type || '公告'
+  return map[type] || type || t('layout.notifications')
 }
 
 const getPriorityLabel = (priority) => {
   const value = Number(priority)
-  if (Number.isNaN(value)) return '常规'
-  if (value >= 8) return '高优先'
-  if (value >= 5) return '中优先'
-  return '常规'
+  if (Number.isNaN(value)) return t('layout.priority.normal')
+  if (value >= 8) return t('layout.priority.high')
+  if (value >= 5) return t('layout.priority.medium')
+  return t('layout.priority.normal')
 }
 
 const fetchNotificationSummary = async ({ force = false } = {}) => {
@@ -549,19 +561,19 @@ const openAnnouncementDetail = async (item) => {
     markAnnouncementAsRead(item.id)
     syncNotificationCount()
   } catch (_e) {
-    ElMessage.error('获取公告详情失败')
+    ElMessage.error(t('layout.announcementDetailFailed'))
   }
 }
 
 const executeLogout = () => {
-  ElMessageBox.confirm('确认退出登录吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
+  ElMessageBox.confirm(t('layout.logoutConfirm'), t('common.tip'), {
+    confirmButtonText: t('common.confirm'),
+    cancelButtonText: t('common.cancel'),
     type: 'warning'
   }).then(() => {
     store.dispatch('logout')
     router.push('/login')
-    ElMessage.success('已退出登录')
+    ElMessage.success(t('layout.logoutSuccess'))
   })
 }
 
@@ -637,19 +649,22 @@ onUnmounted(() => {
 }
 
 .layout-sidebar,
-.layout-header,
-.notice-popover,
-.user-popover {
+.layout-header {
   border-color: color-mix(in srgb, var(--panel-border) 84%, transparent);
   background: var(--panel-glass);
   backdrop-filter: blur(12px) saturate(130%);
 }
 
 :root[data-theme='dark'] .layout-sidebar,
-:root[data-theme='dark'] .layout-header,
-:root[data-theme='dark'] .notice-popover,
-:root[data-theme='dark'] .user-popover {
+:root[data-theme='dark'] .layout-header {
   backdrop-filter: blur(10px) saturate(120%);
+}
+
+.notice-popover,
+.user-popover {
+  border-color: var(--popup-border);
+  background: var(--surface-popup);
+  backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
 }
 
 .layout-sidebar,
@@ -892,49 +907,16 @@ onUnmounted(() => {
   color: var(--text-primary);
 }
 
-.theme-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
-  background: color-mix(in srgb, var(--surface-base) 78%, transparent);
-  padding: 2px;
-}
-
-.theme-switch-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border: 1px solid transparent;
-  border-radius: 9px;
-  padding: 4px 8px;
-  font-size: 12px;
-  font-weight: 500;
-  color: color-mix(in srgb, var(--text-primary) 88%, var(--text-secondary));
-  transition: all 180ms ease;
-}
-
-.theme-switch-item:hover {
-  color: var(--text-primary);
-}
-
-.theme-switch-item.is-active {
-  border-color: color-mix(in srgb, var(--accent-500) 28%, transparent);
-  background: color-mix(in srgb, var(--accent-500) 15%, transparent);
-  color: var(--accent-700);
-}
-
 .notice-count {
   background: linear-gradient(140deg, var(--accent-600), var(--accent-700));
 }
 
 .notice-popover,
 .user-popover {
-  border: 1px solid color-mix(in srgb, var(--panel-border) 86%, transparent);
+  border: 1px solid var(--popup-border);
   border-radius: 14px;
   padding: 8px;
-  box-shadow: var(--shadow-panel);
+  box-shadow: var(--popup-shadow);
 }
 
 .notice-card {

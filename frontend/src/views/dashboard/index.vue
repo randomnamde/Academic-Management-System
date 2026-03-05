@@ -4,28 +4,28 @@
       <AppCard class="hero-card xl:col-span-8" surface="glass" content-class="p-4">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p class="text-[12px] uppercase tracking-[0.09em] text-slatex-500">教务总览</p>
+            <p class="text-[12px] uppercase tracking-[0.09em] text-slatex-500">{{ t('dashboard.overviewKicker') }}</p>
             <h2 class="mt-1 text-[30px] font-semibold tracking-tight text-primary-900">{{ dashboardTitle }}</h2>
             <p class="mt-2 text-[15px] text-slatex-600">{{ dashboardDesc }}</p>
           </div>
           <div class="hero-summary grid min-w-[280px] grid-cols-3 gap-2">
             <div class="kpi-chip">
-              <span>待处理审批</span>
+              <span>{{ t('dashboard.pendingApproval') }}</span>
               <strong>{{ operationOverview.pendingApprovalCount }}</strong>
             </div>
             <div class="kpi-chip">
-              <span>异常考勤</span>
+              <span>{{ t('dashboard.abnormalAttendance') }}</span>
               <strong>{{ operationOverview.abnormalTodayCount }}</strong>
             </div>
             <div class="kpi-chip">
-              <span>低分预警</span>
+              <span>{{ t('dashboard.lowScoreWarning') }}</span>
               <strong>{{ operationOverview.lowScoreWarningCount }}</strong>
             </div>
           </div>
         </div>
       </AppCard>
 
-      <AppCard class="cluster-card xl:col-span-4" title="关键指标簇" surface="elevated" content-class="p-3">
+      <AppCard class="cluster-card xl:col-span-4" :title="t('dashboard.keyMetrics')" surface="elevated" content-class="p-3">
         <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
           <button
             v-for="item in metricCards"
@@ -41,61 +41,61 @@
         </div>
       </AppCard>
 
-      <AppCard v-if="!isStudent" class="xl:col-span-4" title="学生性别分布" content-class="p-3">
+      <AppCard v-if="!isStudent" class="xl:col-span-4" :title="t('dashboard.genderDistribution')" content-class="p-3">
         <div ref="genderChartRef" class="chart-canvas"></div>
       </AppCard>
 
-      <AppCard v-if="!isStudent" class="xl:col-span-4" title="课程类型分布" content-class="p-3">
+      <AppCard v-if="!isStudent" class="xl:col-span-4" :title="t('dashboard.courseDistribution')" content-class="p-3">
         <div ref="courseChartRef" class="chart-canvas"></div>
       </AppCard>
 
-      <AppCard v-else class="xl:col-span-8" title="个人学习概览" content-class="p-3">
+      <AppCard v-else class="xl:col-span-8" :title="t('dashboard.personalLearningOverview')" content-class="p-3">
         <div class="grid grid-cols-2 gap-2 md:grid-cols-4">
           <div class="mini-card">
-            <span>任课教师</span>
+            <span>{{ t('dashboard.metricTeachers') }}</span>
             <strong>{{ statistics.teacherCount }}</strong>
           </div>
           <div class="mini-card">
-            <span>我的课程</span>
+            <span>{{ t('dashboard.metricMyCourses') }}</span>
             <strong>{{ statistics.courseCount }}</strong>
           </div>
           <div class="mini-card">
-            <span>我的班级</span>
+            <span>{{ t('dashboard.metricMyClasses') }}</span>
             <strong>{{ statistics.classCount }}</strong>
           </div>
           <div class="mini-card">
-            <span>待处理请假</span>
+            <span>{{ t('dashboard.metricPendingLeave') }}</span>
             <strong>{{ operationOverview.pendingApprovalCount }}</strong>
           </div>
         </div>
       </AppCard>
 
-      <AppCard class="xl:col-span-4" title="运营事项" content-class="p-3">
+      <AppCard class="xl:col-span-4" :title="t('dashboard.operations')" content-class="p-3">
         <div class="space-y-2">
           <button class="ops-item" @click="goAnalytics({ riskType: 'approval_overdue' })">
-            <span>待处理审批</span>
+            <span>{{ t('dashboard.pendingApproval') }}</span>
             <strong>{{ operationOverview.pendingApprovalCount }}</strong>
           </button>
           <button class="ops-item" @click="goAnalytics({ riskType: 'abnormal_attendance' })">
-            <span>异常考勤</span>
+            <span>{{ t('dashboard.abnormalAttendance') }}</span>
             <strong>{{ operationOverview.abnormalTodayCount }}</strong>
           </button>
           <button class="ops-item" @click="goAnalytics({ riskType: 'low_score' })">
-            <span>{{ isStudent ? '我的低分预警' : '低分预警' }}</span>
+            <span>{{ isStudent ? t('dashboard.myLowScoreWarning') : t('dashboard.lowScoreWarning') }}</span>
             <strong>{{ operationOverview.lowScoreWarningCount }}</strong>
           </button>
         </div>
       </AppCard>
 
-      <AppCard class="xl:col-span-8" :title="isStudent ? '近7日我的异常考勤趋势' : '近7日异常考勤趋势'" content-class="p-3">
+      <AppCard class="xl:col-span-8" :title="isStudent ? t('dashboard.abnormalTrendStudent') : t('dashboard.abnormalTrend')" content-class="p-3">
         <div ref="trendChartRef" class="chart-canvas"></div>
       </AppCard>
 
-      <AppCard class="xl:col-span-4" title="最新公告" surface="base" content-class="p-3">
+      <AppCard class="xl:col-span-4" :title="t('dashboard.latestAnnouncements')" surface="base" content-class="p-3">
         <template #header>
-          <AppButton variant="text" size="sm" @click="$router.push('/announcement')">查看更多</AppButton>
+          <AppButton variant="text" size="sm" @click="$router.push('/announcement')">{{ t('dashboard.viewMore') }}</AppButton>
         </template>
-        <el-empty v-if="announcementLoading || !announcements.length" :description="announcementLoading ? '加载中...' : '暂无公告'" />
+        <el-empty v-if="announcementLoading || !announcements.length" :description="announcementLoading ? t('common.loading') : t('dashboard.noAnnouncement')" />
         <div v-else class="space-y-1">
           <button
             v-for="item in announcements"
@@ -109,9 +109,9 @@
         </div>
       </AppCard>
 
-      <AppCard class="xl:col-span-12" title="待办事项" surface="glass" content-class="p-3">
+      <AppCard class="xl:col-span-12" :title="t('dashboard.todos')" surface="glass" content-class="p-3">
         <template #header>
-          <AppButton variant="ghost" size="sm" :loading="todoLoading" @click="refreshTodos">刷新</AppButton>
+          <AppButton variant="ghost" size="sm" :loading="todoLoading" @click="refreshTodos">{{ t('dashboard.refresh') }}</AppButton>
         </template>
 
         <div class="mb-3 grid gap-2 md:grid-cols-[1fr_auto]">
@@ -120,15 +120,15 @@
             clearable
             maxlength="60"
             show-word-limit
-            placeholder="添加个人待办，例如：准备班会材料"
+            :placeholder="t('dashboard.todoPlaceholder')"
             @keyup.enter="addCustomTodo"
           />
-          <AppButton @click="addCustomTodo">添加</AppButton>
+          <AppButton @click="addCustomTodo">{{ t('dashboard.add') }}</AppButton>
         </div>
 
         <el-skeleton :loading="todoLoading" animated :rows="4">
           <template #default>
-            <el-empty v-if="!todoList.length" description="暂无待办事项" />
+            <el-empty v-if="!todoList.length" :description="t('dashboard.noTodos')" />
             <div v-else class="space-y-2">
               <div
                 v-for="item in todoList"
@@ -147,8 +147,8 @@
                   </div>
                 </div>
                 <div class="flex items-center gap-1">
-                  <AppButton v-if="item.route" variant="ghost" size="sm" @click="openTodoRoute(item)">前往</AppButton>
-                  <AppButton v-if="item.type === 'custom'" variant="danger" size="sm" @click="removeCustomTodo(item.id)">删除</AppButton>
+                  <AppButton v-if="item.route" variant="ghost" size="sm" @click="openTodoRoute(item)">{{ t('dashboard.goTo') }}</AppButton>
+                  <AppButton v-if="item.type === 'custom'" variant="danger" size="sm" @click="removeCustomTodo(item.id)">{{ t('dashboard.delete') }}</AppButton>
                 </div>
               </div>
             </div>
@@ -157,18 +157,18 @@
       </AppCard>
     </section>
 
-    <AppModal v-model="detailDialogVisible" title="公告详情" width="720px">
+    <AppModal v-model="detailDialogVisible" :title="t('dashboard.noticeDetailTitle')" width="720px">
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="标题" :span="2">{{ detail.title || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="类型">{{ detail.type || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="目标角色">{{ detail.targetRole || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="优先级">{{ detail.priority ?? '-' }}</el-descriptions-item>
-        <el-descriptions-item label="发布时间">{{ detail.createTime || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('dashboard.title')" :span="2">{{ detail.title || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('dashboard.type')">{{ detail.type || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('dashboard.targetRole')">{{ detail.targetRole || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('dashboard.priority')">{{ detail.priority ?? '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('dashboard.publishTime')">{{ detail.createTime || '-' }}</el-descriptions-item>
       </el-descriptions>
       <el-divider />
-      <div class="text-[13px] leading-6 text-slatex-700">{{ detail.content || '暂无内容' }}</div>
+      <div class="text-[13px] leading-6 text-slatex-700">{{ detail.content || t('dashboard.noContent') }}</div>
       <template #footer>
-        <AppButton variant="secondary" @click="detailDialogVisible = false">关闭</AppButton>
+        <AppButton variant="secondary" @click="detailDialogVisible = false">{{ t('common.close') }}</AppButton>
       </template>
     </AppModal>
   </div>
@@ -178,6 +178,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppBadge from '@/components/ui/AppBadge.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
@@ -196,6 +197,7 @@ use([PieChart, BarChart, LineChart, TooltipComponent, LegendComponent, GridCompo
 
 const router = useRouter()
 const store = useStore()
+const { t } = useI18n()
 
 const genderChartRef = ref(null)
 const courseChartRef = ref(null)
@@ -241,35 +243,35 @@ const userRole = computed(() => userInfo.value.primaryRole || userInfo.value.rol
 const isStudent = computed(() => isAuthenticated.value && userRole.value === 'STUDENT')
 const isTeacher = computed(() => ['HOMEROOM_TEACHER', 'COURSE_TEACHER'].includes(userRole.value))
 
-const dashboardTitle = computed(() => (isStudent.value ? '个人学习总览' : '教学运营总览'))
+const dashboardTitle = computed(() => (isStudent.value ? t('dashboard.titleStudent') : t('dashboard.titleAdmin')))
 const dashboardDesc = computed(() =>
   isStudent.value
-    ? '聚焦我的课程、考勤与请假状态，快速定位今日学习任务。'
-    : '聚焦学生、课程、考勤与审批数据，快速定位今日管理重点。'
+    ? t('dashboard.descStudent')
+    : t('dashboard.descAdmin')
 )
 
 const metricCards = computed(() => [
   {
     key: 'student',
-    label: isStudent.value ? '我的信息' : '学生总数',
+    label: isStudent.value ? t('dashboard.metricMyInfo') : t('dashboard.metricStudentCount'),
     value: isStudent.value ? 1 : statistics.value.studentCount,
     disabled: false
   },
   {
     key: 'teacher',
-    label: isStudent.value ? '任课教师' : '教师总数',
+    label: isStudent.value ? t('dashboard.metricTeachers') : t('dashboard.metricTeacherCount'),
     value: statistics.value.teacherCount,
     disabled: isTeacher.value && !isStudent.value
   },
   {
     key: 'course',
-    label: isStudent.value ? '我的课程' : '课程总数',
+    label: isStudent.value ? t('dashboard.metricMyCourses') : t('dashboard.metricCourseCount'),
     value: statistics.value.courseCount,
     disabled: false
   },
   {
     key: 'class',
-    label: isStudent.value ? '我的班级' : '班级总数',
+    label: isStudent.value ? t('dashboard.metricMyClasses') : t('dashboard.metricClassCount'),
     value: statistics.value.classCount,
     disabled: false
   }
@@ -287,7 +289,7 @@ const padZero = (value) => String(value).padStart(2, '0')
 const formatDate = (date) => `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(date.getDate())}`
 
 const formatDateTime = (value) => {
-  if (!value) return '刚刚'
+  if (!value) return t('dashboard.justNow')
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return String(value)
   return `${formatDate(date)} ${padZero(date.getHours())}:${padZero(date.getMinutes())}`
@@ -386,14 +388,14 @@ const saveCompletedTodoIds = () => {
 const addCustomTodo = () => {
   const title = todoDraft.value.trim()
   if (!title) {
-    ElMessage.warning('请输入待办内容')
+    ElMessage.warning(t('dashboard.todoRequired'))
     return
   }
   customTodos.value.unshift(
     createTodoItem({
       id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       title,
-      sourceLabel: '个人',
+      sourceLabel: t('dashboard.todoSourcePersonal'),
       type: 'custom'
     })
   )
@@ -436,8 +438,8 @@ const refreshTodos = async () => {
         tasks.push(
           createTodoItem({
             id: `announcement-${item.id}`,
-            title: `阅读公告：${item.title}`,
-            sourceLabel: '公告',
+            title: t('dashboard.todoReadAnnouncement', { title: item.title }),
+            sourceLabel: t('dashboard.todoSourceAnnouncement'),
             route: '/announcement',
             createdAt: item.createTime
           })
@@ -460,8 +462,8 @@ const refreshTodos = async () => {
       tasks.push(
         createTodoItem({
           id: `attendance-absent-${today}-${absentTotal}`,
-          title: `处理今日缺勤记录（${absentTotal} 条）`,
-          sourceLabel: '考勤',
+          title: t('dashboard.todoAbsent', { count: absentTotal }),
+          sourceLabel: t('dashboard.todoSourceAttendance'),
           route: '/attendance'
         })
       )
@@ -471,8 +473,8 @@ const refreshTodos = async () => {
       tasks.push(
         createTodoItem({
           id: `attendance-late-${today}-${lateTotal}`,
-          title: `处理今日迟到记录（${lateTotal} 条）`,
-          sourceLabel: '考勤',
+          title: t('dashboard.todoLate', { count: lateTotal }),
+          sourceLabel: t('dashboard.todoSourceAttendance'),
           route: '/attendance'
         })
       )
@@ -489,8 +491,8 @@ const refreshTodos = async () => {
         tasks.push(
           createTodoItem({
             id: `leave-pending-${pendingTotal}`,
-            title: `审批请假申请（${pendingTotal} 条待处理）`,
-            sourceLabel: '审批',
+            title: t('dashboard.todoLeaveApprove', { count: pendingTotal }),
+            sourceLabel: t('dashboard.todoSourceApproval'),
             route: '/leave-request'
           })
         )
@@ -502,8 +504,8 @@ const refreshTodos = async () => {
         tasks.push(
           createTodoItem({
             id: `my-leave-pending-${myPendingTotal}`,
-            title: `跟进我的请假申请（${myPendingTotal} 条审核中）`,
-            sourceLabel: '请假',
+            title: t('dashboard.todoMyLeave', { count: myPendingTotal }),
+            sourceLabel: t('dashboard.todoSourceLeave'),
             route: '/leave-request'
           })
         )
@@ -530,7 +532,7 @@ const renderGenderChart = () => {
     tooltip: { ...baseTooltip, trigger: 'item' },
     title: {
       text: String(total),
-      subtext: '总人数',
+      subtext: t('dashboard.totalPeople'),
       left: 'center',
       top: '40%',
       textStyle: {
@@ -562,8 +564,8 @@ const renderGenderChart = () => {
         labelLine: { show: false },
         itemStyle: { borderColor: theme.canvasEdge, borderWidth: 2 },
         data: [
-          { value: male, name: '男生' },
-          { value: female, name: '女生' }
+          { value: male, name: t('dashboard.maleStudents') },
+          { value: female, name: t('dashboard.femaleStudents') }
         ]
       }
     ]
@@ -590,7 +592,7 @@ const renderCourseChart = () => {
     grid: { top: 18, left: 34, right: 14, bottom: 26 },
     xAxis: {
       type: 'category',
-      data: ['必修', '选修', '实践'],
+      data: [t('course.categoryRequired'), t('course.categoryElective'), t('course.categoryPractical')],
       axisLabel: baseAxisLabel,
       axisTick: { show: false },
       axisLine: { lineStyle: { color: theme.border } }
@@ -641,7 +643,7 @@ const renderTrendChart = () => {
     },
     series: [
       {
-        name: '异常考勤',
+        name: t('dashboard.abnormalAttendance'),
         type: 'line',
         smooth: true,
         showSymbol: true,
@@ -721,7 +723,7 @@ const fetchDashboardOverview = async () => {
     renderCourseChart()
     renderTrendChart()
   } catch (_e) {
-    ElMessage.error('获取首页数据失败')
+    ElMessage.error(t('dashboard.loadFailed'))
   }
 }
 
@@ -741,7 +743,7 @@ const openAnnouncementDetail = async (item) => {
     detail.value = res.data || {}
     detailDialogVisible.value = true
   } catch (_e) {
-    ElMessage.error('获取公告详情失败')
+    ElMessage.error(t('dashboard.loadNoticeDetailFailed'))
   }
 }
 
@@ -754,7 +756,7 @@ const handleMetricClick = (type) => {
   }
 
   if (isTeacher.value && type === 'teacher') {
-    ElMessage.warning('教师仅可查看本人授课范围数据')
+    ElMessage.warning(t('dashboard.teacherScopeTip'))
     return
   }
 

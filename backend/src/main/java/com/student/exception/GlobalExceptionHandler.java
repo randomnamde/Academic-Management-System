@@ -7,6 +7,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -63,6 +64,12 @@ public class GlobalExceptionHandler {
     public ResultVO<Void> handleBadCredentialsException(BadCredentialsException e) {
         log.error("Bad credentials: {}", e.getMessage());
         return ResultVO.error(401, "Unauthorized");
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResultVO<Void> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.error("Resource not found: {}", e.getResourcePath());
+        return ResultVO.error(404, "Not Found");
     }
 
     @ExceptionHandler(Exception.class)

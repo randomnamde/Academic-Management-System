@@ -1,4 +1,5 @@
 import request from './request'
+import { downloadWithAuth } from '@/utils/download'
 
 export function login(data) {
   return request({
@@ -70,5 +71,26 @@ export function updateUserStatus(id, status) {
     url: `/user/${id}/status`,
     method: 'put',
     params: { status }
+  })
+}
+
+export function downloadUserImportTemplate(roleType, fileType = 'xlsx') {
+  const targetType = fileType === 'csv' ? 'csv' : 'xlsx'
+  return downloadWithAuth(
+    '/user/import/template',
+    { roleType, fileType: targetType },
+    `user-import-template.${targetType}`
+  )
+}
+
+export function importUsers(roleType, file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request({
+    url: '/user/import',
+    method: 'post',
+    params: { roleType },
+    data: formData,
+    headers: { 'Content-Type': 'multipart/form-data' }
   })
 }

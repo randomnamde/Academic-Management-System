@@ -376,8 +376,9 @@ onBeforeUnmount(() => {
 
 .entry-subtitle {
   margin: 0;
-  font-size: 15px;
+  font-size: 19px;
   line-height: 1.7;
+  font-family: "KaiTi", "STKaiti", "Kaiti SC", "KaiTi_GB2312", serif;
   color: var(--text-secondary);
 }
 

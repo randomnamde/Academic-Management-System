@@ -102,9 +102,11 @@ public class ClassController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String grade,
+            @RequestParam(required = false) Long collegeId,
             @RequestParam(required = false) Long teacherId,
             Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
         if (scopedCollegeId != null) {
             Page<Class> pageParam = new Page<>(page, size);
             Year gradeYear = null;
@@ -116,7 +118,7 @@ public class ClassController {
                 }
             }
             LambdaQueryWrapper<Class> wrapper = new LambdaQueryWrapper<Class>()
-                    .eq(Class::getCollegeId, scopedCollegeId)
+                    .eq(Class::getCollegeId, effectiveCollegeId)
                     .like(className != null && !className.isBlank(), Class::getClassName, className)
                     .eq(gradeYear != null, Class::getGrade, gradeYear)
                     .eq(teacherId != null, Class::getTeacherId, teacherId);
@@ -149,6 +151,25 @@ public class ClassController {
             Page<Class> result = classService.page(pageParam, wrapper);
             return ResultVO.success(result);
         }
+        if (effectiveCollegeId != null) {
+            Page<Class> pageParam = new Page<>(page, size);
+            Year gradeYear = null;
+            if (grade != null && !grade.isBlank()) {
+                try {
+                    gradeYear = Year.parse(grade);
+                } catch (Exception ignored) {
+                    gradeYear = null;
+                }
+            }
+            LambdaQueryWrapper<Class> wrapper = new LambdaQueryWrapper<Class>()
+                    .eq(Class::getCollegeId, effectiveCollegeId)
+                    .like(className != null && !className.isBlank(), Class::getClassName, className)
+                    .eq(gradeYear != null, Class::getGrade, gradeYear)
+                    .eq(teacherId != null, Class::getTeacherId, teacherId);
+            Page<Class> result = classService.page(pageParam, wrapper);
+            return ResultVO.success(result);
+        }
+
         Page<Class> result = classService.getClassPage(page, size, className, grade, teacherId);
         return ResultVO.success(result);
     }

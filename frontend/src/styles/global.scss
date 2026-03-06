@@ -320,6 +320,12 @@ a {
   background: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
 }
 
+:root[data-theme='light'] .el-select-dropdown__item.hover,
+:root[data-theme='light'] .el-select-dropdown__item:hover,
+:root[data-theme='light'] .el-dropdown-menu__item:not(.is-disabled):hover {
+  background: color-mix(in srgb, var(--surface-base) 82%, transparent);
+}
+
 .el-dropdown-menu__item--divided::before,
 .el-select-group__wrap:not(:last-of-type)::after {
   background-color: var(--el-border-color-lighter);
@@ -385,6 +391,16 @@ a {
 .el-dialog__footer {
   padding: 10px 16px 14px;
   border-top: 1px solid color-mix(in srgb, var(--sms-border) 80%, transparent);
+}
+
+:root[data-theme='light'] .el-dialog__header {
+  border-bottom-color: color-mix(in srgb, var(--accent-500) 10%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 18%, transparent);
+}
+
+:root[data-theme='light'] .el-dialog__footer {
+  border-top-color: color-mix(in srgb, var(--accent-500) 10%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 16%, transparent);
 }
 
 .el-pagination {

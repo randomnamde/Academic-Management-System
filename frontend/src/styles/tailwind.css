@@ -265,6 +265,45 @@
     backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
   }
 
+  .app-modal-header {
+    @apply flex items-center justify-between pb-2;
+    border-bottom: 1px solid color-mix(in srgb, var(--panel-border) 54%, transparent);
+  }
+
+  .app-modal-footer {
+    @apply flex justify-end gap-2 pt-3;
+    border-top: 1px solid color-mix(in srgb, var(--panel-border) 54%, transparent);
+  }
+
+  .app-modal-close {
+    @apply rounded-md border px-1.5 py-0.5 text-slatex-500 transition-all duration-180 touch-target;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .app-modal-close:hover {
+    transform: translateY(-1px);
+  }
+
+  :root[data-theme='light'] .app-modal-header,
+  :root[data-theme='light'] .app-modal-footer {
+    border-color: color-mix(in srgb, var(--accent-500) 10%, transparent);
+    background: color-mix(in srgb, var(--surface-base) 18%, transparent);
+  }
+
+  :root[data-theme='light'] .app-modal-close {
+    border-color: color-mix(in srgb, var(--accent-500) 12%, transparent);
+    background: color-mix(in srgb, var(--surface-base) 28%, transparent);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-500) 8%, transparent);
+  }
+
+  :root[data-theme='light'] .app-modal-close:hover,
+  :root[data-theme='light'] .app-modal-close:focus-visible {
+    border-color: color-mix(in srgb, var(--accent-500) 24%, transparent);
+    background: color-mix(in srgb, var(--surface-base) 46%, transparent);
+    color: var(--text-primary);
+  }
+
   .skip-link {
     position: fixed;
     top: 10px;

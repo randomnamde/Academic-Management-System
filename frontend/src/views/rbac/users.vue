@@ -1,35 +1,61 @@
-﻿<template>
-  <CrudPageShell :title="t('rbac.users.pageTitle')">
+<template>
+  <CrudPageShell :title="t('rbac.users.listPageTitle')">
     <template #header-actions>
+      <AppButton variant="secondary" @click="router.push('/rbac/users')">{{ t('rbac.users.backToHub') }}</AppButton>
       <AppButton variant="secondary" @click="openImportDialog">{{ t('rbac.users.batchImport') }}</AppButton>
     </template>
 
     <template #filters>
-      <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item :label="t('rbac.users.filterUsername')">
-          <el-input v-model="searchForm.username" clearable :placeholder="t('rbac.users.filterUsernamePlaceholder')" />
-        </el-form-item>
-        <el-form-item :label="t('rbac.users.filterRole')">
-          <el-select v-model="searchForm.role" clearable style="width: 140px">
-            <el-option
-              v-for="option in roleOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
+      <div class="grid grid-cols-12 gap-2">
+        <el-input
+          v-model="searchForm.username"
+          clearable
+          :placeholder="t('rbac.users.filterUsernamePlaceholder')"
+          class="col-span-12 md:col-span-3"
+        />
+        <el-select
+          v-model="searchForm.roleCode"
+          clearable
+          :placeholder="t('rbac.users.filterRole')"
+          class="col-span-12 md:col-span-2"
+        >
+          <el-option v-for="option in roleOptions" :key="option.value" :label="option.label" :value="option.value" />
+        </el-select>
+        <el-select
+          v-model="searchForm.collegeId"
+          clearable
+          :placeholder="t('rbac.users.filterCollege')"
+          :disabled="isCollegeAdmin"
+          class="col-span-12 md:col-span-3"
+        >
+          <el-option v-for="option in collegeOptions" :key="option.value" :label="option.label" :value="option.value" />
+        </el-select>
+        <el-select
+          v-model="searchForm.classId"
+          clearable
+          :placeholder="t('rbac.users.filterClass')"
+          class="col-span-12 md:col-span-2"
+        >
+          <el-option v-for="option in classOptions" :key="option.value" :label="option.label" :value="option.value" />
+        </el-select>
+        <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-2">
+          <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
           <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
-        </el-form-item>
-      </el-form>
+        </div>
+      </div>
     </template>
 
     <template #table>
       <AppTable :columns="columns" :rows="tableData" :loading="loading" :density="tableDensity">
         <template #cell-role="{ row }">
-          <AppBadge :type="roleBadgeType(row.role)">{{ roleLabel(row.role) }}</AppBadge>
+          <AppBadge :type="roleBadgeType(row.primaryRole)">{{ roleLabel(t, row.primaryRole) }}</AppBadge>
+        </template>
+        <template #cell-roles="{ row }">
+          <div class="flex flex-wrap gap-1.5">
+            <AppBadge v-for="code in row.roles || []" :key="`${row.id}-${code}`" :type="roleBadgeType(code)">
+              {{ roleLabel(t, code) }}
+            </AppBadge>
+          </div>
         </template>
         <template #cell-status="{ row }">
           <div class="flex items-center gap-2">
@@ -137,6 +163,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
@@ -145,42 +172,43 @@ import AppBadge from '@/components/ui/AppBadge.vue'
 import AppTable from '@/components/ui/AppTable.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { downloadUserImportTemplate, getUserList, importUsers, updateUserStatus } from '@/api/user'
+import { getCollegeList } from '@/api/college'
+import { getClassList } from '@/api/clazz'
+import { buildRoleOptions, roleBadgeType, roleLabel } from './roleMeta'
 
+const router = useRouter()
 const store = useStore()
 const { t } = useI18n()
 const tableDensity = computed(() => store.getters.tableDensity)
+const currentRole = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
+const isCollegeAdmin = computed(() => currentRole.value === 'COLLEGE_ADMIN')
 
 const loading = ref(false)
 const page = ref(1)
 const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
+const collegeOptions = ref([])
+const classOptions = ref([])
 
 const searchForm = reactive({
   username: '',
-  role: ''
+  roleCode: '',
+  collegeId: null,
+  classId: null
 })
 
-const roleOptions = computed(() => [
-  { value: 'SCHOOL_ADMIN', label: t('roles.schoolAdmin') },
-  { value: 'COLLEGE_ADMIN', label: t('roles.collegeAdmin') },
-  { value: 'HOMEROOM_TEACHER', label: t('roles.homeroomTeacher') },
-  { value: 'COURSE_TEACHER', label: t('roles.courseTeacher') },
-  { value: 'STUDENT', label: t('roles.student') }
-])
-
-const importRoleOptions = computed(() => [
-  { value: 'COLLEGE_ADMIN', label: t('roles.collegeAdmin') },
-  { value: 'HOMEROOM_TEACHER', label: t('roles.homeroomTeacher') },
-  { value: 'COURSE_TEACHER', label: t('roles.courseTeacher') },
-  { value: 'STUDENT', label: t('roles.student') }
-])
+const roleOptions = computed(() => buildRoleOptions(t))
+const importRoleOptions = computed(() => buildRoleOptions(t).filter((item) => item.value !== 'SCHOOL_ADMIN'))
 
 const columns = computed(() => [
-  { key: 'username', title: t('rbac.users.colUsername'), width: 180 },
-  { key: 'realName', title: t('rbac.users.colRealName'), width: 160 },
-  { key: 'role', title: t('rbac.users.colRole'), width: 140 },
-  { key: 'phone', title: t('rbac.users.colPhone'), width: 160 },
+  { key: 'username', title: t('rbac.users.colUsername'), width: 150 },
+  { key: 'realName', title: t('rbac.users.colRealName'), width: 120 },
+  { key: 'role', title: t('rbac.users.colRole'), width: 120 },
+  { key: 'roles', title: t('rbac.users.colAssignedRoles'), width: 220 },
+  { key: 'collegeName', title: t('rbac.users.colCollege'), width: 160 },
+  { key: 'classDisplayName', title: t('rbac.users.colClass'), width: 180 },
+  { key: 'phone', title: t('rbac.users.colPhone'), width: 150 },
   { key: 'email', title: t('rbac.users.colEmail') },
   { key: 'status', title: t('rbac.users.colStatus'), width: 140 }
 ])
@@ -198,6 +226,29 @@ const importResult = ref(null)
 
 const fileAccept = computed(() => (importForm.fileType === 'csv' ? '.csv' : '.xlsx'))
 
+async function loadCollegeOptions() {
+  const res = await getCollegeList({ page: 1, size: 200 })
+  collegeOptions.value = (res.data?.records || []).map((item) => ({
+    value: item.id,
+    label: item.collegeName
+  }))
+  if (isCollegeAdmin.value && collegeOptions.value.length) {
+    searchForm.collegeId = searchForm.collegeId || collegeOptions.value[0].value
+  }
+}
+
+async function loadClassOptions(collegeId) {
+  if (!collegeId) {
+    classOptions.value = []
+    return
+  }
+  const res = await getClassList({ page: 1, size: 200, collegeId })
+  classOptions.value = (res.data?.records || []).map((item) => ({
+    value: item.id,
+    label: item.className
+  }))
+}
+
 async function fetchList() {
   loading.value = true
   try {
@@ -205,7 +256,9 @@ async function fetchList() {
       page: page.value,
       size: size.value,
       username: searchForm.username || undefined,
-      role: searchForm.role || undefined
+      roleCode: searchForm.roleCode || undefined,
+      collegeId: searchForm.collegeId || undefined,
+      classId: searchForm.classId || undefined
     })
     tableData.value = res.data?.records || []
     total.value = Number(res.data?.total || 0)
@@ -221,25 +274,13 @@ function handleSearch() {
 
 function handleReset() {
   searchForm.username = ''
-  searchForm.role = ''
+  searchForm.roleCode = ''
+  searchForm.classId = null
+  if (!isCollegeAdmin.value) {
+    searchForm.collegeId = null
+  }
+  loadClassOptions(searchForm.collegeId)
   handleSearch()
-}
-
-function roleLabel(role) {
-  if (role === 'SCHOOL_ADMIN') return t('roles.schoolAdmin')
-  if (role === 'COLLEGE_ADMIN') return t('roles.collegeAdmin')
-  if (role === 'HOMEROOM_TEACHER') return t('roles.homeroomTeacher')
-  if (role === 'COURSE_TEACHER') return t('roles.courseTeacher')
-  if (role === 'STUDENT') return t('roles.student')
-  return role
-}
-
-function roleBadgeType(role) {
-  if (role === 'SCHOOL_ADMIN') return 'danger'
-  if (role === 'COLLEGE_ADMIN') return 'warning'
-  if (role === 'HOMEROOM_TEACHER' || role === 'COURSE_TEACHER') return 'info'
-  if (role === 'STUDENT') return 'success'
-  return 'info'
 }
 
 async function handleStatusChange(row, enabled) {
@@ -339,6 +380,15 @@ function csvEscape(value) {
 }
 
 watch(
+  () => searchForm.collegeId,
+  async (value, oldValue) => {
+    if (value === oldValue) return
+    searchForm.classId = null
+    await loadClassOptions(value)
+  }
+)
+
+watch(
   () => importForm.fileType,
   () => {
     selectedFile.value = null
@@ -346,7 +396,11 @@ watch(
   }
 )
 
-onMounted(fetchList)
+onMounted(async () => {
+  await loadCollegeOptions()
+  await loadClassOptions(searchForm.collegeId)
+  await fetchList()
+})
 </script>
 
 <style scoped>

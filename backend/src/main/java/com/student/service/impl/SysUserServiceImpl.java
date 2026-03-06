@@ -33,6 +33,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -224,6 +226,39 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    public Map<Long, LinkedHashSet<String>> getRoleCodeNamesByUserIds(Set<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<SysUserRole> relations = sysUserRoleMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUserRole>()
+                        .in(SysUserRole::getUserId, userIds)
+                        .orderByAsc(SysUserRole::getId));
+
+        Map<Long, LinkedHashSet<String>> result = new HashMap<>();
+        for (SysUserRole relation : relations) {
+            RoleCode code = RoleCode.from(relation.getRoleCode());
+            if (code == null) {
+                continue;
+            }
+            result.computeIfAbsent(relation.getUserId(), key -> new LinkedHashSet<>()).add(code.name());
+        }
+
+        List<SysUser> users = userMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUser>()
+                        .in(SysUser::getId, userIds));
+        for (SysUser user : users) {
+            if (user == null || user.getId() == null || user.getRole() == null) {
+                continue;
+            }
+            result.computeIfAbsent(user.getId(), key -> new LinkedHashSet<>()).add(user.getRole().name());
+        }
+
+        return result;
+    }
+
+    @Override
     @Transactional
     public void grantRole(Long userId, RoleCode roleCode) {
         if (userId == null || roleCode == null) {
@@ -241,6 +276,38 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         relation.setUserId(userId);
         relation.setRoleCode(roleCode.name());
         sysUserRoleMapper.insert(relation);
+        syncPrimaryRole(userId);
+    }
+
+    @Override
+    @Transactional
+    public void assignRoles(Long userId, Set<RoleCode> roleCodes) {
+        if (userId == null) {
+            throw new BusinessException("User not found");
+        }
+        if (roleCodes == null || roleCodes.isEmpty()) {
+            throw new BusinessException("Role set cannot be empty");
+        }
+
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("User not found");
+        }
+
+        sysUserRoleMapper.delete(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUserRole>()
+                        .eq(SysUserRole::getUserId, userId));
+
+        for (RoleCode roleCode : roleCodes) {
+            if (roleCode == null) {
+                continue;
+            }
+            SysUserRole relation = new SysUserRole();
+            relation.setUserId(userId);
+            relation.setRoleCode(roleCode.name());
+            sysUserRoleMapper.insert(relation);
+        }
+
         syncPrimaryRole(userId);
     }
 

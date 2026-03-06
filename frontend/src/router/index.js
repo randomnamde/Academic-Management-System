@@ -115,8 +115,20 @@ const routes = [
       {
         path: 'rbac/users',
         name: 'RBACUsers',
+        component: () => import('@/views/rbac/hub.vue'),
+        meta: { titleKey: 'route.rbacUsers', icon: 'UserFilled', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access' }
+      },
+      {
+        path: 'rbac/users/assignments',
+        name: 'RBACUserAssignments',
+        component: () => import('@/views/rbac/assignments.vue'),
+        meta: { titleKey: 'route.rbacUserAssignments', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true }
+      },
+      {
+        path: 'rbac/users/list',
+        name: 'RBACUserList',
         component: () => import('@/views/rbac/users.vue'),
-        meta: { titleKey: 'route.rbacUsers', icon: 'UserFilled', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
+        meta: { titleKey: 'route.rbacUserList', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access', hideInMenu: true }
       },
       {
         path: 'rbac/roles',

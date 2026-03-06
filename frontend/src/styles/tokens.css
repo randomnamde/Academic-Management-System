@@ -28,12 +28,12 @@
   --surface-base: #ffffff;
   --surface-elevated: #f6fbff;
   --surface-popover: rgba(255, 255, 255, 0.84);
-  --surface-popup: rgba(255, 255, 255, 0.92);
-  --popup-border: color-mix(in srgb, var(--panel-border) 72%, transparent);
-  --popup-shadow: 0 14px 34px rgba(15, 48, 72, 0.12);
-  --popup-blur: 8px;
-  --popup-saturate: 112%;
-  --popup-backdrop: color-mix(in srgb, var(--color-black) 34%, transparent);
+  --surface-popup: rgba(255, 255, 255, 0.90);
+  --popup-border: color-mix(in srgb, var(--accent-500) 14%, rgba(255, 255, 255, 0.90));
+  --popup-shadow: 0 18px 44px rgba(18, 56, 82, 0.10);
+  --popup-blur: 16px;
+  --popup-saturate: 132%;
+  --popup-backdrop: color-mix(in srgb, var(--accent-700) 4%, transparent);
   --surface-grid-line: rgba(43, 96, 129, 0.06);
 
   --shadow-soft: 0 8px 24px rgba(26, 66, 92, 0.07);

@@ -1,4 +1,4 @@
-export default {
+﻿export default {
   common: {
     close: '关闭',
     cancel: '取消',
@@ -37,7 +37,10 @@ export default {
     rbacPermissions: '权限矩阵',
     rbacAudit: '审计日志',
     profile: '个人中心',
-    system: '系统偏好'
+    system: '系统偏好',
+    rbacUsers: '\u6743\u9650\u7528\u6237',
+    rbacUserAssignments: '\u89d2\u8272\u5206\u914d',
+    rbacUserList: '\u7528\u6237\u5217\u8868'
   },
   menuGroup: {
     overview: '总览',
@@ -797,7 +800,30 @@ export default {
       colFailReason: '失败原因',
       colRawData: '原始数据',
       selectFileFirst: '请先选择导入文件',
-      noFailData: '暂无失败数据'
+      noFailData: '暂无失败数据',
+      hubTitle: '\u6743\u9650\u4e2d\u5fc3 / \u6743\u9650\u7528\u6237',
+      hubDesc: '\u8bf7\u5148\u9009\u62e9\u529f\u80fd\u5165\u53e3\u3002\u89d2\u8272\u5206\u914d\u548c\u7528\u6237\u5217\u8868\u5df2\u62c6\u5206\u4e3a\u72ec\u7acb\u9875\u9762\uff0c\u4e0d\u518d\u8fdb\u5165\u6a21\u5757\u5c31\u76f4\u63a5\u663e\u793a\u7528\u6237\u8868\u683c\u3002',
+      assignmentCardKicker: '\u6743\u9650\u63a7\u5236',
+      assignmentEntryTitle: '\u89d2\u8272\u5206\u914d',
+      assignmentEntryDesc: '\u6309\u7528\u6237\u3001\u89d2\u8272\u3001\u5b66\u9662\u3001\u73ed\u7ea7\u7b5b\u9009\uff0c\u5e76\u4e3a\u5177\u4f53\u7528\u6237\u7ef4\u62a4\u5b8c\u6574\u89d2\u8272\u96c6\u5408\u3002',
+      listCardKicker: '\u7528\u6237\u76ee\u5f55',
+      listEntryTitle: '\u7528\u6237\u5217\u8868',
+      listEntryDesc: '\u96c6\u4e2d\u5904\u7406\u7528\u6237\u67e5\u8be2\u3001\u5bfc\u5165\u3001\u72b6\u6001\u7ef4\u62a4\uff0c\u5e76\u652f\u6301\u5b66\u9662\u4e0e\u73ed\u7ea7\u8054\u52a8\u7b5b\u9009\u3002',
+      assignmentPageTitle: '\u6743\u9650\u4e2d\u5fc3 / \u89d2\u8272\u5206\u914d',
+      listPageTitle: '\u6743\u9650\u4e2d\u5fc3 / \u7528\u6237\u5217\u8868',
+      backToHub: '\u8fd4\u56de\u6743\u9650\u7528\u6237',
+      filterCollege: '\u5b66\u9662',
+      filterClass: '\u73ed\u7ea7',
+      colAssignedRoles: '\u5df2\u5206\u914d\u89d2\u8272',
+      colCollege: '\u5b66\u9662',
+      colClass: '\u73ed\u7ea7',
+      colActions: '\u64cd\u4f5c',
+      editRoles: '\u7f16\u8f91\u89d2\u8272',
+      currentUserLocked: '\u5f53\u524d\u767b\u5f55\u7528\u6237',
+      roleDialogTitle: '\u7f16\u8f91\u7528\u6237\u89d2\u8272',
+      assignedRoles: '\u5df2\u5206\u914d\u89d2\u8272',
+      rolesRequired: '\u81f3\u5c11\u9009\u62e9\u4e00\u4e2a\u89d2\u8272',
+      rolesUpdated: '\u89d2\u8272\u5df2\u66f4\u65b0'
     }
   },
   errorPage: {
@@ -837,3 +863,4 @@ export default {
     }
   }
 }
+

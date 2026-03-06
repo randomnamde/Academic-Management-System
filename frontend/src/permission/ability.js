@@ -15,6 +15,8 @@ const ROLE_ROUTE_MAP = {
     'Profile',
     'System',
     'RBACUsers',
+    'RBACUserAssignments',
+    'RBACUserList',
     'RBACRoles',
     'RBACPermissions',
     'RBACAudit'
@@ -32,7 +34,9 @@ const ROLE_ROUTE_MAP = {
     'Attendance',
     'LeaveRequest',
     'Announcement',
-    'Profile'
+    'Profile',
+    'RBACUsers',
+    'RBACUserList'
   ]),
   HOMEROOM_TEACHER: new Set([
     'Dashboard',

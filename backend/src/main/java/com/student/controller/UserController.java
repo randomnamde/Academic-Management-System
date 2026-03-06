@@ -1,9 +1,11 @@
 package com.student.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.student.dto.UpdateUserRolesDTO;
 import com.student.dto.UpdatePasswordDTO;
 import com.student.dto.UpdateProfileDTO;
 import com.student.entity.Class;
+import com.student.entity.College;
 import com.student.entity.Student;
 import com.student.entity.SysUser;
 import com.student.entity.Teacher;
@@ -16,6 +18,7 @@ import com.student.security.PermissionService;
 import com.student.security.RoleCode;
 import com.student.service.SysUserService;
 import com.student.vo.ResultVO;
+import com.student.vo.RbacUserListItemVO;
 import com.student.vo.UserInfoVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -26,8 +29,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
@@ -68,42 +76,109 @@ public class UserController {
 
     @GetMapping("/list")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
-    public ResultVO<Page<SysUser>> list(@RequestParam(defaultValue = "1") Integer page,
-                                        @RequestParam(defaultValue = "10") Integer size,
-                                        @RequestParam(required = false) String username,
-                                        @RequestParam(required = false) String realName,
-                                        @RequestParam(required = false) SysUser.Role role,
-                                        @RequestParam(required = false) Integer status,
-                                        Authentication authentication) {
+    public ResultVO<Page<RbacUserListItemVO>> list(@RequestParam(defaultValue = "1") Integer page,
+                                                   @RequestParam(defaultValue = "10") Integer size,
+                                                   @RequestParam(required = false) String username,
+                                                   @RequestParam(required = false) String realName,
+                                                   @RequestParam(required = false) SysUser.Role role,
+                                                   @RequestParam(required = false) RoleCode roleCode,
+                                                   @RequestParam(required = false) Long collegeId,
+                                                   @RequestParam(required = false) Long classId,
+                                                   @RequestParam(required = false) Integer status,
+                                                   Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId != null) {
-            Set<Long> scopedUserIds = resolveScopedUserIds(scopedCollegeId);
-            List<SysUser> all = sysUserService.lambdaQuery()
-                    .orderByDesc(SysUser::getCreateTime)
-                    .list();
-            List<SysUser> filtered = all.stream()
-                    .filter(item -> scopedUserIds.contains(item.getId()))
-                    .filter(item -> username == null || username.isBlank() || item.getUsername().contains(username))
-                    .filter(item -> realName == null || realName.isBlank() || (item.getRealName() != null && item.getRealName().contains(realName)))
-                    .filter(item -> role == null || role == item.getRole())
-                    .filter(item -> status == null || status.equals(item.getStatus()))
-                    .toList();
-            int from = Math.max((page - 1) * size, 0);
-            int to = Math.min(from + size, filtered.size());
-            List<SysUser> pageRecords = from >= filtered.size() ? List.of() : filtered.subList(from, to);
-            Page<SysUser> result = new Page<>(page, size, filtered.size());
-            result.setRecords(pageRecords);
-            return ResultVO.success(result);
+        Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
+        RoleCode effectiveRoleCode = roleCode != null ? roleCode : RoleCode.fromUserRole(role);
+
+        if (classId != null) {
+            Class targetClass = classMapper.selectById(classId);
+            if (targetClass == null) {
+                return ResultVO.success(emptyUserPage(page, size));
+            }
+            if (scopedCollegeId != null && !Objects.equals(scopedCollegeId, targetClass.getCollegeId())) {
+                return ResultVO.error(403, "Forbidden");
+            }
+            if (effectiveCollegeId != null && !Objects.equals(effectiveCollegeId, targetClass.getCollegeId())) {
+                return ResultVO.success(emptyUserPage(page, size));
+            }
         }
 
-        Page<SysUser> pageParam = new Page<>(page, size);
-        Page<SysUser> result = sysUserService.lambdaQuery()
+        List<SysUser> users = sysUserService.lambdaQuery()
                 .like(username != null && !username.isBlank(), SysUser::getUsername, username)
                 .like(realName != null && !realName.isBlank(), SysUser::getRealName, realName)
-                .eq(role != null, SysUser::getRole, role)
                 .eq(status != null, SysUser::getStatus, status)
                 .orderByDesc(SysUser::getCreateTime)
-                .page(pageParam);
+                .list();
+
+        Set<Long> scopedUserIds = scopedCollegeId == null ? null : resolveScopedUserIds(scopedCollegeId);
+        Set<Long> userIds = users.stream()
+                .map(SysUser::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, LinkedHashSet<String>> roleCodesMap = sysUserService.getRoleCodeNamesByUserIds(userIds);
+
+        List<College> colleges = effectiveCollegeId != null
+                ? collegeMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<College>()
+                .eq(College::getId, effectiveCollegeId))
+                : collegeMapper.selectList(null);
+        Map<Long, College> collegeById = colleges.stream()
+                .filter(item -> item.getId() != null)
+                .collect(Collectors.toMap(College::getId, item -> item, (left, right) -> left));
+        Map<Long, College> collegeByAdminUserId = colleges.stream()
+                .filter(item -> item.getAdminUserId() != null)
+                .collect(Collectors.toMap(College::getAdminUserId, item -> item, (left, right) -> left));
+
+        List<Class> classes = effectiveCollegeId != null
+                ? classMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Class>()
+                .eq(Class::getCollegeId, effectiveCollegeId))
+                : classMapper.selectList(null);
+        Map<Long, Class> classById = classes.stream()
+                .filter(item -> item.getId() != null)
+                .collect(Collectors.toMap(Class::getId, item -> item, (left, right) -> left));
+        Map<Long, List<Class>> classesByTeacherId = classes.stream()
+                .filter(item -> item.getTeacherId() != null)
+                .collect(Collectors.groupingBy(Class::getTeacherId));
+
+        Set<Long> classIds = classById.keySet();
+        List<Student> students = classIds.isEmpty() && effectiveCollegeId != null
+                ? List.of()
+                : (classIds.isEmpty()
+                ? studentMapper.selectList(null)
+                : studentMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Student>()
+                .in(Student::getClassId, classIds)));
+        Map<Long, Student> studentByUserId = students.stream()
+                .filter(item -> item.getUserId() != null)
+                .collect(Collectors.toMap(Student::getUserId, item -> item, (left, right) -> left));
+
+        List<Teacher> teachers = effectiveCollegeId != null
+                ? teacherMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Teacher>()
+                .eq(Teacher::getCollegeId, effectiveCollegeId))
+                : teacherMapper.selectList(null);
+        Map<Long, Teacher> teacherByUserId = teachers.stream()
+                .filter(item -> item.getUserId() != null)
+                .collect(Collectors.toMap(Teacher::getUserId, item -> item, (left, right) -> left));
+
+        List<RbacUserListItemVO> filtered = users.stream()
+                .filter(item -> scopedUserIds == null || scopedUserIds.contains(item.getId()))
+                .map(item -> toRbacUserListItem(
+                        item,
+                        roleCodesMap.getOrDefault(item.getId(), new LinkedHashSet<>()),
+                        collegeByAdminUserId,
+                        collegeById,
+                        studentByUserId,
+                        teacherByUserId,
+                        classById,
+                        classesByTeacherId))
+                .filter(item -> effectiveRoleCode == null || item.getRoles().contains(effectiveRoleCode.name()))
+                .filter(item -> effectiveCollegeId == null || Objects.equals(effectiveCollegeId, item.getCollegeId()))
+                .filter(item -> classId == null || Objects.equals(classId, item.getClassId()) || matchesTeacherClass(classId, item.getId(), teacherByUserId, classesByTeacherId))
+                .toList();
+
+        int from = Math.max((page - 1) * size, 0);
+        int to = Math.min(from + size, filtered.size());
+        List<RbacUserListItemVO> pageRecords = from >= filtered.size() ? List.of() : filtered.subList(from, to);
+        Page<RbacUserListItemVO> result = new Page<>(page, size, filtered.size());
+        result.setRecords(pageRecords);
         return ResultVO.success(result);
     }
 
@@ -118,6 +193,31 @@ public class UserController {
             }
         }
         sysUserService.updateStatus(id, status);
+        return ResultVO.success();
+    }
+
+    @PutMapping("/{id}/roles")
+    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
+    public ResultVO<Void> updateRoles(@PathVariable Long id,
+                                      @RequestBody @Validated UpdateUserRolesDTO dto,
+                                      Authentication authentication) {
+        if (authentication == null) {
+            return ResultVO.error(401, "Unauthorized");
+        }
+        SysUser currentUser = sysUserService.getByUsername(authentication.getName());
+        if (currentUser != null && Objects.equals(currentUser.getId(), id)) {
+            return ResultVO.error(400, "Cannot modify current user roles");
+        }
+
+        LinkedHashSet<RoleCode> roleCodes = dto.getRoleCodes().stream()
+                .map(RoleCode::from)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (roleCodes.isEmpty()) {
+            return ResultVO.error(400, "Role set cannot be empty");
+        }
+
+        sysUserService.assignRoles(id, roleCodes);
         return ResultVO.success();
     }
 
@@ -195,5 +295,110 @@ public class UserController {
         }
         return userIds;
     }
+
+    private Page<RbacUserListItemVO> emptyUserPage(Integer page, Integer size) {
+        Page<RbacUserListItemVO> result = new Page<>(page, size, 0);
+        result.setRecords(List.of());
+        return result;
+    }
+
+    private boolean matchesTeacherClass(Long classId,
+                                        Long userId,
+                                        Map<Long, Teacher> teacherByUserId,
+                                        Map<Long, List<Class>> classesByTeacherId) {
+        if (classId == null || userId == null) {
+            return false;
+        }
+        Teacher teacher = teacherByUserId.get(userId);
+        if (teacher == null || teacher.getId() == null) {
+            return false;
+        }
+        List<Class> teacherClasses = classesByTeacherId.getOrDefault(teacher.getId(), List.of());
+        return teacherClasses.stream().anyMatch(item -> Objects.equals(item.getId(), classId));
+    }
+
+    private RbacUserListItemVO toRbacUserListItem(SysUser user,
+                                                  LinkedHashSet<String> storedRoleNames,
+                                                  Map<Long, College> collegeByAdminUserId,
+                                                  Map<Long, College> collegeById,
+                                                  Map<Long, Student> studentByUserId,
+                                                  Map<Long, Teacher> teacherByUserId,
+                                                  Map<Long, Class> classById,
+                                                  Map<Long, List<Class>> classesByTeacherId) {
+        LinkedHashSet<RoleCode> parsedRoles = storedRoleNames.stream()
+                .map(RoleCode::from)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (parsedRoles.isEmpty() && user.getRole() != null) {
+            RoleCode fallback = RoleCode.fromUserRole(user.getRole());
+            if (fallback != null) {
+                parsedRoles.add(fallback);
+            }
+        }
+
+        LinkedHashSet<String> orderedRoleNames = RoleCode.sortByPriority(parsedRoles).stream()
+                .map(RoleCode::name)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        RoleCode primaryRoleCode = RoleCode.selectPrimary(parsedRoles);
+        SysUser.Role primaryRole = primaryRoleCode != null ? RoleCode.toUserRole(primaryRoleCode) : user.getRole();
+
+        Long collegeId = null;
+        String collegeName = null;
+        Long classId = null;
+        String classDisplayName = null;
+
+        College adminCollege = collegeByAdminUserId.get(user.getId());
+        if (adminCollege != null) {
+            collegeId = adminCollege.getId();
+            collegeName = adminCollege.getCollegeName();
+        }
+
+        Student student = studentByUserId.get(user.getId());
+        if (student != null && student.getClassId() != null) {
+            Class clazz = classById.get(student.getClassId());
+            classId = student.getClassId();
+            classDisplayName = clazz != null ? clazz.getClassName() : null;
+            if (collegeId == null && clazz != null) {
+                collegeId = clazz.getCollegeId();
+                College college = collegeById.get(clazz.getCollegeId());
+                collegeName = college != null ? college.getCollegeName() : null;
+            }
+        }
+
+        Teacher teacher = teacherByUserId.get(user.getId());
+        if (teacher != null) {
+            if (collegeId == null && teacher.getCollegeId() != null) {
+                collegeId = teacher.getCollegeId();
+                College college = collegeById.get(teacher.getCollegeId());
+                collegeName = college != null ? college.getCollegeName() : null;
+            }
+
+            List<Class> teacherClasses = classesByTeacherId.getOrDefault(teacher.getId(), List.of());
+            if (!teacherClasses.isEmpty() && classId == null) {
+                Class firstClass = teacherClasses.get(0);
+                classId = firstClass.getId();
+                classDisplayName = teacherClasses.size() == 1
+                        ? firstClass.getClassName()
+                        : firstClass.getClassName() + " 等" + teacherClasses.size() + "个班级";
+            }
+        }
+
+        RbacUserListItemVO item = new RbacUserListItemVO();
+        item.setId(user.getId());
+        item.setUsername(user.getUsername());
+        item.setRealName(user.getRealName());
+        item.setRole(primaryRole);
+        item.setPrimaryRole(primaryRoleCode == null ? (primaryRole == null ? null : primaryRole.name()) : primaryRoleCode.name());
+        item.setRoles(orderedRoleNames);
+        item.setPhone(user.getPhone());
+        item.setEmail(user.getEmail());
+        item.setStatus(user.getStatus());
+        item.setCollegeId(collegeId);
+        item.setCollegeName(collegeName);
+        item.setClassId(classId);
+        item.setClassDisplayName(classDisplayName);
+        return item;
+    }
 }
+
 

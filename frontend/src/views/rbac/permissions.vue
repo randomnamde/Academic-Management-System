@@ -47,6 +47,8 @@ const matrixRows = [
   { routeKey: 'route.score', routeCode: 'Score', admin: true, teacher: true, student: true },
   { routeKey: 'route.analytics', routeCode: 'Analytics', admin: true, teacher: true, student: true },
   { routeKey: 'route.rbacUsers', routeCode: 'RBACUsers', admin: true, teacher: false, student: false },
+  { routeKey: 'route.rbacUserAssignments', routeCode: 'RBACUserAssignments', admin: true, teacher: false, student: false },
+  { routeKey: 'route.rbacUserList', routeCode: 'RBACUserList', admin: true, teacher: false, student: false },
   { routeKey: 'route.rbacRoles', routeCode: 'RBACRoles', admin: true, teacher: false, student: false },
   { routeKey: 'route.rbacPermissions', routeCode: 'RBACPermissions', admin: true, teacher: false, student: false },
   { routeKey: 'route.rbacAudit', routeCode: 'RBACAudit', admin: true, teacher: false, student: false },

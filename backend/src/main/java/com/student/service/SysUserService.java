@@ -9,6 +9,8 @@ import com.student.security.RoleCode;
 import com.student.vo.LoginVO;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 public interface SysUserService extends IService<SysUser> {
@@ -29,5 +31,9 @@ public interface SysUserService extends IService<SysUser> {
 
     Set<RoleCode> getRoleCodes(Long userId);
 
+    Map<Long, LinkedHashSet<String>> getRoleCodeNamesByUserIds(Set<Long> userIds);
+
     void grantRole(Long userId, RoleCode roleCode);
+
+    void assignRoles(Long userId, Set<RoleCode> roleCodes);
 }

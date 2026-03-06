@@ -42,8 +42,8 @@ const roleMeta = {
 }
 
 const routeMap = {
-  SCHOOL_ADMIN: ['route.dashboard', 'route.analytics', 'route.student', 'route.teacher', 'route.class', 'route.course', 'route.college', 'route.courseArrangement', 'route.score', 'route.attendance', 'route.leaveRequest', 'route.announcement', 'route.profile', 'route.system', 'route.rbacUsers', 'route.rbacRoles', 'route.rbacPermissions', 'route.rbacAudit'],
-  COLLEGE_ADMIN: ['route.dashboard', 'route.analytics', 'route.student', 'route.teacher', 'route.class', 'route.course', 'route.college', 'route.courseArrangement', 'route.score', 'route.attendance', 'route.leaveRequest', 'route.announcement', 'route.profile'],
+  SCHOOL_ADMIN: ['route.dashboard', 'route.analytics', 'route.student', 'route.teacher', 'route.class', 'route.course', 'route.college', 'route.courseArrangement', 'route.score', 'route.attendance', 'route.leaveRequest', 'route.announcement', 'route.profile', 'route.system', 'route.rbacUsers', 'route.rbacUserAssignments', 'route.rbacUserList', 'route.rbacRoles', 'route.rbacPermissions', 'route.rbacAudit'],
+  COLLEGE_ADMIN: ['route.dashboard', 'route.analytics', 'route.student', 'route.teacher', 'route.class', 'route.course', 'route.college', 'route.courseArrangement', 'route.score', 'route.attendance', 'route.leaveRequest', 'route.announcement', 'route.profile', 'route.rbacUsers', 'route.rbacUserList'],
   HOMEROOM_TEACHER: ['route.dashboard', 'route.analytics', 'route.student', 'route.class', 'route.course', 'route.courseArrangement', 'route.score', 'route.attendance', 'route.leaveRequest', 'route.announcement', 'route.profile'],
   COURSE_TEACHER: ['route.dashboard', 'route.analytics', 'route.student', 'route.class', 'route.course', 'route.courseArrangement', 'route.score', 'route.attendance', 'route.leaveRequest', 'route.announcement', 'route.profile'],
   STUDENT: ['route.dashboard', 'route.analytics', 'route.score', 'route.attendance', 'route.leaveRequest', 'route.announcement', 'route.profile']

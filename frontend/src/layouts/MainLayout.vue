@@ -394,7 +394,10 @@ const layoutChildren = computed(() => {
 const visibleMenuGroups = computed(() => {
   const groups = new Map()
   layoutChildren.value
-    .filter((item) => item?.meta?.title && item.path !== 'profile')
+    .filter((item) => {
+      const hasDisplayTitle = Boolean(item?.meta?.titleKey || item?.meta?.title)
+      return hasDisplayTitle && item.path !== 'profile' && item?.meta?.hideInMenu !== true
+    })
     .forEach((item) => {
       const hiddenRoles = Array.isArray(item.meta?.hideInMenuForRoles) ? item.meta.hideInMenuForRoles : []
       if (hiddenRoles.includes(role.value)) return
@@ -930,6 +933,14 @@ onUnmounted(() => {
 .notice-card:hover {
   border-color: color-mix(in srgb, var(--accent-500) 28%, transparent);
   background: color-mix(in srgb, var(--surface-elevated) 86%, transparent);
+}
+
+:root[data-theme='light'] .notice-card {
+  background: color-mix(in srgb, var(--surface-base) 52%, transparent);
+}
+
+:root[data-theme='light'] .notice-card:hover {
+  background: color-mix(in srgb, var(--surface-elevated) 72%, transparent);
 }
 
 .menu-item {

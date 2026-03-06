@@ -256,6 +256,9 @@ onBeforeUnmount(() => {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  --login-title-glow-a: color-mix(in srgb, var(--accent-500) 30%, transparent);
+  --login-title-glow-b: color-mix(in srgb, var(--accent-700) 16%, transparent);
+  --login-caret-glow: color-mix(in srgb, var(--accent-500) 58%, transparent);
   background: linear-gradient(148deg, color-mix(in srgb, var(--bg-base) 94%, transparent), var(--bg-elevated));
 }
 
@@ -357,8 +360,8 @@ onBeforeUnmount(() => {
   letter-spacing: 0.08em;
   color: color-mix(in srgb, var(--text-primary) 96%, transparent);
   text-shadow:
-    0 0 24px color-mix(in srgb, var(--accent-500) 30%, transparent),
-    0 8px 30px color-mix(in srgb, var(--accent-700) 16%, transparent);
+    0 0 24px var(--login-title-glow-a),
+    0 8px 30px var(--login-title-glow-b);
 }
 
 .typing-text {
@@ -368,8 +371,44 @@ onBeforeUnmount(() => {
 .typing-caret {
   display: inline-block;
   color: color-mix(in srgb, var(--accent-500) 100%, var(--color-white));
-  text-shadow: 0 0 12px color-mix(in srgb, var(--accent-500) 58%, transparent);
+  text-shadow: 0 0 12px var(--login-caret-glow);
   animation: caret-blink 560ms step-end infinite;
+}
+
+:global(:root[data-theme='light']) .login-entry {
+  --login-title-glow-a: color-mix(in srgb, var(--accent-500) 18%, transparent);
+  --login-title-glow-b: color-mix(in srgb, var(--accent-700) 8%, transparent);
+  --login-caret-glow: color-mix(in srgb, var(--accent-500) 36%, transparent);
+}
+
+:global(:root[data-theme='light']) .login-overlay {
+  background: var(--popup-backdrop);
+  backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
+}
+
+:global(:root[data-theme='light']) .login-card {
+  border-color: var(--popup-border);
+  background: var(--surface-popup);
+  backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
+}
+
+:global(:root[data-theme='light']) .close-btn {
+  border-color: color-mix(in srgb, var(--accent-500) 12%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 28%, transparent);
+}
+
+:global(:root[data-theme='light']) .close-btn:hover {
+  background: color-mix(in srgb, var(--surface-base) 46%, transparent);
+}
+
+:global(:root[data-theme='light']) .entry-title {
+  color: var(--text-primary);
+  text-shadow: none;
+}
+
+:global(:root[data-theme='light']) .typing-caret {
+  color: color-mix(in srgb, var(--accent-600) 88%, var(--text-primary));
+  text-shadow: none;
 }
 
 .sr-only {

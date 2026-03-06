@@ -18,10 +18,10 @@
           :aria-labelledby="titleId"
           tabindex="-1"
         >
-          <header class="mb-3 flex items-center justify-between border-b border-neutralx-200 pb-2">
+          <header class="app-modal-header mb-3">
             <h3 :id="titleId" class="text-[15px] font-semibold tracking-tight text-primary-900">{{ title }}</h3>
             <button
-              class="rounded-md border border-transparent px-1.5 py-0.5 text-slatex-500 transition-all duration-180 hover:bg-neutralx-100 touch-target"
+              class="app-modal-close touch-target"
               :aria-label="t('components.appModal.close')"
               @click="close"
             >
@@ -31,7 +31,7 @@
           <div>
             <slot />
           </div>
-          <footer v-if="$slots.footer" class="mt-4 flex justify-end gap-2 border-t border-neutralx-200 pt-3">
+          <footer v-if="$slots.footer" class="app-modal-footer mt-4">
             <slot name="footer" />
           </footer>
         </div>

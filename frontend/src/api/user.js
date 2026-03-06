@@ -66,6 +66,14 @@ export function getUserList(params) {
   })
 }
 
+export function updateUserRoles(id, roleCodes) {
+  return request({
+    url: `/user/${id}/roles`,
+    method: 'put',
+    data: { roleCodes }
+  })
+}
+
 export function updateUserStatus(id, status) {
   return request({
     url: `/user/${id}/status`,

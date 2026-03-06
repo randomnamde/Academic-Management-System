@@ -46,6 +46,8 @@ public class PermissionService {
                     "route:Announcement:view",
                     "route:Profile:view",
                     "route:College:view",
+                    "route:RBACUsers:view",
+                    "route:RBACUserList:view",
                     "score:create",
                     "score:update",
                     "score:delete",

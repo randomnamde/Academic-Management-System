@@ -204,7 +204,7 @@ const importRoleOptions = computed(() => buildRoleOptions(t).filter((item) => it
 const columns = computed(() => [
   { key: 'username', title: t('rbac.users.colUsername'), width: 150 },
   { key: 'realName', title: t('rbac.users.colRealName'), width: 120 },
-  { key: 'role', title: t('rbac.users.colRole'), width: 120 },
+  { key: 'role', title: t('rbac.users.colRole'), width: 156 },
   { key: 'roles', title: t('rbac.users.colAssignedRoles'), width: 220 },
   { key: 'collegeName', title: t('rbac.users.colCollege'), width: 160 },
   { key: 'classDisplayName', title: t('rbac.users.colClass'), width: 180 },

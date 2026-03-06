@@ -220,7 +220,7 @@
   }
 
   .app-tag {
-    @apply inline-flex h-5 items-center rounded-full border px-2 text-[11px] font-medium;
+    @apply inline-flex h-5 items-center rounded-full border px-2 text-[11px] font-medium whitespace-nowrap;
   }
 
   .app-tag-success {

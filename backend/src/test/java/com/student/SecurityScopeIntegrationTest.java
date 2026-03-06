@@ -1275,6 +1275,185 @@ class SecurityScopeIntegrationTest {
                 .andExpect(jsonPath("$.data.username").value("admin"));
     }
 
+    @Test
+    void userInfoReturnsTeacherAndClassScopeIdentifiers() throws Exception {
+        String teacherToken = loginAndGetToken("teacher001", "123456");
+        MvcResult teacherResult = mockMvc.perform(get("/user/info")
+                        .header("Authorization", "Bearer " + teacherToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode teacherData = objectMapper.readTree(teacherResult.getResponse().getContentAsString()).path("data");
+        assertTrue(teacherData.path("teacherId").asLong() > 0L);
+
+        String studentToken = loginAndGetToken("student001", "123456");
+        MvcResult studentResult = mockMvc.perform(get("/user/info")
+                        .header("Authorization", "Bearer " + studentToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode studentData = objectMapper.readTree(studentResult.getResponse().getContentAsString()).path("data");
+        assertTrue(studentData.path("classId").asLong() > 0L);
+    }
+
+    @Test
+    void schoolAdminCanCreateSemesterAndStudentCanReadOptions() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String studentToken = loginAndGetToken("student001", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String semesterCode = "2026-2027-" + suffix.substring(Math.max(0, suffix.length() - 2));
+        String body = """
+                {
+                  "semesterCode": "%s",
+                  "startDate": "2026-09-01",
+                  "endDate": "2027-01-18",
+                  "remark": "integration test"
+                }
+                """.formatted(semesterCode);
+
+        mockMvc.perform(post("/semester")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.semesterCode").value(semesterCode))
+                .andExpect(jsonPath("$.data.status").value("PLANNED"));
+
+        mockMvc.perform(get("/semester")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("semesterCode", semesterCode)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.records[0].semesterCode").value(semesterCode));
+
+        MvcResult optionsResult = mockMvc.perform(get("/semester/options")
+                        .header("Authorization", "Bearer " + studentToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode options = objectMapper.readTree(optionsResult.getResponse().getContentAsString()).path("data");
+        assertTrue(options.toString().contains(semesterCode));
+    }
+
+    @Test
+    void createSemesterRejectsDuplicateCode() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String body = """
+                {
+                  "semesterCode": "2024-2025-1",
+                  "startDate": "2024-09-01",
+                  "endDate": "2025-01-20",
+                  "remark": "duplicate"
+                }
+                """;
+
+        mockMvc.perform(post("/semester")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("学期编码已存在"));
+    }
+
+    @Test
+    void createSemesterRejectsInvalidDateRange() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String body = """
+                {
+                  "semesterCode": "2027-2028-1",
+                  "startDate": "2027-02-01",
+                  "endDate": "2027-01-01",
+                  "remark": "invalid date"
+                }
+                """;
+
+        mockMvc.perform(post("/semester")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("学期开始日期不能晚于结束日期"));
+    }
+
+    @Test
+    void activatingSemesterUpdatesCurrentSemesterAndEndsPreviousActiveSemester() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String semesterCode = "2027-2028-" + suffix.substring(Math.max(0, suffix.length() - 2));
+        String createBody = """
+                {
+                  "semesterCode": "%s",
+                  "startDate": "2027-09-01",
+                  "endDate": "2028-01-20",
+                  "remark": "activation test"
+                }
+                """.formatted(semesterCode);
+
+        try {
+            MvcResult createResult = mockMvc.perform(post("/semester")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer " + adminToken)
+                            .content(createBody))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andReturn();
+
+            Long semesterId = objectMapper.readTree(createResult.getResponse().getContentAsString())
+                    .path("data")
+                    .path("id")
+                    .asLong();
+
+            mockMvc.perform(put("/semester/" + semesterId + "/status")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer " + adminToken)
+                            .content("""
+                                    {
+                                      "status": "ACTIVE"
+                                    }
+                                    """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andExpect(jsonPath("$.data.status").value("ACTIVE"));
+
+            mockMvc.perform(get("/system/config/current-semester")
+                            .header("Authorization", "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andExpect(jsonPath("$.data.currentSemester").value(semesterCode));
+
+            String previousStatus = jdbcTemplate.queryForObject(
+                    "SELECT status FROM semester WHERE semester_code = ?",
+                    String.class,
+                    "2024-2025-1"
+            );
+            assertEquals("ENDED", previousStatus);
+        } finally {
+            jdbcTemplate.update("UPDATE semester SET status = 'ENDED' WHERE semester_code = ?", semesterCode);
+            jdbcTemplate.update("UPDATE semester SET status = 'ACTIVE' WHERE semester_code = '2024-2025-1'");
+            jdbcTemplate.update("UPDATE sys_config SET config_value = '2024-2025-1' WHERE config_key = 'currentSemester'");
+        }
+    }
+
+    @Test
+    void legacyCurrentSemesterApiRejectsUnknownSemesterCode() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+
+        mockMvc.perform(put("/system/config/current-semester")
+                        .param("currentSemester", "2099-2100-9")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(404))
+                .andExpect(jsonPath("$.message").value("学期不存在，请先在学期管理中创建"));
+    }
+
     private String loginAndGetToken(String username, String password) throws Exception {
         String body = """
                 {

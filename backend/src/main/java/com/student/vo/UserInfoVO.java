@@ -29,6 +29,10 @@ public class UserInfoVO {
 
     private String collegeName;
 
+    private Long teacherId;
+
+    private Long classId;
+
     private SysUser.Role role;
 
     private String primaryRole;

@@ -185,6 +185,12 @@ const routes = [
         name: 'System',
         component: () => import('@/views/system/index.vue'),
         meta: { titleKey: 'route.system', icon: 'Setting', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
+      },
+      {
+        path: 'semester',
+        name: 'Semester',
+        component: () => import('@/views/semester/index.vue'),
+        meta: { titleKey: 'route.semester', roles: ['SCHOOL_ADMIN'], hideInMenu: true, activeMenu: '/system' }
       }
     ]
   },

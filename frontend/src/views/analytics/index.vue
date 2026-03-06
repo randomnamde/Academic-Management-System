@@ -1,173 +1,255 @@
-﻿<template>
-  <AnalyticsPageShell :title="t('analytics.pageTitle')">
-    <template #filters>
-      <div class="filter-header">
-        <h2>{{ t('analytics.pageTitle') }}</h2>
-        <p>{{ t('analytics.pageDesc') }}</p>
+<template>
+  <div class="app-page space-y-3">
+    <AppCard :title="t('analytics.pageTitle')" content-class="p-4 space-y-4">
+      <div class="analytics-hero">
+        <div class="analytics-hero-copy">
+          <p class="analytics-hero-badge">{{ t('analytics.heroBadge') }}</p>
+          <h2 class="analytics-hero-title">{{ t('analytics.pageTitle') }}</h2>
+          <p class="analytics-hero-desc">{{ t('analytics.pageDesc') }}</p>
+          <p class="analytics-hero-insight">
+            {{ t('analytics.insight', { start: dateRange[0], end: dateRange[1] }) }}
+          </p>
+        </div>
+
+        <div class="analytics-hero-pill">
+          <span class="analytics-hero-pill-label">{{ t('analytics.heroRoleLabel') }}</span>
+          <strong>{{ currentRoleLabel }}</strong>
+        </div>
       </div>
-      <el-form :inline="true" class="filter-form">
-        <el-form-item :label="t('analytics.dateRange')">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            unlink-panels
-            value-format="YYYY-MM-DD"
-            :start-placeholder="t('analytics.startDate')"
-            :end-placeholder="t('analytics.endDate')"
+
+      <div class="analytics-stats">
+        <div
+          v-for="stat in statCards"
+          :key="stat.label"
+          class="analytics-stat"
+        >
+          <p class="analytics-stat-label">{{ stat.label }}</p>
+          <div class="analytics-stat-row">
+            <div>
+              <p class="analytics-stat-value">{{ stat.value }}</p>
+              <p class="analytics-stat-note">{{ stat.note }}</p>
+            </div>
+            <span
+              v-if="stat.delta"
+              class="analytics-stat-trend"
+              :class="trendClass(stat.deltaValue)"
+            >
+              {{ stat.delta }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <section class="analytics-section">
+        <div class="analytics-section-head">
+          <div>
+            <p class="analytics-section-title">{{ t('analytics.filterTitle') }}</p>
+            <p class="analytics-section-desc">{{ t('analytics.filterDesc') }}</p>
+          </div>
+        </div>
+
+        <div class="analytics-filter-panel">
+          <el-form class="analytics-filter-form" label-position="top">
+            <el-form-item :label="t('analytics.dateRange')">
+              <el-date-picker
+                v-model="dateRange"
+                type="daterange"
+                unlink-panels
+                value-format="YYYY-MM-DD"
+                :start-placeholder="t('analytics.startDate')"
+                :end-placeholder="t('analytics.endDate')"
+              />
+            </el-form-item>
+            <el-form-item :label="t('analytics.semester')">
+              <el-select
+                v-model="filters.semester"
+                clearable
+                filterable
+                :loading="semesterOptionsLoading"
+                :placeholder="t('analytics.selectSemester')"
+              >
+                <el-option
+                  v-for="option in semesterOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item v-if="!isStudent" :label="t('analytics.classId')">
+              <el-select
+                v-model="filters.classId"
+                clearable
+                filterable
+                :loading="classOptionsLoading"
+                :placeholder="t('analytics.selectClass')"
+              >
+                <el-option
+                  v-for="option in classOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item v-if="isAdmin" :label="t('analytics.teacherId')">
+              <el-select
+                v-model="filters.teacherId"
+                clearable
+                filterable
+                :loading="teacherOptionsLoading"
+                :placeholder="t('analytics.selectTeacher')"
+              >
+                <el-option
+                  v-for="option in teacherOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item :label="t('analytics.granularity')">
+              <el-select v-model="filters.granularity">
+                <el-option :label="t('analytics.day')" value="day" />
+                <el-option :label="t('analytics.week')" value="week" />
+                <el-option :label="t('analytics.month')" value="month" />
+              </el-select>
+            </el-form-item>
+          </el-form>
+
+          <div class="analytics-filter-actions">
+            <AppButton :loading="loading" @click="refreshAll">{{ t('analytics.refresh') }}</AppButton>
+            <AppButton variant="secondary" @click="resetFilters">{{ t('common.reset') }}</AppButton>
+          </div>
+        </div>
+      </section>
+
+      <section class="analytics-section">
+        <div class="analytics-section-head">
+          <div>
+            <p class="analytics-section-title">{{ t('analytics.chartSectionTitle') }}</p>
+            <p class="analytics-section-desc">{{ t('analytics.chartSectionDesc') }}</p>
+          </div>
+        </div>
+
+        <div class="analytics-chart-grid">
+          <AppCard class="analytics-panel" :title="t('analytics.abnormalTrend')" surface="glass" content-class="p-4">
+            <div ref="attendanceTrendRef" class="chart-canvas"></div>
+          </AppCard>
+
+          <AppCard class="analytics-panel" :title="t('analytics.scoreTrend')" surface="glass" content-class="p-4">
+            <div ref="scoreTrendRef" class="chart-canvas"></div>
+          </AppCard>
+        </div>
+      </section>
+
+      <section class="analytics-section">
+        <div class="analytics-section-head">
+          <div>
+            <p class="analytics-section-title">{{ t('analytics.riskSectionTitle') }}</p>
+            <p class="analytics-section-desc">{{ t('analytics.riskSectionDesc') }}</p>
+          </div>
+        </div>
+
+        <AppCard class="analytics-panel analytics-risk-card" :title="t('analytics.riskList')" surface="base" content-class="p-4">
+          <template #header>
+            <div class="analytics-risk-switcher">
+              <el-radio-group v-model="riskType" size="small" @change="handleRiskTypeChange">
+                <el-radio-button label="low_score">{{ t('analytics.riskLowScore') }}</el-radio-button>
+                <el-radio-button label="abnormal_attendance">{{ t('analytics.riskAbnormalAttendance') }}</el-radio-button>
+                <el-radio-button label="approval_overdue">{{ t('analytics.riskApprovalOverdue') }}</el-radio-button>
+              </el-radio-group>
+            </div>
+          </template>
+
+          <div class="analytics-risk-table-wrap">
+            <el-table
+              :data="riskRecords"
+              v-loading="riskLoading"
+              stripe
+              table-layout="fixed"
+              :max-height="520"
+              class="analytics-risk-table"
+            >
+              <el-table-column type="index" :label="t('analytics.index')" width="60" />
+              <el-table-column v-if="!isStudent" prop="studentNo" :label="t('analytics.studentNo')" width="140" show-overflow-tooltip />
+              <el-table-column v-if="!isStudent" prop="studentName" :label="t('analytics.name')" width="120" show-overflow-tooltip />
+              <el-table-column v-if="!isStudent" prop="className" :label="t('analytics.className')" min-width="160" show-overflow-tooltip />
+              <el-table-column v-if="!isStudent" prop="riskCount" :label="t('analytics.riskCount')" width="120" />
+              <el-table-column v-if="!isStudent" :label="t('analytics.riskValue')" width="140">
+                <template #default="{ row }">{{ formatNumber(row.riskValue) }}</template>
+              </el-table-column>
+
+              <template v-if="isStudent && riskType === 'low_score'">
+                <el-table-column prop="courseName" :label="t('analytics.course')" min-width="220" show-overflow-tooltip />
+                <el-table-column :label="t('analytics.lowestScore')" width="120">
+                  <template #default="{ row }">{{ formatNumber(row.score) }}</template>
+                </el-table-column>
+                <el-table-column prop="riskCount" :label="t('analytics.lowScoreCount')" width="120" />
+              </template>
+
+              <template v-if="isStudent && riskType === 'abnormal_attendance'">
+                <el-table-column :label="t('analytics.date')" width="140">
+                  <template #default="{ row }">{{ row.attendanceDate || '-' }}</template>
+                </el-table-column>
+                <el-table-column prop="courseName" :label="t('analytics.course')" min-width="220" show-overflow-tooltip />
+                <el-table-column :label="t('analytics.attendanceStatus')" width="120">
+                  <template #default="{ row }">{{ formatAttendanceStatus(row.attendanceStatus) }}</template>
+                </el-table-column>
+              </template>
+
+              <template v-if="isStudent && riskType === 'approval_overdue'">
+                <el-table-column prop="leaveRequestId" :label="t('analytics.approvalId')" width="120" />
+                <el-table-column :label="t('analytics.submitTime')" min-width="180" show-overflow-tooltip>
+                  <template #default="{ row }">{{ formatDateTime(row.submitTime) }}</template>
+                </el-table-column>
+                <el-table-column :label="t('analytics.overdueStatus')" width="120">
+                  <template #default="{ row }">
+                    <el-tag :type="row.overdue ? 'danger' : 'info'" size="small">
+                      {{ row.overdue ? t('analytics.overdue') : t('analytics.notOverdue') }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column :label="t('analytics.overdueHours')" width="120">
+                  <template #default="{ row }">{{ formatNumber(row.overdueHours) }}</template>
+                </el-table-column>
+              </template>
+            </el-table>
+          </div>
+
+          <el-pagination
+            class="pagination"
+            v-model:current-page="riskPage"
+            v-model:page-size="riskSize"
+            :total="riskTotal"
+            :page-sizes="[10, 20, 50]"
+            layout="total, sizes, prev, pager, next"
+            @size-change="fetchRiskStudents"
+            @current-change="fetchRiskStudents"
           />
-        </el-form-item>
-        <el-form-item :label="t('analytics.semester')">
-          <el-input v-model="filters.semester" clearable :placeholder="t('analytics.semesterPlaceholder')" />
-        </el-form-item>
-        <el-form-item v-if="!isStudent" :label="t('analytics.classId')">
-          <el-input-number v-model="filters.classId" :min="1" controls-position="right" />
-        </el-form-item>
-        <el-form-item v-if="isAdmin" :label="t('analytics.teacherId')">
-          <el-input-number v-model="filters.teacherId" :min="1" controls-position="right" />
-        </el-form-item>
-        <el-form-item :label="t('analytics.granularity')">
-          <el-select v-model="filters.granularity" style="width: 120px">
-            <el-option :label="t('analytics.day')" value="day" />
-            <el-option :label="t('analytics.week')" value="week" />
-            <el-option :label="t('analytics.month')" value="month" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <AppButton :loading="loading" @click="refreshAll">{{ t('analytics.refresh') }}</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="resetFilters">{{ t('common.reset') }}</AppButton>
-        </el-form-item>
-      </el-form>
-    </template>
-
-    <template #insight>
-      <p class="text-sm leading-7 text-slate-600">
-        {{ t('analytics.insight', { start: dateRange[0], end: dateRange[1] }) }}
-      </p>
-    </template>
-
-    <template #kpi>
-      <AppCard v-if="!isStudent" class="kpi-card" surface="elevated" content-class="kpi-body">
-        <span class="kpi-label">{{ t('analytics.studentScale') }}</span>
-        <strong class="kpi-value">{{ overview.studentCount }}</strong>
-      </AppCard>
-      <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
-        <span class="kpi-label">{{ pendingKpiLabel }}</span>
-        <strong class="kpi-value">{{ overview.pendingApprovalCount }}</strong>
-      </AppCard>
-      <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
-        <span class="kpi-label">{{ t('analytics.attendanceRate') }}</span>
-        <strong class="kpi-value">{{ formatPercent(overview.attendanceRate) }}</strong>
-        <span class="kpi-trend" :class="trendClass(overview.attendanceRateChange)">
-          {{ formatDelta(overview.attendanceRateChange) }}
-        </span>
-      </AppCard>
-      <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
-        <span class="kpi-label">{{ t('analytics.avgApprovalHours') }}</span>
-        <strong class="kpi-value">{{ formatNumber(overview.approvalAvgHours) }}</strong>
-        <span class="kpi-trend" :class="trendClass(-overview.approvalAvgHoursChange)">
-          {{ formatDelta(overview.approvalAvgHoursChange) }}
-        </span>
-      </AppCard>
-      <AppCard class="kpi-card" surface="elevated" content-class="kpi-body">
-        <span class="kpi-label">{{ lowScoreKpiLabel }}</span>
-        <strong class="kpi-value">{{ overview.lowScoreRiskCount }}</strong>
-        <span class="kpi-trend" :class="trendClass(-overview.lowScoreRiskChange)">
-          {{ formatDelta(overview.lowScoreRiskChange) }}
-        </span>
-      </AppCard>
-    </template>
-
-    <template #charts>
-      <AppCard class="chart-card" :title="t('analytics.abnormalTrend')" surface="glass" content-class="p-4">
-        <div ref="attendanceTrendRef" class="chart-canvas"></div>
-      </AppCard>
-      <AppCard class="chart-card" :title="t('analytics.scoreTrend')" surface="glass" content-class="p-4">
-        <div ref="scoreTrendRef" class="chart-canvas"></div>
-      </AppCard>
-    </template>
-
-    <AppCard class="risk-card" :title="t('analytics.riskList')" surface="base" content-class="p-4">
-      <template #header>
-        <el-radio-group v-model="riskType" size="small" @change="handleRiskTypeChange">
-          <el-radio-button label="low_score">{{ t('analytics.riskLowScore') }}</el-radio-button>
-          <el-radio-button label="abnormal_attendance">{{ t('analytics.riskAbnormalAttendance') }}</el-radio-button>
-          <el-radio-button label="approval_overdue">{{ t('analytics.riskApprovalOverdue') }}</el-radio-button>
-        </el-radio-group>
-      </template>
-
-      <el-table :data="riskRecords" v-loading="riskLoading" stripe>
-        <el-table-column type="index" :label="t('analytics.index')" width="60" />
-        <el-table-column v-if="!isStudent" prop="studentNo" :label="t('analytics.studentNo')" width="140" />
-        <el-table-column v-if="!isStudent" prop="studentName" :label="t('analytics.name')" width="120" />
-        <el-table-column v-if="!isStudent" prop="className" :label="t('analytics.className')" min-width="140" />
-        <el-table-column v-if="!isStudent" prop="riskCount" :label="t('analytics.riskCount')" width="120" />
-        <el-table-column v-if="!isStudent" :label="t('analytics.riskValue')" width="140">
-          <template #default="{ row }">{{ formatNumber(row.riskValue) }}</template>
-        </el-table-column>
-
-        <template v-if="isStudent && riskType === 'low_score'">
-          <el-table-column prop="courseName" :label="t('analytics.course')" min-width="180" />
-          <el-table-column :label="t('analytics.lowestScore')" width="120">
-            <template #default="{ row }">{{ formatNumber(row.score) }}</template>
-          </el-table-column>
-          <el-table-column prop="riskCount" :label="t('analytics.lowScoreCount')" width="120" />
-        </template>
-
-        <template v-if="isStudent && riskType === 'abnormal_attendance'">
-          <el-table-column :label="t('analytics.date')" width="140">
-            <template #default="{ row }">{{ row.attendanceDate || '-' }}</template>
-          </el-table-column>
-          <el-table-column prop="courseName" :label="t('analytics.course')" min-width="180" />
-          <el-table-column :label="t('analytics.attendanceStatus')" width="120">
-            <template #default="{ row }">{{ formatAttendanceStatus(row.attendanceStatus) }}</template>
-          </el-table-column>
-        </template>
-
-        <template v-if="isStudent && riskType === 'approval_overdue'">
-          <el-table-column prop="leaveRequestId" :label="t('analytics.approvalId')" width="120" />
-          <el-table-column :label="t('analytics.submitTime')" min-width="180">
-            <template #default="{ row }">{{ formatDateTime(row.submitTime) }}</template>
-          </el-table-column>
-          <el-table-column :label="t('analytics.overdueStatus')" width="120">
-            <template #default="{ row }">
-              <el-tag :type="row.overdue ? 'danger' : 'info'" size="small">
-                {{ row.overdue ? t('analytics.overdue') : t('analytics.notOverdue') }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column :label="t('analytics.overdueHours')" width="120">
-            <template #default="{ row }">{{ formatNumber(row.overdueHours) }}</template>
-          </el-table-column>
-        </template>
-      </el-table>
-
-      <el-pagination
-        class="pagination"
-        v-model:current-page="riskPage"
-        v-model:page-size="riskSize"
-        :total="riskTotal"
-        :page-sizes="[10, 20, 50]"
-        layout="total, sizes, prev, pager, next"
-        @size-change="fetchRiskStudents"
-        @current-change="fetchRiskStudents"
-      />
+        </AppCard>
+      </section>
     </AppCard>
-  </AnalyticsPageShell>
+  </div>
 </template>
+
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
-import AnalyticsPageShell from '@/components/shell/AnalyticsPageShell.vue'
+import store from '@/store'
 import { init } from 'echarts/core'
 import { LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import { use } from 'echarts/core'
 import { getAnalyticsOverview, getAttendanceTrend, getRiskStudents, getScoreTrend } from '@/api/analytics'
+import { getTeacherList } from '@/api/teacher'
+import { getClassList } from '@/api/clazz'
+import { getSemesterOptions } from '@/api/semester'
 
 use([LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
 
@@ -175,12 +257,24 @@ const route = useRoute()
 const { t } = useI18n()
 const loading = ref(false)
 const riskLoading = ref(false)
-const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-const userRole = userInfo?.primaryRole || userInfo?.role || ''
+const initialUserInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+const currentUserInfo = computed(() => {
+  const storeUserInfo = store.state.userInfo || {}
+  return Object.keys(storeUserInfo).length ? storeUserInfo : initialUserInfo
+})
+const userRole = currentUserInfo.value?.primaryRole || currentUserInfo.value?.role || ''
 const isAdmin = userRole === 'SCHOOL_ADMIN' || userRole === 'COLLEGE_ADMIN'
+const isTeacherRole = userRole === 'HOMEROOM_TEACHER' || userRole === 'COURSE_TEACHER'
 const isStudent = userRole === 'STUDENT'
 const pendingKpiLabel = isStudent ? t('analytics.myPendingApproval') : t('analytics.pendingApproval')
 const lowScoreKpiLabel = isStudent ? t('analytics.lowScoreCourseCount') : t('analytics.lowScoreRiskPeople')
+const roleLabelMap = {
+  SCHOOL_ADMIN: 'roles.schoolAdmin',
+  COLLEGE_ADMIN: 'roles.collegeAdmin',
+  HOMEROOM_TEACHER: 'roles.homeroomTeacher',
+  COURSE_TEACHER: 'roles.courseTeacher',
+  STUDENT: 'roles.student'
+}
 
 const today = new Date()
 const thirtyDaysAgo = new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000)
@@ -203,6 +297,13 @@ const overview = reactive({
   lowScoreRiskChange: 0
 })
 
+const teacherOptionsLoading = ref(false)
+const classOptionsLoading = ref(false)
+const semesterOptionsLoading = ref(false)
+const teacherOptions = ref([])
+const classOptions = ref([])
+const semesterOptions = ref([])
+
 const riskType = ref('low_score')
 const riskPage = ref(1)
 const riskSize = ref(10)
@@ -214,6 +315,51 @@ const scoreTrendRef = ref(null)
 let attendanceTrendChart = null
 let scoreTrendChart = null
 let themeObserver = null
+
+const currentRoleLabel = computed(() => t(roleLabelMap[userRole] || 'common.user'))
+
+const statCards = computed(() => {
+  const items = []
+
+  if (!isStudent) {
+    items.push({
+      label: t('analytics.studentScale'),
+      value: formatNumber(overview.studentCount),
+      note: t('analytics.studentScaleNote')
+    })
+  }
+
+  items.push(
+    {
+      label: pendingKpiLabel,
+      value: formatNumber(overview.pendingApprovalCount),
+      note: t('analytics.pendingApprovalNote')
+    },
+    {
+      label: t('analytics.attendanceRate'),
+      value: formatPercent(overview.attendanceRate),
+      note: t('analytics.attendanceRateNote'),
+      delta: formatDelta(overview.attendanceRateChange),
+      deltaValue: overview.attendanceRateChange
+    },
+    {
+      label: t('analytics.avgApprovalHours'),
+      value: formatNumber(overview.approvalAvgHours),
+      note: t('analytics.avgApprovalHoursNote'),
+      delta: formatDelta(overview.approvalAvgHoursChange),
+      deltaValue: -overview.approvalAvgHoursChange
+    },
+    {
+      label: lowScoreKpiLabel,
+      value: formatNumber(overview.lowScoreRiskCount),
+      note: t('analytics.lowScoreRiskNote'),
+      delta: formatDelta(overview.lowScoreRiskChange),
+      deltaValue: -overview.lowScoreRiskChange
+    }
+  )
+
+  return items
+})
 
 const readCssVar = (name, fallback) => {
   if (typeof window === 'undefined') return fallback
@@ -268,6 +414,108 @@ function buildParams() {
     params.teacherId = filters.teacherId || undefined
   }
   return params
+}
+
+function mapTeacherOption(item) {
+  const teacherNo = item?.teacherNo || '-'
+  const name = item?.name || '-'
+  return {
+    value: item.id,
+    label: `${teacherNo} / ${name}`
+  }
+}
+
+function mapClassOption(item) {
+  const classCode = item?.classCode || '-'
+  const className = item?.className || '-'
+  return {
+    value: item.id,
+    label: `${classCode} / ${className}`
+  }
+}
+
+function mapSemesterOption(item) {
+  const value = item?.semesterCode || ''
+  return {
+    value,
+    label: value
+  }
+}
+
+async function ensureUserScopeInfo() {
+  const info = currentUserInfo.value || {}
+  const needsTeacherScope = isTeacherRole && !info.teacherId
+  const needsCollegeScope = userRole === 'COLLEGE_ADMIN' && !info.collegeId
+  if (!info.id || needsTeacherScope || needsCollegeScope) {
+    await store.dispatch('getUserInfo').catch(() => null)
+  }
+}
+
+async function loadTeacherOptions() {
+  if (!isAdmin) {
+    teacherOptions.value = []
+    return
+  }
+  teacherOptionsLoading.value = true
+  try {
+    const params = { page: 1, size: 500 }
+    if (currentUserInfo.value?.collegeId) {
+      params.collegeId = currentUserInfo.value.collegeId
+    }
+    const res = await getTeacherList(params)
+    teacherOptions.value = (res.data?.records || []).map(mapTeacherOption)
+    if (filters.teacherId && !teacherOptions.value.some((item) => item.value === filters.teacherId)) {
+      filters.teacherId = null
+    }
+  } finally {
+    teacherOptionsLoading.value = false
+  }
+}
+
+async function loadClassOptions() {
+  if (isStudent) {
+    classOptions.value = []
+    return
+  }
+  classOptionsLoading.value = true
+  try {
+    const params = { page: 1, size: 500 }
+    if (isAdmin && filters.teacherId) {
+      params.teacherId = filters.teacherId
+    } else if (isTeacherRole && currentUserInfo.value?.teacherId) {
+      params.teacherId = currentUserInfo.value.teacherId
+    } else if ((userRole === 'COLLEGE_ADMIN' || isTeacherRole) && currentUserInfo.value?.collegeId) {
+      params.collegeId = currentUserInfo.value.collegeId
+    }
+    const res = await getClassList(params)
+    classOptions.value = (res.data?.records || []).map(mapClassOption)
+    if (filters.classId && !classOptions.value.some((item) => item.value === filters.classId)) {
+      filters.classId = null
+    }
+  } finally {
+    classOptionsLoading.value = false
+  }
+}
+
+async function loadSemesterOptions() {
+  semesterOptionsLoading.value = true
+  try {
+    const res = await getSemesterOptions()
+    semesterOptions.value = (res.data || []).filter((item) => item?.semesterCode).map(mapSemesterOption)
+    if (filters.semester && !semesterOptions.value.some((item) => item.value === filters.semester)) {
+      filters.semester = ''
+    }
+  } finally {
+    semesterOptionsLoading.value = false
+  }
+}
+
+async function syncFilterOptions() {
+  await Promise.all([
+    loadTeacherOptions(),
+    loadClassOptions(),
+    loadSemesterOptions()
+  ])
 }
 
 function formatNumber(value) {
@@ -352,6 +600,10 @@ async function fetchRiskStudents() {
     })
     riskRecords.value = res.data?.records || []
     riskTotal.value = Number(res.data?.total || 0)
+  } catch (_error) {
+    riskRecords.value = []
+    riskTotal.value = 0
+    ElMessage.error(t('analytics.riskLoadFailed'))
   } finally {
     riskLoading.value = false
   }
@@ -366,7 +618,7 @@ async function refreshAll() {
       fetchScoreTrend(),
       fetchRiskStudents()
     ])
-  } catch (_e) {
+  } catch (_error) {
     ElMessage.error(t('analytics.loadFailed'))
   } finally {
     loading.value = false
@@ -381,7 +633,7 @@ function resetFilters() {
   filters.granularity = 'day'
   riskType.value = 'low_score'
   riskPage.value = 1
-  refreshAll()
+  syncFilterOptions().finally(() => refreshAll())
 }
 
 function handleRiskTypeChange(type) {
@@ -568,17 +820,41 @@ watch(
 )
 
 watch(
+  () => filters.teacherId,
+  async (current, previous) => {
+    if (!isAdmin || current === previous) {
+      return
+    }
+    filters.classId = null
+    await Promise.all([loadClassOptions(), loadSemesterOptions()])
+  }
+)
+
+watch(
+  () => filters.classId,
+  async (current, previous) => {
+    if (current === previous) {
+      return
+    }
+    await loadSemesterOptions()
+  }
+)
+
+watch(
   () => route.fullPath,
-  () => {
+  async () => {
     applyRoutePreset()
+    await syncFilterOptions()
     refreshAll()
   }
 )
 
-onMounted(() => {
+onMounted(async () => {
+  await ensureUserScopeInfo()
   applyRoutePreset()
+  await syncFilterOptions()
   initCharts()
-  refreshAll()
+  await refreshAll()
   window.addEventListener('resize', handleResize)
   themeObserver = new MutationObserver(() => {
     fetchAttendanceTrend()
@@ -596,73 +872,230 @@ onBeforeUnmount(() => {
   attendanceTrendChart = null
   scoreTrendChart = null
 })
-
 </script>
 
 <style scoped lang="scss">
-.filter-header h2 {
+.analytics-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--accent-500) 18%, transparent), transparent 44%),
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-elevated) 88%, transparent), color-mix(in srgb, var(--surface-base) 92%, transparent));
+}
+
+.analytics-hero-copy {
+  display: grid;
+  gap: 10px;
+  max-width: 820px;
+}
+
+.analytics-hero-badge {
   margin: 0;
-  font-size: 22px;
-  line-height: 1.3;
-  letter-spacing: -0.015em;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.analytics-hero-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
   color: var(--text-primary);
 }
 
-.filter-header p {
-  margin: 6px 0 10px;
-  color: var(--text-secondary);
+.analytics-hero-desc,
+.analytics-hero-insight {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.85;
+  color: color-mix(in srgb, var(--text-primary) 78%, var(--text-secondary));
+}
+
+.analytics-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 74%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 84%, transparent);
+  color: var(--text-primary);
   font-size: 13px;
 }
 
-.filter-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 0;
+.analytics-hero-pill-label {
+  color: var(--text-secondary);
 }
 
-.kpi-card,
-.chart-card,
-.risk-card {
-  border-radius: var(--radius-panel);
-  border: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
-  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
-  box-shadow: var(--shadow-soft);
+.analytics-stats {
+  display: grid;
+  gap: 12px;
 }
 
-.kpi-body {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.analytics-stat {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 92%, transparent), color-mix(in srgb, var(--surface-elevated) 76%, transparent));
 }
 
-.kpi-label {
+.analytics-stat-label {
+  margin: 0;
   font-size: 12px;
   color: var(--text-secondary);
 }
 
-.kpi-value {
-  font-size: 24px;
+.analytics-stat-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.analytics-stat-value {
+  margin: 0;
+  font-size: 30px;
   line-height: 1;
+  font-weight: 700;
   color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
 }
 
-.kpi-trend {
-  font-size: 11px;
-  font-weight: 600;
+.analytics-stat-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--text-primary) 66%, var(--text-secondary));
 }
 
-.kpi-trend.positive {
+.analytics-stat-trend {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.analytics-stat-trend.positive {
   color: var(--success);
 }
 
-.kpi-trend.negative {
+.analytics-stat-trend.negative {
   color: var(--danger);
 }
 
-.kpi-trend.neutral {
+.analytics-stat-trend.neutral {
   color: var(--text-secondary);
+}
+
+.analytics-section {
+  display: grid;
+  gap: 14px;
+}
+
+.analytics-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.analytics-section-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.analytics-section-desc {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.75;
+  color: color-mix(in srgb, var(--text-primary) 74%, var(--text-secondary));
+}
+
+.analytics-filter-panel,
+.analytics-panel {
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 92%, transparent), color-mix(in srgb, var(--surface-elevated) 76%, transparent));
+}
+
+.analytics-filter-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.analytics-filter-form {
+  display: grid;
+  gap: 10px 14px;
+}
+
+.analytics-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.analytics-chart-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.analytics-risk-card :deep(.app-card__header-actions) {
+  flex-wrap: wrap;
+}
+
+.analytics-risk-card {
+  width: 100%;
+  overflow: hidden;
+}
+
+.analytics-risk-card :deep(.app-panel-header) {
+  align-items: flex-start;
+}
+
+.analytics-risk-switcher {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+}
+
+.analytics-risk-switcher :deep(.el-radio-group) {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.analytics-risk-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.analytics-risk-table {
+  width: 100%;
+  min-width: 680px;
+}
+
+.analytics-risk-table :deep(.el-table__inner-wrapper) {
+  border-radius: 16px;
+}
+
+.analytics-risk-table :deep(th),
+.analytics-risk-table :deep(td) {
+  white-space: nowrap;
 }
 
 .chart-canvas {
@@ -673,6 +1106,28 @@ onBeforeUnmount(() => {
   margin-top: 10px;
   justify-content: flex-end;
 }
+
+@media (min-width: 768px) {
+  .analytics-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .analytics-filter-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .analytics-stats {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .analytics-chart-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .analytics-filter-form {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
 </style>
-
-

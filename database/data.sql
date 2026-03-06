@@ -108,3 +108,12 @@ WHERE s.user_id IS NOT NULL
 INSERT INTO sys_config (config_key, config_value, description)
 VALUES ('currentSemester', '2024-2025-1', 'Current semester for workflow and notifications')
 ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), description = VALUES(description);
+
+INSERT INTO semester (id, semester_code, start_date, end_date, status, remark)
+VALUES (1, '2024-2025-1', '2024-09-01', '2025-01-20', 'ACTIVE', '默认激活学期')
+ON DUPLICATE KEY UPDATE
+semester_code = VALUES(semester_code),
+start_date = VALUES(start_date),
+end_date = VALUES(end_date),
+status = VALUES(status),
+remark = VALUES(remark);

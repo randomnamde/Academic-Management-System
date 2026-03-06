@@ -560,9 +560,18 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         if (aggregateMap.isEmpty()) {
             return List.of();
         }
+        List<Long> studentIds = new ArrayList<>(aggregateMap.keySet());
+        List<Student> students = studentMapper.selectByIdsWithClass(studentIds);
+        Map<Long, Student> studentById = new HashMap<>();
+        for (Student student : students) {
+            if (student.getId() != null) {
+                studentById.put(student.getId(), student);
+            }
+        }
+
         List<RiskStudentDTO> list = new ArrayList<>();
         for (Map.Entry<Long, Aggregate> entry : aggregateMap.entrySet()) {
-            Student student = studentMapper.selectByIdWithClass(entry.getKey());
+            Student student = studentById.get(entry.getKey());
             if (student == null) {
                 continue;
             }

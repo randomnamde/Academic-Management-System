@@ -3,8 +3,10 @@ export default {
     close: 'Close',
     cancel: 'Cancel',
     save: 'Save',
+    edit: 'Edit',
     search: 'Search',
     reset: 'Reset',
+    actions: 'Actions',
     user: 'User',
     loading: 'Loading...',
     noData: 'No data',
@@ -41,7 +43,8 @@ export default {
     rbacPermissions: 'Permission Matrix',
     rbacAudit: 'Audit Logs',
     profile: 'Profile',
-    system: 'System Preferences'
+    system: 'System Preferences',
+    semester: 'Semester Management'
   },
   menuGroup: {
     overview: 'Overview',
@@ -165,13 +168,12 @@ export default {
       comfortable: 'Standard'
     },
     currentSemester: {
-      title: 'Current Semester',
-      desc: 'Used for CC filtering in no-course holiday scenarios.',
-      placeholder: 'e.g. 2025-2026-2',
-      save: 'Save',
-      emptyWarn: 'Please enter a semester value',
-      saveSuccess: 'Semester updated',
-      noPermission: 'Only school administrators can update semester settings.'
+      kicker: 'Semester Hub',
+      title: 'Semester Management',
+      desc: 'Maintain the active semester, historical semester states, and activation flow in one place.',
+      enter: 'Open Semester Management',
+      emptyValue: 'No active semester',
+      emptyStatus: 'Not active'
     },
     permissionCenter: {
       kicker: 'Access Entry',
@@ -192,6 +194,61 @@ export default {
       confirmRequired: 'Please confirm new password',
       notMatch: 'Passwords do not match',
       updated: 'Password updated'
+    }
+  },
+  semester: {
+    pageTitle: 'Semester Management',
+    heroBadge: 'Semester Control',
+    pageDesc: 'Maintain semester master data, date ranges, and status transitions, then expose them as the shared semester source for the system.',
+    heroInsightActive: 'The current active semester is {code}. Related pages will prefer this master record as the default semester source.',
+    heroInsightEmpty: 'There is no active semester yet, so pages depending on the current semester will show an empty state.',
+    activeLabel: 'Current Active',
+    emptyActive: 'Not active',
+    filterTitle: 'Filters',
+    filterDesc: 'Filter by semester code or status to quickly locate the current or historical semester.',
+    createAction: 'Create Semester',
+    createTitle: 'Create Semester',
+    editTitle: 'Edit Semester',
+    listTitle: 'Semester List',
+    listDesc: 'Semester statuses do not switch automatically by date and are always managed manually by the school admin.',
+    semesterCode: 'Semester Code',
+    semesterCodePlaceholder: 'e.g. 2026-2027-1',
+    dateRange: 'Date Range',
+    startDate: 'Start Date',
+    endDate: 'End Date',
+    statusLabel: 'Semester Status',
+    selectStatus: 'Select status',
+    remark: 'Remark',
+    remarkPlaceholder: 'Optional notes for this semester or why it was switched',
+    updatedAt: 'Updated At',
+    status: {
+      PLANNED: 'Planned',
+      ACTIVE: 'Active',
+      ENDED: 'Ended',
+      ARCHIVED: 'Archived'
+    },
+    actions: {
+      activate: 'Set Active',
+      end: 'Mark Ended',
+      archive: 'Archive'
+    },
+    stats: {
+      totalLabel: 'Total Semesters',
+      totalNote: 'Semester records currently maintained',
+      activeLabel: 'Active Semester',
+      activeNote: 'Only one is allowed at a time',
+      plannedLabel: 'Planned Semesters',
+      plannedNote: 'Ready but not active yet'
+    },
+    validation: {
+      semesterCode: 'Please enter a semester code',
+      dateRange: 'Please select the date range'
+    },
+    messages: {
+      createSuccess: 'Semester created',
+      updateSuccess: 'Semester updated',
+      statusSuccess: 'Semester status updated',
+      statusConfirm: 'Are you sure you want to change {code} to \"{status}\"?'
     }
   },
   profile: {
@@ -819,14 +876,25 @@ export default {
   },
   analytics: {
     pageTitle: 'Analytics Center',
+    heroBadge: 'Analytics Console',
+    heroRoleLabel: 'Analytics Role',
     pageDesc: 'View attendance trends, score quality and risk distribution by time and dimension.',
+    filterTitle: 'Filters',
+    filterDesc: 'Adjust date range, semester, and granularity to focus on the risk window you want to inspect.',
+    chartSectionTitle: 'Trend Charts',
+    chartSectionDesc: 'Observe recent changes from attendance exceptions and score quality in one place.',
+    riskSectionTitle: 'Risk Details',
+    riskSectionDesc: 'Switch between low score, attendance exception, and approval overdue views to inspect key records.',
     dateRange: 'Date Range',
     startDate: 'Start Date',
     endDate: 'End Date',
     semester: 'Semester',
     semesterPlaceholder: 'e.g. 2026-2027-1',
+    selectSemester: 'Please select semester',
     classId: 'Class ID',
     teacherId: 'Teacher ID',
+    selectClass: 'Please select class',
+    selectTeacher: 'Please select teacher',
     granularity: 'Granularity',
     day: 'Daily',
     week: 'Weekly',
@@ -834,15 +902,20 @@ export default {
     refresh: 'Refresh Analytics',
     insight: 'Current range: {start} to {end}. Switch risk type to view distribution.',
     studentScale: 'Student Scale',
+    studentScaleNote: 'Students included in the current scope',
     pendingApproval: 'Pending Approvals',
     myPendingApproval: 'My Pending Approvals',
+    pendingApprovalNote: 'Approvals still waiting in the current scope',
     attendanceRate: 'Attendance Rate',
+    attendanceRateNote: 'Overall attendance performance in this range',
     avgApprovalHours: 'Average Approval Hours',
+    avgApprovalHoursNote: 'Average leave approval processing time',
     lowScoreRiskPeople: 'Low Score Risk Students',
     lowScoreCourseCount: 'Low Score Course Count',
+    lowScoreRiskNote: 'Current low score risk size in this range',
     abnormalTrend: 'Abnormal Attendance Trend',
     scoreTrend: 'Score Quality Trend',
-    riskList: 'Risk Student List',
+    riskList: 'Risk List',
     riskLowScore: 'Low Score Risk',
     riskAbnormalAttendance: 'Abnormal Attendance',
     riskApprovalOverdue: 'Approval Overdue',
@@ -864,6 +937,7 @@ export default {
     notOverdue: 'Not Overdue',
     overdueHours: 'Overdue Hours',
     loadFailed: 'Failed to load analytics data',
+    riskLoadFailed: 'Failed to load risk details',
     abnormalAttendance: 'Abnormal Attendance',
     avgScore: 'Average Score',
     passRate: 'Pass Rate',

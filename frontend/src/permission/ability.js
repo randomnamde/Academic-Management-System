@@ -15,6 +15,7 @@ const ROLE_ROUTE_MAP = {
     'Announcement',
     'Profile',
     'System',
+    'Semester',
     'RBACCenter',
     'RBACUsers',
     'RBACUserAssignments',

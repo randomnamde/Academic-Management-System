@@ -22,6 +22,19 @@ public interface StudentMapper extends BaseMapper<Student> {
             "SELECT s.*, c.class_name",
             "FROM student s",
             "LEFT JOIN class c ON s.class_id = c.id",
+            "WHERE s.id IN",
+            "<foreach item='id' collection='ids' open='(' separator=',' close=')'>",
+            "  #{id}",
+            "</foreach>",
+            "</script>"
+    })
+    List<Student> selectByIdsWithClass(@Param("ids") List<Long> ids);
+
+    @Select({
+            "<script>",
+            "SELECT s.*, c.class_name",
+            "FROM student s",
+            "LEFT JOIN class c ON s.class_id = c.id",
             "<where>",
             "  <if test='studentNo != null and studentNo != \"\"'>",
             "    AND s.student_no LIKE CONCAT('%', #{studentNo}, '%')",

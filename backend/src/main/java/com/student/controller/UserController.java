@@ -73,6 +73,18 @@ public class UserController {
             College college = collegeMapper.selectById(collegeId);
             vo.setCollegeName(college != null ? college.getCollegeName() : null);
         }
+        if (currentUserService.isTeacher(authentication)) {
+            Teacher teacher = currentUserService.getCurrentTeacher(authentication);
+            if (teacher != null) {
+                vo.setTeacherId(teacher.getId());
+            }
+        }
+        if (currentUserService.isStudent(authentication)) {
+            Student student = currentUserService.getCurrentStudent(authentication);
+            if (student != null) {
+                vo.setClassId(student.getClassId());
+            }
+        }
         RoleCode primaryRoleCode = orderedRoles.isEmpty() ? null : orderedRoles.get(0);
         vo.setRole(RoleCode.toUserRole(primaryRoleCode));
         vo.setPrimaryRole(primaryRoleCode == null ? null : primaryRoleCode.name());

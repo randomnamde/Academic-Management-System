@@ -314,6 +314,79 @@ a {
   backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
 }
 
+:root[data-theme='dark'] .el-picker-panel,
+:root[data-theme='dark'] .el-date-range-picker,
+:root[data-theme='dark'] .el-date-picker,
+:root[data-theme='dark'] .el-picker__popper,
+:root[data-theme='dark'] .el-time-panel,
+:root[data-theme='dark'] .el-time-range-picker {
+  color: var(--text-primary);
+  background: var(--surface-popup);
+  border-color: var(--popup-border);
+}
+
+:root[data-theme='dark'] .el-picker-panel__body,
+:root[data-theme='dark'] .el-picker-panel__body-wrapper,
+:root[data-theme='dark'] .el-date-range-picker__content,
+:root[data-theme='dark'] .el-date-picker__time-header,
+:root[data-theme='dark'] .el-picker-panel__content,
+:root[data-theme='dark'] .el-time-panel__content,
+:root[data-theme='dark'] .el-time-spinner__wrapper,
+:root[data-theme='dark'] .el-time-spinner__list {
+  background: color-mix(in srgb, var(--surface-base) 94%, transparent);
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .el-picker-panel__sidebar,
+:root[data-theme='dark'] .el-picker-panel__shortcut,
+:root[data-theme='dark'] .el-picker-panel__footer {
+  background: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
+  color: var(--text-secondary);
+  border-color: color-mix(in srgb, var(--panel-border) 78%, transparent);
+}
+
+:root[data-theme='dark'] .el-picker-panel__shortcut:hover,
+:root[data-theme='dark'] .el-picker-panel__shortcut:focus-visible,
+:root[data-theme='dark'] .el-time-spinner__item:hover,
+:root[data-theme='dark'] .el-time-spinner__item.active:not(.disabled) {
+  background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] .el-date-table th,
+:root[data-theme='dark'] .el-date-picker__header-label,
+:root[data-theme='dark'] .el-picker-panel__icon-btn,
+:root[data-theme='dark'] .el-time-panel__btn {
+  color: var(--text-secondary);
+}
+
+:root[data-theme='dark'] .el-date-table td.available:hover,
+:root[data-theme='dark'] .el-month-table td .cell:hover,
+:root[data-theme='dark'] .el-year-table td .cell:hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+}
+
+:root[data-theme='dark'] .el-date-table td.in-range div,
+:root[data-theme='dark'] .el-date-table td.in-range div:hover,
+:root[data-theme='dark'] .el-date-table td.today div {
+  background: color-mix(in srgb, var(--accent-500) 16%, var(--surface-elevated));
+}
+
+:root[data-theme='dark'] .el-date-table td.start-date span,
+:root[data-theme='dark'] .el-date-table td.end-date span,
+:root[data-theme='dark'] .el-date-table td.current:not(.disabled) span,
+:root[data-theme='dark'] .el-month-table td.current:not(.disabled) .cell,
+:root[data-theme='dark'] .el-year-table td.current:not(.disabled) .cell {
+  color: var(--text-on-accent);
+  background: var(--accent-500);
+}
+
+:root[data-theme='dark'] .el-picker-panel__link-btn,
+:root[data-theme='dark'] .el-time-panel__btn.confirm {
+  color: var(--accent-500);
+}
+
 .el-select-dropdown__item.hover,
 .el-select-dropdown__item:hover,
 .el-dropdown-menu__item:not(.is-disabled):hover {

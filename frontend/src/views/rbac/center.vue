@@ -1,9 +1,9 @@
 <template>
   <div class="app-page space-y-3">
-    <AppCard :title="t('rbac.users.hubTitle')" content-class="p-4 space-y-4">
+    <AppCard :title="t('rbac.center.pageTitle')" content-class="p-4 space-y-4">
       <div class="center-hero">
-        <p class="center-hero-badge">{{ t('rbac.users.heroBadge') }}</p>
-        <p class="center-hero-desc">{{ t('rbac.users.hubDesc') }}</p>
+        <p class="center-hero-badge">{{ t('rbac.center.heroBadge') }}</p>
+        <p class="center-hero-desc">{{ t('rbac.center.pageDesc') }}</p>
       </div>
 
       <div class="center-stats">
@@ -49,7 +49,7 @@
           </div>
 
           <div class="center-card-footer">
-            <span>{{ t('rbac.users.enterAction') }}</span>
+            <span>{{ t('rbac.center.enterAction') }}</span>
             <ArrowRight class="h-4 w-4" />
           </div>
         </button>
@@ -63,7 +63,7 @@ import { computed, onActivated, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
-import { ArrowRight, ShieldCheck, UsersRound } from 'lucide-vue-next'
+import { ArrowRight, FileSearch, KeyRound, LayoutTemplate, UsersRound } from 'lucide-vue-next'
 import AppCard from '@/components/ui/AppCard.vue'
 import { getUserList } from '@/api/user'
 
@@ -76,40 +76,63 @@ const currentRole = computed(() => store.state.userInfo?.primaryRole || store.st
 const isSchoolAdmin = computed(() => currentRole.value === 'SCHOOL_ADMIN')
 
 const cards = computed(() => {
-  const items = []
+  const items = [
+    {
+      path: '/rbac/users',
+      variant: 'users',
+      icon: UsersRound,
+      kicker: t('rbac.center.usersKicker'),
+      title: t('route.rbacUsers'),
+      desc: t('rbac.center.usersDesc'),
+      tags: [t('rbac.center.usersTagAccounts'), t('rbac.center.usersTagImport')]
+    }
+  ]
+
   if (isSchoolAdmin.value) {
-    items.push({
-      path: '/rbac/users/assignments',
-      variant: 'assignment',
-      icon: ShieldCheck,
-      kicker: t('rbac.users.assignmentCardKicker'),
-      title: t('rbac.users.assignmentEntryTitle'),
-      desc: t('rbac.users.assignmentEntryDesc'),
-      tags: [t('rbac.users.assignmentTagRole'), t('rbac.users.assignmentTagScope')]
-    })
+    items.push(
+      {
+        path: '/rbac/roles',
+        variant: 'roles',
+        icon: LayoutTemplate,
+        kicker: t('rbac.center.rolesKicker'),
+        title: t('route.rbacRoles'),
+        desc: t('rbac.center.rolesDesc'),
+        tags: [t('rbac.center.rolesTagTemplate'), t('rbac.center.rolesTagPolicy')]
+      },
+      {
+        path: '/rbac/permissions',
+        variant: 'permissions',
+        icon: KeyRound,
+        kicker: t('rbac.center.permissionsKicker'),
+        title: t('route.rbacPermissions'),
+        desc: t('rbac.center.permissionsDesc'),
+        tags: [t('rbac.center.permissionsTagMatrix'), t('rbac.center.permissionsTagActions')]
+      },
+      {
+        path: '/rbac/audit',
+        variant: 'audit',
+        icon: FileSearch,
+        kicker: t('rbac.center.auditKicker'),
+        title: t('route.rbacAudit'),
+        desc: t('rbac.center.auditDesc'),
+        tags: [t('rbac.center.auditTagTrace'), t('rbac.center.auditTagRisk')]
+      }
+    )
   }
-  items.push({
-    path: '/rbac/users/list',
-    variant: 'list',
-    icon: UsersRound,
-    kicker: t('rbac.users.listCardKicker'),
-    title: t('rbac.users.listEntryTitle'),
-    desc: t('rbac.users.listEntryDesc'),
-    tags: [t('rbac.users.listTagDirectory'), t('rbac.users.listTagImport')]
-  })
+
   return items
 })
 
 const stats = computed(() => [
   {
-    label: t('rbac.users.hubStatUsersLabel'),
+    label: t('rbac.center.statUsersLabel'),
     value: userTotal.value ?? '--',
-    note: t('rbac.users.hubStatUsersNote')
+    note: t('rbac.center.statUsersNote')
   },
   {
-    label: t('rbac.users.hubStatEntryLabel'),
+    label: t('rbac.center.statEntriesLabel'),
     value: cards.value.length,
-    note: t('rbac.users.hubStatEntryNote')
+    note: t('rbac.center.statEntriesNote')
   }
 ])
 
@@ -148,7 +171,7 @@ onActivated(loadStats)
 
 .center-hero-desc {
   margin: 0;
-  max-width: 620px;
+  max-width: 720px;
   font-size: 14px;
   line-height: 1.8;
   color: color-mix(in srgb, var(--text-primary) 80%, var(--text-secondary));
@@ -165,7 +188,10 @@ onActivated(loadStats)
 }
 
 @media (min-width: 768px) {
-  .center-stats,
+  .center-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .center-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -211,7 +237,7 @@ onActivated(loadStats)
   position: relative;
   display: grid;
   gap: 18px;
-  min-height: 260px;
+  min-height: 252px;
   padding: 22px;
   overflow: hidden;
   border-radius: 24px;
@@ -237,34 +263,64 @@ onActivated(loadStats)
   box-shadow: 0 22px 36px color-mix(in srgb, var(--accent-500) 12%, transparent);
 }
 
-.center-card-assignment {
-  background:
-    linear-gradient(135deg, rgba(176, 92, 23, 0.12), rgba(194, 122, 52, 0.14)),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 92%, transparent), color-mix(in srgb, var(--surface-elevated) 78%, transparent));
-}
-
-.center-card-assignment::before {
-  background: linear-gradient(135deg, rgba(194, 122, 52, 0.48), rgba(176, 92, 23, 0.3));
-}
-
-.center-card-assignment:hover,
-.center-card-assignment:focus-visible {
-  border-color: rgba(176, 92, 23, 0.24);
-}
-
-.center-card-list {
+.center-card-users {
   background:
     linear-gradient(135deg, rgba(15, 95, 148, 0.12), rgba(40, 137, 108, 0.12)),
     linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 92%, transparent), color-mix(in srgb, var(--surface-elevated) 78%, transparent));
 }
 
-.center-card-list::before {
+.center-card-users::before {
   background: linear-gradient(135deg, rgba(40, 137, 108, 0.42), rgba(15, 95, 148, 0.3));
 }
 
-.center-card-list:hover,
-.center-card-list:focus-visible {
+.center-card-users:hover,
+.center-card-users:focus-visible {
   border-color: rgba(15, 95, 148, 0.24);
+}
+
+.center-card-roles {
+  background:
+    linear-gradient(135deg, rgba(176, 92, 23, 0.12), rgba(194, 122, 52, 0.14)),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 92%, transparent), color-mix(in srgb, var(--surface-elevated) 78%, transparent));
+}
+
+.center-card-roles::before {
+  background: linear-gradient(135deg, rgba(194, 122, 52, 0.48), rgba(176, 92, 23, 0.3));
+}
+
+.center-card-roles:hover,
+.center-card-roles:focus-visible {
+  border-color: rgba(176, 92, 23, 0.24);
+}
+
+.center-card-permissions {
+  background:
+    linear-gradient(135deg, rgba(97, 60, 196, 0.12), rgba(64, 129, 223, 0.12)),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 92%, transparent), color-mix(in srgb, var(--surface-elevated) 78%, transparent));
+}
+
+.center-card-permissions::before {
+  background: linear-gradient(135deg, rgba(97, 60, 196, 0.4), rgba(64, 129, 223, 0.3));
+}
+
+.center-card-permissions:hover,
+.center-card-permissions:focus-visible {
+  border-color: rgba(97, 60, 196, 0.24);
+}
+
+.center-card-audit {
+  background:
+    linear-gradient(135deg, rgba(121, 48, 108, 0.12), rgba(191, 74, 109, 0.12)),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 92%, transparent), color-mix(in srgb, var(--surface-elevated) 78%, transparent));
+}
+
+.center-card-audit::before {
+  background: linear-gradient(135deg, rgba(121, 48, 108, 0.38), rgba(191, 74, 109, 0.28));
+}
+
+.center-card-audit:hover,
+.center-card-audit:focus-visible {
+  border-color: rgba(121, 48, 108, 0.24);
 }
 
 .center-card-head,

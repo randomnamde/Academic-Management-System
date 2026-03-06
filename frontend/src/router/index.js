@@ -133,40 +133,46 @@ const routes = [
         meta: { titleKey: 'route.announcement', icon: 'BellFilled', roles: ALL_ROLES, menuGroup: 'assessment' }
       },
       {
+        path: 'rbac',
+        name: 'RBACCenter',
+        component: () => import('@/views/rbac/center.vue'),
+        meta: { titleKey: 'route.rbacCenter', icon: 'Operation', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access' }
+      },
+      {
         path: 'rbac/users',
         name: 'RBACUsers',
         component: () => import('@/views/rbac/hub.vue'),
-        meta: { titleKey: 'route.rbacUsers', icon: 'UserFilled', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access' }
+        meta: { titleKey: 'route.rbacUsers', icon: 'UserFilled', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
       },
       {
         path: 'rbac/users/assignments',
         name: 'RBACUserAssignments',
         component: () => import('@/views/rbac/assignments.vue'),
-        meta: { titleKey: 'route.rbacUserAssignments', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true }
+        meta: { titleKey: 'route.rbacUserAssignments', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
       },
       {
         path: 'rbac/users/list',
         name: 'RBACUserList',
         component: () => import('@/views/rbac/users.vue'),
-        meta: { titleKey: 'route.rbacUserList', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access', hideInMenu: true }
+        meta: { titleKey: 'route.rbacUserList', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
       },
       {
         path: 'rbac/roles',
         name: 'RBACRoles',
         component: () => import('@/views/rbac/roles.vue'),
-        meta: { titleKey: 'route.rbacRoles', icon: 'Postcard', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
+        meta: { titleKey: 'route.rbacRoles', icon: 'Postcard', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
       },
       {
         path: 'rbac/permissions',
         name: 'RBACPermissions',
         component: () => import('@/views/rbac/permissions.vue'),
-        meta: { titleKey: 'route.rbacPermissions', icon: 'Operation', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
+        meta: { titleKey: 'route.rbacPermissions', icon: 'Operation', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
       },
       {
         path: 'rbac/audit',
         name: 'RBACAudit',
         component: () => import('@/views/rbac/audit.vue'),
-        meta: { titleKey: 'route.rbacAudit', icon: 'Document', roles: ['SCHOOL_ADMIN'], menuGroup: 'access' }
+        meta: { titleKey: 'route.rbacAudit', icon: 'Document', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
       },
       {
         path: 'profile',

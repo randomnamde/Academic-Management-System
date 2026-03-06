@@ -33,6 +33,7 @@ export default {
     attendance: 'Attendance',
     leaveRequest: 'Leave Approval',
     announcement: 'Announcements',
+    rbacCenter: 'Access Center',
     rbacUsers: 'Access Users',
     rbacUserAssignments: 'Role Assignments',
     rbacUserList: 'User Directory',
@@ -173,8 +174,11 @@ export default {
       noPermission: 'Only school administrators can update semester settings.'
     },
     permissionCenter: {
+      kicker: 'Access Entry',
       title: 'Permission Management Entry',
       desc: 'Roles, permission matrix, and audit logs have been moved to the RBAC center.',
+      tagEntry: 'Unified Entry',
+      tagAudit: 'Audit View',
       enter: 'Open RBAC Center'
     },
     accountSecurity: 'Account Security',
@@ -641,7 +645,18 @@ export default {
     statusUpdated: 'Status updated'
   },
   dashboard: {
+    pageTitle: 'Home Workspace',
+    heroBadge: 'Role Taskboard',
+    heroRoleLabel: 'Current Role',
     overviewKicker: 'Academic Overview',
+    enterAction: 'Open Management',
+    sectionDailyTitle: 'Daily Teaching',
+    sectionDailyDesc: 'Handle frequent teaching operations across students, teachers, classes, and courses.',
+    sectionRiskTitle: 'Risk & Analysis',
+    sectionRiskDesc: 'Jump into analytics, scores, attendance, leave flow, and notices.',
+    sectionSystemTitle: 'System Collaboration',
+    sectionSystemDesc: 'Open access, preferences, and personal account collaboration entries.',
+    todoSectionDesc: 'Keep system reminders and personal to-dos together here, then jump to the related page.',
     pendingApproval: 'Pending Approvals',
     abnormalAttendance: 'Abnormal Attendance',
     lowScoreWarning: 'Low Score Warnings',
@@ -672,8 +687,10 @@ export default {
     noContent: 'No content',
     titleStudent: 'Personal Study Overview',
     titleAdmin: 'Teaching Operations Overview',
-    descStudent: 'Focus on my courses, attendance and leave status for today.',
-    descAdmin: 'Focus on students, courses, attendance and approvals to locate priorities.',
+    titleTeacher: 'Teaching Workspace',
+    descStudent: 'Focus on courses, scores, attendance, and leave progress so today’s priorities are easy to open.',
+    descAdmin: 'Focus on teaching coordination, risk handling, and system setup to jump into the most-used entries.',
+    descTeacher: 'Focus on teaching schedules, student follow-up, and classroom risks for today’s teaching tasks.',
     metricMyInfo: 'My Info',
     metricStudentCount: 'Students',
     metricTeachers: 'Teachers',
@@ -698,6 +715,104 @@ export default {
     totalPeople: 'Total',
     maleStudents: 'Male',
     femaleStudents: 'Female',
+    statPendingLabel: 'Pending Approvals',
+    statPendingNote: 'Approvals that need attention soon',
+    statAbnormalLabel: 'Abnormal Attendance',
+    statAbnormalNote: 'Today’s abnormal attendance records',
+    statLowScoreLabel: 'Low Score Warnings',
+    statLowScoreNote: 'Current low score risk reminders',
+    statScopeStudentLabel: 'Students',
+    statScopeStudentNote: 'Student records in current scope',
+    statTeachingCourseLabel: 'Teaching Courses',
+    statTeachingCourseNote: 'Courses currently in teaching scope',
+    statTeachingClassLabel: 'Managed Classes',
+    statTeachingClassNote: 'Classes currently under responsibility',
+    statMyCourseLabel: 'My Courses',
+    statMyCourseNote: 'Courses linked to this term',
+    statMyClassLabel: 'My Classes',
+    statMyClassNote: 'Classes currently joined',
+    statMyLeaveLabel: 'Pending Leave',
+    statMyLeaveNote: 'Leave requests still in progress',
+    cards: {
+      student: {
+        kicker: 'Student Ops',
+        desc: 'Maintain student records, accounts, and scoped student information.',
+        tagPrimary: 'Student Records',
+        tagSecondary: 'Scoped Filters'
+      },
+      teacher: {
+        kicker: 'Teacher Desk',
+        desc: 'Review teacher information and teaching staff scope, then jump into teacher management.',
+        tagPrimary: 'Teacher Profiles',
+        tagSecondary: 'Teaching Setup'
+      },
+      class: {
+        kicker: 'Class Board',
+        desc: 'Manage classes, homeroom ownership, and class base information.',
+        tagPrimary: 'Class Ledger',
+        tagSecondary: 'Homeroom'
+      },
+      courseCenter: {
+        kicker: 'Course Hub',
+        desc: 'Open the shared course and scheduling entry for catalog and arrangement work.',
+        tagPrimary: 'Course Catalog',
+        tagSecondary: 'Scheduling Entry'
+      },
+      college: {
+        kicker: 'College Scope',
+        desc: 'Maintain colleges, codes, and college admin bindings.',
+        tagPrimary: 'College Setup',
+        tagSecondary: 'Admin Binding'
+      },
+      analytics: {
+        kicker: 'Analytics',
+        desc: 'Inspect current teaching operations from attendance, scores, and risk dimensions.',
+        tagPrimary: 'Trend Analysis',
+        tagSecondary: 'Risk Insight'
+      },
+      score: {
+        kicker: 'Score Review',
+        desc: 'Open score management to review or maintain student score results.',
+        tagPrimary: 'Score Records',
+        tagSecondary: 'Score Risks'
+      },
+      attendance: {
+        kicker: 'Attendance Check',
+        desc: 'Track attendance records, abnormal presence, and classroom attendance.',
+        tagPrimary: 'Attendance Tracking',
+        tagSecondary: 'Exception Handling'
+      },
+      leaveRequest: {
+        kicker: 'Leave Flow',
+        desc: 'Handle leave approvals or review my own leave progress.',
+        tagPrimary: 'Approval Flow',
+        tagSecondary: 'Status Tracking'
+      },
+      announcement: {
+        kicker: 'Notice Feed',
+        desc: 'Review notices and announcements to keep up with the latest teaching updates.',
+        tagPrimary: 'Notice Release',
+        tagSecondary: 'Message Review'
+      },
+      rbac: {
+        kicker: 'Access Control',
+        desc: 'Open the access center for access users, role templates, and audit entries.',
+        tagPrimary: 'Access Entry',
+        tagSecondary: 'Audit Collaboration'
+      },
+      system: {
+        kicker: 'System Setup',
+        desc: 'Adjust interface preferences, theme mode, and current semester settings.',
+        tagPrimary: 'UI Preferences',
+        tagSecondary: 'Semester Setup'
+      },
+      profile: {
+        kicker: 'Profile Space',
+        desc: 'Review profile data, account information, and password security settings.',
+        tagPrimary: 'Account Profile',
+        tagSecondary: 'Security Settings'
+      }
+    },
     loadFailed: 'Failed to load dashboard data',
     loadNoticeDetailFailed: 'Failed to load announcement details',
     teacherScopeTip: 'Teachers can only view data within their own teaching scope'
@@ -763,6 +878,32 @@ export default {
       allowed: 'Allowed',
       denied: 'Denied'
     },
+    center: {
+      pageTitle: 'Access Center',
+      heroBadge: 'Access Entry',
+      pageDesc: 'Bring access users, role templates, permission matrix, and audit logs into one entry page and surface what the current role can manage.',
+      usersKicker: 'Access Users',
+      usersDesc: 'Manage user accounts, role assignments, bulk import, and status maintenance in one place.',
+      usersTagAccounts: 'Account Admin',
+      usersTagImport: 'Bulk Import',
+      rolesKicker: 'Role Templates',
+      rolesDesc: 'Review each role template with its module boundary and action permissions.',
+      rolesTagTemplate: 'Role Template',
+      rolesTagPolicy: 'Policy Scope',
+      permissionsKicker: 'Permission Matrix',
+      permissionsDesc: 'Inspect route-level access ranges and action codes by role.',
+      permissionsTagMatrix: 'Access Matrix',
+      permissionsTagActions: 'Action Codes',
+      auditKicker: 'Audit Trace',
+      auditDesc: 'Review audit logs for permission-sensitive operations and abnormal traces.',
+      auditTagTrace: 'Trace Review',
+      auditTagRisk: 'Risk Audit',
+      statUsersLabel: 'Total Users',
+      statUsersNote: 'User records currently in scope',
+      statEntriesLabel: 'Available Entries',
+      statEntriesNote: 'Cards visible for the current role',
+      enterAction: 'Open Management'
+    },
     roles: {
       pageTitle: 'RBAC Center / Role Templates',
       desc: 'Role templates follow the least privilege principle. This page shows current permission boundaries and can be expanded later.',
@@ -798,13 +939,23 @@ export default {
     users: {
       pageTitle: 'RBAC Center / User Management',
       hubTitle: 'RBAC Center / Access Users',
+      heroBadge: 'Access Entry',
       hubDesc: 'Choose a task entry first. Role assignment and user directory are split into focused pages so the module no longer drops you directly into a long user table.',
+      hubStatUsersLabel: 'Total Users',
+      hubStatUsersNote: 'User records currently in scope',
+      hubStatEntryLabel: 'Available Entries',
+      hubStatEntryNote: 'Cards visible for the current role',
       assignmentCardKicker: 'Access Control',
       assignmentEntryTitle: 'Role Assignments',
       assignmentEntryDesc: 'Review current user roles, filter by college and class, and update the full role set for a specific account.',
+      assignmentTagRole: 'Role Editing',
+      assignmentTagScope: 'Scope Control',
       listCardKicker: 'Directory',
       listEntryTitle: 'User Directory',
       listEntryDesc: 'Browse users, filter by role, college, and class, and keep import and status maintenance in one place.',
+      listTagDirectory: 'Directory',
+      listTagImport: 'Batch Import',
+      enterAction: 'Open Management',
       assignmentPageTitle: 'RBAC Center / Role Assignments',
       listPageTitle: 'RBAC Center / User Directory',
       backToHub: 'Back to Access Users',

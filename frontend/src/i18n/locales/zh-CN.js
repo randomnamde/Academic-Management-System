@@ -33,13 +33,13 @@
     attendance: '考勤管理',
     leaveRequest: '请假审批',
     announcement: '通知公告',
+    rbacCenter: '权限中心',
     rbacUsers: '权限用户',
     rbacRoles: '角色模板',
     rbacPermissions: '权限矩阵',
     rbacAudit: '审计日志',
     profile: '个人中心',
     system: '系统偏好',
-    rbacUsers: '\u6743\u9650\u7528\u6237',
     rbacUserAssignments: '\u89d2\u8272\u5206\u914d',
     rbacUserList: '\u7528\u6237\u5217\u8868'
   },
@@ -174,8 +174,11 @@
       noPermission: '仅学校管理员可修改学期配置。'
     },
     permissionCenter: {
+      kicker: 'Access Entry',
       title: '权限管理入口',
       desc: '角色、权限矩阵与审计日志已迁移到独立权限中心模块。',
+      tagEntry: '统一入口',
+      tagAudit: '审计视图',
       enter: '进入权限中心'
     },
     accountSecurity: '账号安全',
@@ -642,7 +645,18 @@
     statusUpdated: '状态已更新'
   },
   dashboard: {
+    pageTitle: '首页工作台',
+    heroBadge: 'Role Taskboard',
+    heroRoleLabel: '当前角色',
     overviewKicker: '教务总览',
+    enterAction: '进入管理',
+    sectionDailyTitle: '日常教学',
+    sectionDailyDesc: '处理学生、教师、班级与课程等高频教学操作。',
+    sectionRiskTitle: '风险与分析',
+    sectionRiskDesc: '查看分析、成绩、考勤、请假与公告等关键提醒。',
+    sectionSystemTitle: '系统协同',
+    sectionSystemDesc: '进入权限、偏好和个人资料等协同入口。',
+    todoSectionDesc: '集中查看系统提醒与个人待办，处理后可直接跳转到对应页面。',
     pendingApproval: '待处理审批',
     abnormalAttendance: '异常考勤',
     lowScoreWarning: '低分预警',
@@ -673,8 +687,10 @@
     noContent: '暂无内容',
     titleStudent: '个人学习总览',
     titleAdmin: '教学运营总览',
-    descStudent: '聚焦我的课程、考勤与请假状态，快速定位今日学习任务。',
-    descAdmin: '聚焦学生、课程、考勤与审批数据，快速定位今日管理重点。',
+    titleTeacher: '教学工作台',
+    descStudent: '围绕课程学习、成绩考勤与请假进度，快速进入今天需要关注的内容。',
+    descAdmin: '围绕教学协同、风险处理与系统配置，快速进入今日最常用的管理入口。',
+    descTeacher: '围绕授课安排、学生跟进与课堂风险，快速进入今日教学任务。',
     metricMyInfo: '我的信息',
     metricStudentCount: '学生总数',
     metricTeachers: '任课教师',
@@ -699,6 +715,104 @@
     totalPeople: '总人数',
     maleStudents: '男生',
     femaleStudents: '女生',
+    statPendingLabel: '待处理审批',
+    statPendingNote: '当前需要尽快处理的审批事项',
+    statAbnormalLabel: '异常考勤',
+    statAbnormalNote: '今日异常出勤记录',
+    statLowScoreLabel: '低分预警',
+    statLowScoreNote: '当前低分风险提醒',
+    statScopeStudentLabel: '学生总数',
+    statScopeStudentNote: '当前权限范围内的学生记录',
+    statTeachingCourseLabel: '授课课程',
+    statTeachingCourseNote: '当前授课范围内的课程数量',
+    statTeachingClassLabel: '管理班级',
+    statTeachingClassNote: '当前负责班级数量',
+    statMyCourseLabel: '我的课程',
+    statMyCourseNote: '本学期已关联课程',
+    statMyClassLabel: '我的班级',
+    statMyClassNote: '当前已加入班级',
+    statMyLeaveLabel: '待办请假',
+    statMyLeaveNote: '仍在流转中的请假申请',
+    cards: {
+      student: {
+        kicker: 'Student Ops',
+        desc: '维护学生档案、账号与范围内学生信息。',
+        tagPrimary: '学籍管理',
+        tagSecondary: '学生筛选'
+      },
+      teacher: {
+        kicker: 'Teacher Desk',
+        desc: '查看教师信息与授课人员范围，快速进入教师管理。',
+        tagPrimary: '教师档案',
+        tagSecondary: '授课配置'
+      },
+      class: {
+        kicker: 'Class Board',
+        desc: '管理班级信息、班主任归属与班级基础资料。',
+        tagPrimary: '班级台账',
+        tagSecondary: '班主任'
+      },
+      courseCenter: {
+        kicker: 'Course Hub',
+        desc: '进入课程与排课统一入口，处理课程目录与排课编排。',
+        tagPrimary: '课程目录',
+        tagSecondary: '排课入口'
+      },
+      college: {
+        kicker: 'College Scope',
+        desc: '维护学院信息、编码以及学院管理员绑定关系。',
+        tagPrimary: '学院配置',
+        tagSecondary: '管理员绑定'
+      },
+      analytics: {
+        kicker: 'Analytics',
+        desc: '从出勤、成绩和风险维度查看当前教学运行情况。',
+        tagPrimary: '趋势分析',
+        tagSecondary: '风险洞察'
+      },
+      score: {
+        kicker: 'Score Review',
+        desc: '进入成绩管理，查看或维护学生成绩结果。',
+        tagPrimary: '成绩记录',
+        tagSecondary: '风险成绩'
+      },
+      attendance: {
+        kicker: 'Attendance Check',
+        desc: '跟进考勤记录、异常出勤与课堂到课情况。',
+        tagPrimary: '出勤跟踪',
+        tagSecondary: '异常处理'
+      },
+      leaveRequest: {
+        kicker: 'Leave Flow',
+        desc: '处理请假审批或查看我的请假进度。',
+        tagPrimary: '审批流转',
+        tagSecondary: '状态跟进'
+      },
+      announcement: {
+        kicker: 'Notice Feed',
+        desc: '查看公告与通知，跟进最新教学消息。',
+        tagPrimary: '通知发布',
+        tagSecondary: '消息查看'
+      },
+      rbac: {
+        kicker: 'Access Control',
+        desc: '进入权限中心，处理权限用户、角色模板与审计入口。',
+        tagPrimary: '权限入口',
+        tagSecondary: '审计协同'
+      },
+      system: {
+        kicker: 'System Setup',
+        desc: '调整界面偏好、主题和当前学期等系统设置。',
+        tagPrimary: '界面偏好',
+        tagSecondary: '学期配置'
+      },
+      profile: {
+        kicker: 'Profile Space',
+        desc: '查看个人资料、账号信息与密码安全设置。',
+        tagPrimary: '账号资料',
+        tagSecondary: '安全设置'
+      }
+    },
     loadFailed: '获取首页数据失败',
     loadNoticeDetailFailed: '获取公告详情失败',
     teacherScopeTip: '教师仅可查看本人授课范围数据'
@@ -763,6 +877,32 @@
       failed: '失败',
       allowed: '允许',
       denied: '禁止'
+    },
+    center: {
+      pageTitle: '权限中心',
+      heroBadge: 'Access Entry',
+      pageDesc: '把权限用户、角色模板、权限矩阵与审计日志集中到一个入口页，按当前角色展示可用管理能力。',
+      usersKicker: 'Access Users',
+      usersDesc: '集中处理用户账号、角色分配、批量导入与状态维护。',
+      usersTagAccounts: '账号管理',
+      usersTagImport: '批量导入',
+      rolesKicker: 'Role Templates',
+      rolesDesc: '查看系统内各角色的模块边界与动作权限模板。',
+      rolesTagTemplate: '角色模板',
+      rolesTagPolicy: '权限边界',
+      permissionsKicker: 'Permission Matrix',
+      permissionsDesc: '按路由与角色查看允许访问范围与动作权限编码。',
+      permissionsTagMatrix: '访问矩阵',
+      permissionsTagActions: '动作编码',
+      auditKicker: 'Audit Trace',
+      auditDesc: '查看权限与操作审计日志，追踪关键行为与异常记录。',
+      auditTagTrace: '行为追踪',
+      auditTagRisk: '审计排查',
+      statUsersLabel: '用户总数',
+      statUsersNote: '当前可管理的用户记录',
+      statEntriesLabel: '可用入口',
+      statEntriesNote: '当前角色可见的功能卡片',
+      enterAction: '进入管理'
     },
     roles: {
       pageTitle: '权限中心 / 角色模板',
@@ -832,13 +972,23 @@
       selectFileFirst: '请先选择导入文件',
       noFailData: '暂无失败数据',
       hubTitle: '\u6743\u9650\u4e2d\u5fc3 / \u6743\u9650\u7528\u6237',
+      heroBadge: '\u6743\u9650\u5165\u53e3',
       hubDesc: '\u8bf7\u5148\u9009\u62e9\u529f\u80fd\u5165\u53e3\u3002\u89d2\u8272\u5206\u914d\u548c\u7528\u6237\u5217\u8868\u5df2\u62c6\u5206\u4e3a\u72ec\u7acb\u9875\u9762\uff0c\u4e0d\u518d\u8fdb\u5165\u6a21\u5757\u5c31\u76f4\u63a5\u663e\u793a\u7528\u6237\u8868\u683c\u3002',
+      hubStatUsersLabel: '\u7528\u6237\u603b\u6570',
+      hubStatUsersNote: '\u5f53\u524d\u53ef\u7ba1\u7406\u7684\u7528\u6237\u8bb0\u5f55',
+      hubStatEntryLabel: '\u53ef\u7528\u5165\u53e3',
+      hubStatEntryNote: '\u5f53\u524d\u89d2\u8272\u53ef\u89c1\u7684\u529f\u80fd\u5361\u7247',
       assignmentCardKicker: '\u6743\u9650\u63a7\u5236',
       assignmentEntryTitle: '\u89d2\u8272\u5206\u914d',
       assignmentEntryDesc: '\u6309\u7528\u6237\u3001\u89d2\u8272\u3001\u5b66\u9662\u3001\u73ed\u7ea7\u7b5b\u9009\uff0c\u5e76\u4e3a\u5177\u4f53\u7528\u6237\u7ef4\u62a4\u5b8c\u6574\u89d2\u8272\u96c6\u5408\u3002',
+      assignmentTagRole: '\u89d2\u8272\u7ef4\u62a4',
+      assignmentTagScope: '\u8303\u56f4\u5206\u914d',
       listCardKicker: '\u7528\u6237\u76ee\u5f55',
       listEntryTitle: '\u7528\u6237\u5217\u8868',
       listEntryDesc: '\u96c6\u4e2d\u5904\u7406\u7528\u6237\u67e5\u8be2\u3001\u5bfc\u5165\u3001\u72b6\u6001\u7ef4\u62a4\uff0c\u5e76\u652f\u6301\u5b66\u9662\u4e0e\u73ed\u7ea7\u8054\u52a8\u7b5b\u9009\u3002',
+      listTagDirectory: '\u7528\u6237\u76ee\u5f55',
+      listTagImport: '\u6279\u91cf\u5bfc\u5165',
+      enterAction: '\u8fdb\u5165\u7ba1\u7406',
       assignmentPageTitle: '\u6743\u9650\u4e2d\u5fc3 / \u89d2\u8272\u5206\u914d',
       listPageTitle: '\u6743\u9650\u4e2d\u5fc3 / \u7528\u6237\u5217\u8868',
       backToHub: '\u8fd4\u56de\u6743\u9650\u7528\u6237',

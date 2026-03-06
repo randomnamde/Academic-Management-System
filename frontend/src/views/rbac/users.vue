@@ -8,7 +8,7 @@
     <template #filters>
       <div class="grid grid-cols-12 gap-2">
         <el-input
-          v-model="searchForm.username"
+          v-model="searchForm.account"
           clearable
           :placeholder="t('rbac.users.filterUsernamePlaceholder')"
           class="col-span-12 md:col-span-3"
@@ -47,6 +47,9 @@
 
     <template #table>
       <AppTable :columns="columns" :rows="tableData" :loading="loading" :density="tableDensity">
+        <template #cell-account="{ row }">
+          <span class="text-[13px] font-medium text-slatex-800">{{ row.account || '-' }}</span>
+        </template>
         <template #cell-role="{ row }">
           <AppBadge :type="roleBadgeType(row.primaryRole)">{{ roleLabel(t, row.primaryRole) }}</AppBadge>
         </template>
@@ -192,7 +195,7 @@ const collegeOptions = ref([])
 const classOptions = ref([])
 
 const searchForm = reactive({
-  username: '',
+  account: '',
   roleCode: '',
   collegeId: null,
   classId: null
@@ -202,7 +205,7 @@ const roleOptions = computed(() => buildRoleOptions(t))
 const importRoleOptions = computed(() => buildRoleOptions(t).filter((item) => item.value !== 'SCHOOL_ADMIN'))
 
 const columns = computed(() => [
-  { key: 'username', title: t('rbac.users.colUsername'), width: 150 },
+  { key: 'account', title: t('rbac.users.colUsername'), width: 190 },
   { key: 'realName', title: t('rbac.users.colRealName'), width: 120 },
   { key: 'role', title: t('rbac.users.colRole'), width: 156 },
   { key: 'roles', title: t('rbac.users.colAssignedRoles'), width: 220 },
@@ -255,7 +258,7 @@ async function fetchList() {
     const res = await getUserList({
       page: page.value,
       size: size.value,
-      username: searchForm.username || undefined,
+      account: searchForm.account || undefined,
       roleCode: searchForm.roleCode || undefined,
       collegeId: searchForm.collegeId || undefined,
       classId: searchForm.classId || undefined
@@ -273,7 +276,7 @@ function handleSearch() {
 }
 
 function handleReset() {
-  searchForm.username = ''
+  searchForm.account = ''
   searchForm.roleCode = ''
   searchForm.classId = null
   if (!isCollegeAdmin.value) {

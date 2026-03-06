@@ -18,6 +18,9 @@ function normalizeUserIdentity(userInfo) {
   if (userInfo && userInfo.id != null && String(userInfo.id).trim() !== '') {
     return `id:${String(userInfo.id).trim()}`
   }
+  if (userInfo && userInfo.account && String(userInfo.account).trim()) {
+    return `account:${String(userInfo.account).trim().toLowerCase()}`
+  }
   if (userInfo && userInfo.username && String(userInfo.username).trim()) {
     return `username:${String(userInfo.username).trim().toLowerCase()}`
   }

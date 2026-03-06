@@ -66,6 +66,13 @@ public class UserController {
         var orderedRoles = com.student.security.RoleCode.sortByPriority(roleCodes);
         UserInfoVO vo = new UserInfoVO();
         BeanUtils.copyProperties(user, vo);
+        vo.setAccount(user.getUsername());
+        Long collegeId = currentUserService.resolveCurrentCollegeId(authentication);
+        if (collegeId != null) {
+            vo.setCollegeId(collegeId);
+            College college = collegeMapper.selectById(collegeId);
+            vo.setCollegeName(college != null ? college.getCollegeName() : null);
+        }
         RoleCode primaryRoleCode = orderedRoles.isEmpty() ? null : orderedRoles.get(0);
         vo.setRole(RoleCode.toUserRole(primaryRoleCode));
         vo.setPrimaryRole(primaryRoleCode == null ? null : primaryRoleCode.name());
@@ -78,6 +85,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Page<RbacUserListItemVO>> list(@RequestParam(defaultValue = "1") Integer page,
                                                    @RequestParam(defaultValue = "10") Integer size,
+                                                   @RequestParam(required = false) String account,
                                                    @RequestParam(required = false) String username,
                                                    @RequestParam(required = false) String realName,
                                                    @RequestParam(required = false) SysUser.Role role,
@@ -89,6 +97,7 @@ public class UserController {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
         RoleCode effectiveRoleCode = roleCode != null ? roleCode : RoleCode.fromUserRole(role);
+        String accountKeyword = account != null && !account.isBlank() ? account : username;
 
         if (classId != null) {
             Class targetClass = classMapper.selectById(classId);
@@ -104,7 +113,7 @@ public class UserController {
         }
 
         List<SysUser> users = sysUserService.lambdaQuery()
-                .like(username != null && !username.isBlank(), SysUser::getUsername, username)
+                .like(accountKeyword != null && !accountKeyword.isBlank(), SysUser::getUsername, accountKeyword)
                 .like(realName != null && !realName.isBlank(), SysUser::getRealName, realName)
                 .eq(status != null, SysUser::getStatus, status)
                 .orderByDesc(SysUser::getCreateTime)
@@ -385,6 +394,7 @@ public class UserController {
 
         RbacUserListItemVO item = new RbacUserListItemVO();
         item.setId(user.getId());
+        item.setAccount(user.getUsername());
         item.setUsername(user.getUsername());
         item.setRealName(user.getRealName());
         item.setRole(primaryRole);

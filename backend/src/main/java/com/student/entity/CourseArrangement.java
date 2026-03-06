@@ -11,6 +11,8 @@ public class CourseArrangement {
     
     @TableId(type = IdType.AUTO)
     private Long id;
+
+    private String arrangementCode;
     
     private Long courseId;
     
@@ -24,11 +26,23 @@ public class CourseArrangement {
     
     @TableField(exist = false)
     private String teacherName;
+
+    @TableField(exist = false)
+    private String teacherNo;
     
     private Long classId;
     
     @TableField(exist = false)
     private String className;
+
+    @TableField(exist = false)
+    private String classCode;
+
+    @TableField(exist = false)
+    private Long collegeId;
+
+    @TableField(exist = false)
+    private String collegeName;
     
     private String semester;
     

@@ -28,11 +28,12 @@ public class CourseArrangementController {
     @PostMapping
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody @Validated CourseArrangementDTO dto, Authentication authentication) {
+        dto.setCollegeId(resolveEffectiveCollegeId(authentication, dto.getCollegeId()));
         assertCollegeAdminClassScope(authentication, dto.getClassId());
         if (currentUserService.isTeacher(authentication)) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
             if (!teacherId.equals(dto.getTeacherId())) {
-                return ResultVO.error(403, "Teacher can only create own arrangements");
+                return ResultVO.error(403, "教师只能为本人创建排课");
             }
         }
         courseArrangementService.addArrangement(dto);
@@ -44,12 +45,13 @@ public class CourseArrangementController {
     public ResultVO<Void> update(@PathVariable Long id,
                                  @RequestBody @Validated CourseArrangementDTO dto,
                                  Authentication authentication) {
+        dto.setCollegeId(resolveEffectiveCollegeId(authentication, dto.getCollegeId()));
         assertCollegeAdminClassScope(authentication, dto.getClassId());
         dto.setId(id);
         if (currentUserService.isTeacher(authentication)) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
             if (!teacherId.equals(dto.getTeacherId())) {
-                return ResultVO.error(403, "Teacher can only update own arrangements");
+                return ResultVO.error(403, "教师只能修改本人排课");
             }
         }
         courseArrangementService.updateArrangement(dto);
@@ -66,11 +68,11 @@ public class CourseArrangementController {
         if (currentUserService.isTeacher(authentication)) {
             CourseArrangement detail = courseArrangementService.getArrangementById(id);
             if (detail == null) {
-                return ResultVO.error(404, "Course arrangement not found");
+                return ResultVO.error(404, "排课不存在");
             }
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
             if (!teacherId.equals(detail.getTeacherId())) {
-                return ResultVO.error(403, "Teacher can only delete own arrangements");
+                return ResultVO.error(403, "教师只能删除本人排课");
             }
         }
         courseArrangementService.deleteArrangement(id);
@@ -82,20 +84,20 @@ public class CourseArrangementController {
     public ResultVO<CourseArrangement> getById(@PathVariable Long id, Authentication authentication) {
         CourseArrangement detail = courseArrangementService.getArrangementById(id);
         if (detail == null) {
-            return ResultVO.error(404, "Course arrangement not found");
+            return ResultVO.error(404, "排课不存在");
         }
         assertCollegeAdminClassScope(authentication, detail.getClassId());
 
         if (currentUserService.isTeacher(authentication)) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
             if (!teacherId.equals(detail.getTeacherId())) {
-                return ResultVO.error(403, "Forbidden");
+                return ResultVO.error(403, "无权访问");
             }
         }
         if (currentUserService.isStudent(authentication)) {
             Student student = currentUserService.getCurrentStudent(authentication);
             if (student.getClassId() == null || !student.getClassId().equals(detail.getClassId())) {
-                return ResultVO.error(403, "Forbidden");
+                return ResultVO.error(403, "无权访问");
             }
         }
         return ResultVO.success(detail);
@@ -105,6 +107,7 @@ public class CourseArrangementController {
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Page<CourseArrangement>> list(@RequestParam(defaultValue = "1") Integer page,
                                                   @RequestParam(defaultValue = "10") Integer size,
+                                                  @RequestParam(required = false) Long collegeId,
                                                   @RequestParam(required = false) Long courseId,
                                                   @RequestParam(required = false) Long teacherId,
                                                   @RequestParam(required = false) Long classId,
@@ -112,6 +115,10 @@ public class CourseArrangementController {
                                                   @RequestParam(required = false) Integer status,
                                                   Authentication authentication) {
         Long scopedCollegeId = dataScopeService.resolveScopedCollegeId(authentication);
+        Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
+        if (scopedCollegeId == null && currentUserService.isTeacher(authentication)) {
+            effectiveCollegeId = currentUserService.resolveCurrentCollegeId(authentication);
+        }
         if (scopedCollegeId != null && classId != null) {
             assertCollegeAdminClassScope(authentication, classId);
         }
@@ -122,7 +129,7 @@ public class CourseArrangementController {
             classId = student.getClassId();
             status = 1;
         }
-        Page<CourseArrangement> result = courseArrangementService.getArrangementPage(page, size, courseId, teacherId, classId, semester, status);
+        Page<CourseArrangement> result = courseArrangementService.getArrangementPage(page, size, effectiveCollegeId, courseId, teacherId, classId, semester, status);
         if (scopedCollegeId != null && classId == null) {
             java.util.Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
             result.setRecords(result.getRecords().stream().filter(item -> classIds.contains(item.getClassId())).toList());
@@ -162,8 +169,22 @@ public class CourseArrangementController {
         }
         var classInfo = dataScopeService.resolveCollegeClassIds(authentication);
         if (!classInfo.contains(classId)) {
-            throw new com.student.exception.BusinessException(403, "Forbidden");
+            throw new com.student.exception.BusinessException(403, "无权访问");
         }
+    }
+
+    private Long resolveEffectiveCollegeId(Authentication authentication, Long requestedCollegeId) {
+        Long managedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        if (managedCollegeId != null) {
+            return managedCollegeId;
+        }
+        if (currentUserService.isTeacher(authentication)) {
+            Long currentCollegeId = currentUserService.resolveCurrentCollegeId(authentication);
+            if (currentCollegeId != null) {
+                return currentCollegeId;
+            }
+        }
+        return requestedCollegeId;
     }
 }
 

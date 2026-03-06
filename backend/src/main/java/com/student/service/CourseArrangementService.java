@@ -19,6 +19,7 @@ public interface CourseArrangementService extends IService<CourseArrangement> {
 
     Page<CourseArrangement> getArrangementPage(Integer page,
                                                Integer size,
+                                               Long collegeId,
                                                Long courseId,
                                                Long teacherId,
                                                Long classId,

@@ -15,6 +15,5 @@ public interface CollegeService extends IService<College> {
 
     void updateCollegeStatus(Long id, Integer status, Long scopedCollegeId);
 
-    void bindAdmin(Long id, Long adminUserId, Long scopedCollegeId);
+    void bindAdmin(Long id, String adminUsername, Long scopedCollegeId);
 }
-

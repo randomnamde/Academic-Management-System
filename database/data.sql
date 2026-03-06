@@ -36,11 +36,11 @@ INSERT INTO course (course_name, course_code, credit, hours, category, descripti
 ('Web开发技术', 'CS003', 2.0, 32, 'ELECTIVE', 'Web前端与后端开发技术', 1);
 
 -- 插入授课安排
-INSERT INTO course_arrangement (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status) VALUES
-(1, 1, 1, '2024-2025-1', '周一 8:00-9:40', 'A101', 60, 2, 1),
-(2, 2, 1, '2024-2025-1', '周二 8:00-9:40', 'A102', 60, 2, 1),
-(3, 1, 1, '2024-2025-1', '周三 8:00-9:40', 'A103', 60, 2, 1),
-(4, 2, 1, '2024-2025-1', '周四 8:00-9:40', 'A104', 60, 2, 1);
+INSERT INTO course_arrangement (arrangement_code, course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status) VALUES
+('C202400CS230100', 1, 1, 1, '2024-2025-1', '周一 8:00-9:40', 'A101', 60, 2, 1),
+('C202400CS230101', 2, 2, 1, '2024-2025-1', '周二 8:00-9:40', 'A102', 60, 2, 1),
+('C202400CS230102', 3, 1, 1, '2024-2025-1', '周三 8:00-9:40', 'A103', 60, 2, 1),
+('C202400CS230103', 4, 2, 1, '2024-2025-1', '周四 8:00-9:40', 'A104', 60, 2, 1);
 
 -- 插入成绩
 INSERT INTO score (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status) VALUES

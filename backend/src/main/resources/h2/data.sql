@@ -19,8 +19,8 @@ INSERT INTO student (id, user_id, student_no, name, gender, phone, email, class_
 INSERT INTO course (id, course_name, course_code, credit, hours, category, description, status) VALUES
 (1, 'Data Structures', 'CS002', 4.0, 64, 'REQUIRED', 'Core course', 1);
 
-INSERT INTO course_arrangement (id, course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status) VALUES
-(1, 1, 1, 1, '2024-2025-1', 'Mon 08:00-09:40', 'A101', 60, 1, 1);
+INSERT INTO course_arrangement (id, arrangement_code, course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status) VALUES
+(1, 'C202400CS230100', 1, 1, 1, '2024-2025-1', 'Mon 08:00-09:40', 'A101', 60, 1, 1);
 
 INSERT INTO score (id, student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status) VALUES
 (1, 1, 1, 85.00, 88.00, 90.00, 88.00, 3.70, 'NORMAL');

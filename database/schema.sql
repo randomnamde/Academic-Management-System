@@ -104,6 +104,7 @@ CREATE TABLE course (
 -- 授课安排表
 CREATE TABLE course_arrangement (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+    arrangement_code VARCHAR(15) COMMENT '排课编号',
     course_id BIGINT NOT NULL COMMENT '课程ID',
     teacher_id BIGINT NOT NULL COMMENT '教师ID',
     class_id BIGINT NOT NULL COMMENT '班级ID',
@@ -114,6 +115,7 @@ CREATE TABLE course_arrangement (
     enrolled_count INT DEFAULT 0 COMMENT '已选人数',
     status TINYINT DEFAULT 1 COMMENT '状态：0-已满，1-可选',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    UNIQUE KEY uk_arrangement_code (arrangement_code),
     INDEX idx_course_teacher (course_id, teacher_id),
     INDEX idx_class_semester (class_id, semester),
     FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,

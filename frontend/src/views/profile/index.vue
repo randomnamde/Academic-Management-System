@@ -4,11 +4,11 @@
       <AppCard :title="t('profile.accountInfo')" content-class="p-5">
         <div class="user-info">
           <el-avatar :size="88" :src="user.avatar || defaultAvatar" />
-          <div class="user-name">{{ user.realName || user.username }}</div>
+          <div class="user-name">{{ user.realName || user.account || user.username }}</div>
           <div class="user-role">{{ roleLabel }}</div>
         </div>
         <el-descriptions :column="1" border>
-          <el-descriptions-item :label="t('profile.username')">{{ user.username || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('profile.username')">{{ user.account || user.username || '-' }}</el-descriptions-item>
           <el-descriptions-item :label="t('profile.accountStatus')">
             <el-tag :type="user.status === 1 ? 'success' : 'danger'">{{ user.status === 1 ? t('profile.enabled') : t('profile.disabled') }}</el-tag>
           </el-descriptions-item>
@@ -112,6 +112,7 @@ const defaultAvatar = 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726
 
 const user = reactive({
   id: null,
+  account: '',
   username: '',
   realName: '',
   role: '',

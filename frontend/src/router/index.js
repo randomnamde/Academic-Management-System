@@ -61,6 +61,17 @@ const routes = [
         }
       },
       {
+        path: 'course-center',
+        name: 'CourseCenter',
+        component: () => import('@/views/course-center/index.vue'),
+        meta: {
+          titleKey: 'route.courseCenter',
+          icon: 'Reading',
+          roles: MANAGE_ROLES,
+          menuGroup: 'teaching'
+        }
+      },
+      {
         path: 'course',
         name: 'Course',
         component: () => import('@/views/course/index.vue'),
@@ -68,7 +79,9 @@ const routes = [
           titleKey: 'route.course',
           icon: 'Reading',
           roles: MANAGE_ROLES,
-          menuGroup: 'teaching'
+          menuGroup: 'teaching',
+          hideInMenu: true,
+          activeMenu: '/course-center'
         }
       },
       {
@@ -86,7 +99,14 @@ const routes = [
         path: 'course-arrangement',
         name: 'CourseArrangement',
         component: () => import('@/views/course-arrangement/index.vue'),
-        meta: { titleKey: 'route.courseArrangement', icon: 'Tickets', roles: MANAGE_ROLES, menuGroup: 'teaching' }
+        meta: {
+          titleKey: 'route.courseArrangement',
+          icon: 'Tickets',
+          roles: MANAGE_ROLES,
+          menuGroup: 'teaching',
+          hideInMenu: true,
+          activeMenu: '/course-center'
+        }
       },
       {
         path: 'score',

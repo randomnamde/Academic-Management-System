@@ -11,25 +11,28 @@ public class CourseArrangementDTO {
 
     private Long id;
 
-    @NotNull(message = "Course id is required")
+    @NotNull(message = "请选择学院")
+    private Long collegeId;
+
+    @NotNull(message = "请选择课程")
     private Long courseId;
 
-    @NotNull(message = "Teacher id is required")
+    @NotNull(message = "请选择教师")
     private Long teacherId;
 
-    @NotNull(message = "Class id is required")
+    @NotNull(message = "请选择班级")
     private Long classId;
 
-    @NotBlank(message = "Semester is required")
+    @NotBlank(message = "请输入学期")
     private String semester;
 
-    @NotBlank(message = "Schedule is required")
+    @NotBlank(message = "请输入时间安排")
     private String schedule;
 
     private String room;
 
-    @NotNull(message = "Capacity is required")
-    @Min(value = 1, message = "Capacity must be greater than 0")
+    @NotNull(message = "请输入容量")
+    @Min(value = 1, message = "容量必须大于0")
     private Integer capacity;
 
     private Integer status;

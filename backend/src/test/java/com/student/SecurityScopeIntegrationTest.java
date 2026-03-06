@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Year;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -82,6 +83,7 @@ class SecurityScopeIntegrationTest {
         String token = loginAndGetToken("teacher001", "123456");
         String body = """
                 {
+                  "collegeId": 1,
                   "courseId": 1,
                   "teacherId": 999,
                   "classId": 1,
@@ -99,6 +101,316 @@ class SecurityScopeIntegrationTest {
                         .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(403));
+    }
+
+    @Test
+    void addArrangementGeneratesArrangementCodeAndUpdateKeepsIt() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String shortSuffix = suffix.substring(Math.max(0, suffix.length() - 6));
+        String semester = "ARR" + shortSuffix;
+        String schedule = "Fri 08:00-" + shortSuffix;
+        String createBody = """
+                {
+                  "collegeId": 1,
+                  "courseId": 1,
+                  "teacherId": 1,
+                  "classId": 1,
+                  "semester": "%s",
+                  "schedule": "%s",
+                  "room": "A601",
+                  "capacity": 55,
+                  "status": 1
+                }
+                """.formatted(semester, schedule);
+
+        mockMvc.perform(post("/course-arrangement")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(createBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        MvcResult listResult = mockMvc.perform(get("/course-arrangement")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("semester", semester)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode record = objectMapper.readTree(listResult.getResponse().getContentAsString())
+                .path("data")
+                .path("records")
+                .get(0);
+        Long arrangementId = record.path("id").asLong();
+        String arrangementCode = record.path("arrangementCode").asText();
+        assertTrue(arrangementCode.startsWith("C" + Year.now().getValue() + "00CS2301"));
+        assertTrue(arrangementCode.matches("C\\d{4}[A-Z0-9]{4}[A-Z0-9]{4}\\d{2}"));
+
+        String updateBody = """
+                {
+                  "collegeId": 1,
+                  "courseId": 1,
+                  "teacherId": 1,
+                  "classId": 1,
+                  "semester": "%s",
+                  "schedule": "Fri 10:00-11:40-%s",
+                  "room": "A602",
+                  "capacity": 58,
+                  "status": 1
+                }
+                """.formatted(semester, suffix);
+
+        mockMvc.perform(put("/course-arrangement/" + arrangementId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(updateBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        mockMvc.perform(get("/course-arrangement/" + arrangementId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.arrangementCode").value(arrangementCode))
+                .andExpect(jsonPath("$.data.collegeId").value(1));
+    }
+
+    @Test
+    void addArrangementRejectsTeacherOutsideCollege() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+
+        jdbcTemplate.update("""
+                INSERT INTO college (college_code, college_name, description, status)
+                VALUES (?, ?, ?, ?)
+                """,
+                "EL" + suffix.substring(Math.max(0, suffix.length() - 6)),
+                "Elsewhere College " + suffix,
+                "teacher scope mismatch",
+                1
+        );
+        Long otherCollegeId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM college", Long.class);
+        jdbcTemplate.update("""
+                INSERT INTO teacher (teacher_no, name, gender, title, department, college_id, hire_date, status)
+                VALUES (?, ?, ?, ?, ?, ?, CURRENT_DATE, ?)
+                """,
+                "OT" + suffix.substring(Math.max(0, suffix.length() - 6)),
+                "Other Teacher " + suffix,
+                "MALE",
+                "LECTURER",
+                "Other",
+                otherCollegeId,
+                1
+        );
+        Long teacherId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM teacher", Long.class);
+
+        String body = """
+                {
+                  "collegeId": 1,
+                  "courseId": 1,
+                  "teacherId": %d,
+                  "classId": 1,
+                  "semester": "teacher-scope-%s",
+                  "schedule": "Tue 08:00-09:40-%s",
+                  "room": "B201",
+                  "capacity": 40,
+                  "status": 1
+                }
+                """.formatted(teacherId, suffix, suffix);
+
+        mockMvc.perform(post("/course-arrangement")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+
+    @Test
+    void addArrangementRejectsClassOutsideCollege() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+
+        jdbcTemplate.update("""
+                INSERT INTO college (college_code, college_name, description, status)
+                VALUES (?, ?, ?, ?)
+                """,
+                "CL" + suffix.substring(Math.max(0, suffix.length() - 6)),
+                "Class Scope College " + suffix,
+                "class scope mismatch",
+                1
+        );
+        Long otherCollegeId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM college", Long.class);
+        jdbcTemplate.update("""
+                INSERT INTO class (class_name, class_code, grade, major, college_id, teacher_id, room, student_count, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                "Other Class " + suffix,
+                "OC" + suffix.substring(Math.max(0, suffix.length() - 6)),
+                2026,
+                "Elsewhere",
+                otherCollegeId,
+                1L,
+                "C101",
+                0,
+                1
+        );
+        Long classId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM class", Long.class);
+
+        String body = """
+                {
+                  "collegeId": 1,
+                  "courseId": 1,
+                  "teacherId": 1,
+                  "classId": %d,
+                  "semester": "class-scope-%s",
+                  "schedule": "Tue 10:00-11:40-%s",
+                  "room": "B202",
+                  "capacity": 40,
+                  "status": 1
+                }
+                """.formatted(classId, suffix, suffix);
+
+        mockMvc.perform(post("/course-arrangement")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+
+    @Test
+    void collegeAdminCreateArrangementUsesManagedCollegeScope() throws Exception {
+        String token = loginAndGetToken("college_admin_cs", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String shortSuffix = suffix.substring(Math.max(0, suffix.length() - 6));
+        String semester = "CAD" + shortSuffix;
+        String body = """
+                {
+                  "collegeId": 999999,
+                  "courseId": 1,
+                  "teacherId": 1,
+                  "classId": 1,
+                  "semester": "%s",
+                  "schedule": "Thu 08:00-%s",
+                  "room": "C301",
+                  "capacity": 45,
+                  "status": 1
+                }
+                """.formatted(semester, shortSuffix);
+
+        mockMvc.perform(post("/course-arrangement")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + token)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        mockMvc.perform(get("/course-arrangement")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("semester", semester)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.records[0].collegeId").value(1))
+                .andExpect(jsonPath("$.data.records[0].arrangementCode").value(org.hamcrest.Matchers.startsWith("C" + Year.now().getValue() + "00CS2301")));
+    }
+
+    @Test
+    void arrangementCodeExhaustedReturnsClearMessage() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String shortSuffix = suffix.substring(Math.max(0, suffix.length() - 6));
+        String semester = "EXH" + shortSuffix;
+        String collegeCode = ("E" + shortSuffix.substring(Math.max(0, shortSuffix.length() - 3))).toUpperCase();
+        String classCode = ("K" + shortSuffix.substring(Math.max(0, shortSuffix.length() - 3))).toUpperCase();
+
+        jdbcTemplate.update("""
+                INSERT INTO college (college_code, college_name, description, status)
+                VALUES (?, ?, ?, ?)
+                """,
+                collegeCode,
+                "Exhaust College " + shortSuffix,
+                "arrangement code exhaust",
+                1
+        );
+        Long collegeId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM college", Long.class);
+        jdbcTemplate.update("""
+                INSERT INTO teacher (teacher_no, name, gender, title, department, college_id, hire_date, status)
+                VALUES (?, ?, ?, ?, ?, ?, CURRENT_DATE, ?)
+                """,
+                "ET" + shortSuffix,
+                "Exhaust Teacher " + shortSuffix,
+                "MALE",
+                "LECTURER",
+                "Exhaust",
+                collegeId,
+                1
+        );
+        Long teacherId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM teacher", Long.class);
+        jdbcTemplate.update("""
+                INSERT INTO class (class_name, class_code, grade, major, college_id, teacher_id, room, student_count, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                "Exhaust Class " + shortSuffix,
+                classCode,
+                2026,
+                "Exhaust",
+                collegeId,
+                teacherId,
+                "E101",
+                0,
+                1
+        );
+        Long classId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM class", Long.class);
+
+        String prefix = "C" + Year.now().getValue() + collegeCode + classCode;
+
+        for (int index = 0; index < 100; index++) {
+            jdbcTemplate.update("""
+                    INSERT INTO course_arrangement (arrangement_code, course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    prefix + String.format("%02d", index),
+                    1L,
+                    teacherId,
+                    classId,
+                    semester,
+                    "EX-" + shortSuffix + "-" + index,
+                    "Z" + index,
+                    60,
+                    0,
+                    1
+            );
+        }
+
+        String body = """
+                {
+                  "collegeId": %d,
+                  "courseId": 1,
+                  "teacherId": %d,
+                  "classId": %d,
+                  "semester": "%s",
+                  "schedule": "Fri 12:00-%s",
+                  "room": "C401",
+                  "capacity": 30,
+                  "status": 1
+                }
+                """.formatted(collegeId, teacherId, classId, semester, shortSuffix);
+
+        mockMvc.perform(post("/course-arrangement")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").isNotEmpty());
     }
 
     @Test
@@ -747,6 +1059,222 @@ class SecurityScopeIntegrationTest {
                 .andExpect(jsonPath("$.code").value(200));
     }
 
+    @Test
+    void schoolAdminCanBindCollegeAdminByUsername() throws Exception {
+        String suffix = String.valueOf(System.nanoTime());
+        String collegeCode = "TC" + suffix.substring(Math.max(0, suffix.length() - 6));
+        String username = "bind_admin_" + suffix;
+        jdbcTemplate.update("""
+                        INSERT INTO sys_user (username, password, real_name, phone, email, status, role)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                username,
+                "$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y",
+                "Bind Admin " + suffix,
+                "1390000" + suffix.substring(Math.max(0, suffix.length() - 4)),
+                username + "@school.com",
+                1,
+                "COURSE_TEACHER"
+        );
+
+        String adminToken = loginAndGetToken("admin", "123456");
+        String createBody = """
+                {
+                  "collegeCode": "%s",
+                  "collegeName": "Test College %s",
+                  "description": "Bind admin by username"
+                }
+                """.formatted(collegeCode, suffix);
+
+        mockMvc.perform(post("/college")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(createBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        Long collegeId = jdbcTemplate.queryForObject(
+                "SELECT id FROM college WHERE college_code = ?",
+                Long.class,
+                collegeCode
+        );
+
+        mockMvc.perform(put("/college/" + collegeId + "/admin")
+                        .param("adminUsername", username)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+
+        Long boundAdminUserId = jdbcTemplate.queryForObject(
+                "SELECT admin_user_id FROM college WHERE id = ?",
+                Long.class,
+                collegeId
+        );
+        Long expectedUserId = jdbcTemplate.queryForObject(
+                "SELECT id FROM sys_user WHERE username = ?",
+                Long.class,
+                username
+        );
+        assertEquals(expectedUserId, boundAdminUserId);
+
+        MvcResult adminListResult = mockMvc.perform(get("/college")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("keyword", collegeCode)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode adminRecords = objectMapper.readTree(adminListResult.getResponse().getContentAsString())
+                .path("data")
+                .path("records");
+        assertFalse(adminRecords.isEmpty());
+        assertEquals(username, adminRecords.get(0).path("adminUsername").asText());
+
+        String collegeAdminToken = loginAndGetToken(username, "123456");
+        MvcResult scopedResult = mockMvc.perform(get("/college")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .header("Authorization", "Bearer " + collegeAdminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+
+        JsonNode scopedRecords = objectMapper.readTree(scopedResult.getResponse().getContentAsString())
+                .path("data")
+                .path("records");
+        assertEquals(1, scopedRecords.size());
+        assertEquals(collegeId.longValue(), scopedRecords.get(0).path("id").asLong());
+        assertEquals(username, scopedRecords.get(0).path("adminUsername").asText());
+    }
+
+    @Test
+    void bindCollegeAdminWithUnknownUsernameReturnsClearMessage() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String collegeCode = "NF" + suffix.substring(Math.max(0, suffix.length() - 6));
+
+        jdbcTemplate.update("""
+                INSERT INTO college (college_code, college_name, description, status)
+                VALUES (?, ?, ?, ?)
+                """,
+                collegeCode,
+                "Not Found College " + suffix,
+                "bind admin error case",
+                1
+        );
+
+        Long collegeId = jdbcTemplate.queryForObject(
+                "SELECT id FROM college WHERE college_code = ?",
+                Long.class,
+                collegeCode
+        );
+
+        mockMvc.perform(put("/college/" + collegeId + "/admin")
+                        .param("adminUsername", "missing_admin_" + suffix)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(404))
+                .andExpect(jsonPath("$.message").value("管理员账号不存在"));
+    }
+
+    @Test
+    void createCollegeValidationMessageUsesChinese() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String body = """
+                {
+                  "collegeCode": "",
+                  "collegeName": "Validation College"
+                }
+                """;
+
+        mockMvc.perform(post("/college")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("请输入学院编码"));
+    }
+
+    @Test
+    void collegeDetailNotFoundReturnsChineseMessage() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+
+        mockMvc.perform(get("/college/999999")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(404))
+                .andExpect(jsonPath("$.message").value("学院不存在"));
+    }
+
+    @Test
+    void userListShowsGeneratedRuleAccount() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String suffix = String.valueOf(System.nanoTime());
+        String account = "T00CS2026" + suffix.substring(Math.max(0, suffix.length() - 4));
+        String email = account.toLowerCase() + "@school.com";
+        String phone = "1370000" + suffix.substring(Math.max(0, suffix.length() - 4));
+
+        jdbcTemplate.update("""
+                        INSERT INTO sys_user (username, password, real_name, phone, email, status, role)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """,
+                account,
+                "$2a$10$uwNOzFPaw6z3fyiwMkxuouAgn7y4UCxSY71t8se/G0HpyyTYbYE9y",
+                "Generated Account " + suffix,
+                phone,
+                email,
+                1,
+                "COURSE_TEACHER"
+        );
+
+        Long userId = jdbcTemplate.queryForObject(
+                "SELECT id FROM sys_user WHERE username = ?",
+                Long.class,
+                account
+        );
+
+        jdbcTemplate.update("""
+                        INSERT INTO teacher (user_id, teacher_no, name, gender, phone, email, title, department, college_id, hire_date, status)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE, ?)
+                        """,
+                userId,
+                account,
+                "Generated Account " + suffix,
+                "MALE",
+                phone,
+                email,
+                "LECTURER",
+                "Computer Science",
+                1L,
+                1
+        );
+
+        mockMvc.perform(get("/user/list")
+                        .param("page", "1")
+                        .param("size", "10")
+                        .param("account", account)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.records[0].account").value(account))
+                .andExpect(jsonPath("$.data.records[0].username").value(account));
+    }
+
+    @Test
+    void userInfoReturnsAccountField() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+
+        mockMvc.perform(get("/user/info")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.account").value("admin"))
+                .andExpect(jsonPath("$.data.username").value("admin"));
+    }
+
     private String loginAndGetToken(String username, String password) throws Exception {
         String body = """
                 {
@@ -768,10 +1296,32 @@ class SecurityScopeIntegrationTest {
 
     private Long createArrangement(String token, Long teacherId) throws Exception {
         String suffix = String.valueOf(System.nanoTime());
+        String shortSuffix = suffix.substring(Math.max(0, suffix.length() - 6));
+        Integer teacherCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM teacher WHERE id = ?",
+                Integer.class,
+                teacherId
+        );
+        if (teacherCount != null && teacherCount == 0) {
+            jdbcTemplate.update("""
+                    INSERT INTO teacher (id, teacher_no, name, gender, title, department, college_id, hire_date, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_DATE, ?)
+                    """,
+                    teacherId,
+                    "TX" + shortSuffix,
+                    "Scope Teacher " + shortSuffix,
+                    "MALE",
+                    "LECTURER",
+                    "Computer Science",
+                    1L,
+                    1
+            );
+        }
         String semester = "2026-test-" + suffix;
         String schedule = "Fri 10:00-11:30-" + suffix;
         String body = """
                 {
+                  "collegeId": 1,
                   "courseId": 1,
                   "teacherId": %d,
                   "classId": 1,

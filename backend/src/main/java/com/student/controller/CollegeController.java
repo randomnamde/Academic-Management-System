@@ -5,6 +5,7 @@ import com.student.dto.CollegeDTO;
 import com.student.entity.College;
 import com.student.security.CurrentUserService;
 import com.student.service.CollegeService;
+import com.student.service.SysUserService;
 import com.student.vo.ResultVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +20,7 @@ public class CollegeController {
 
     private final CollegeService collegeService;
     private final CurrentUserService currentUserService;
+    private final SysUserService sysUserService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
@@ -37,11 +39,15 @@ public class CollegeController {
     public ResultVO<College> detail(@PathVariable Long id, Authentication authentication) {
         College college = collegeService.getById(id);
         if (college == null) {
-            return ResultVO.error(404, "College not found");
+            return ResultVO.error(404, "学院不存在");
         }
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId != null && !scopedCollegeId.equals(id)) {
-            return ResultVO.error(403, "Forbidden");
+            return ResultVO.error(403, "无权查看该学院");
+        }
+        if (college.getAdminUserId() != null) {
+            var adminUser = sysUserService.getById(college.getAdminUserId());
+            college.setAdminUsername(adminUser != null ? adminUser.getUsername() : null);
         }
         return ResultVO.success(college);
     }
@@ -75,10 +81,10 @@ public class CollegeController {
     @PutMapping("/{id}/admin")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> bindAdmin(@PathVariable Long id,
-                                    @RequestParam Long adminUserId,
+                                    @RequestParam String adminUsername,
                                     Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        collegeService.bindAdmin(id, adminUserId, scopedCollegeId);
+        collegeService.bindAdmin(id, adminUsername, scopedCollegeId);
         return ResultVO.success();
     }
 }

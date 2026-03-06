@@ -14,6 +14,7 @@ public interface CourseArrangementMapper extends BaseMapper<CourseArrangement> {
     CourseArrangement selectByIdWithDetail(@Param("id") Long id);
 
     Page<CourseArrangement> selectPageWithDetail(Page<CourseArrangement> page,
+                                                 @Param("collegeId") Long collegeId,
                                                  @Param("courseId") Long courseId,
                                                  @Param("teacherId") Long teacherId,
                                                  @Param("classId") Long classId,

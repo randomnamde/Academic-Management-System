@@ -11,6 +11,8 @@ public class UserInfoVO {
 
     private Long id;
 
+    private String account;
+
     private String username;
 
     private String realName;
@@ -23,6 +25,10 @@ public class UserInfoVO {
 
     private Integer status;
 
+    private Long collegeId;
+
+    private String collegeName;
+
     private SysUser.Role role;
 
     private String primaryRole;
@@ -31,4 +37,3 @@ public class UserInfoVO {
 
     private List<String> permissions;
 }
-

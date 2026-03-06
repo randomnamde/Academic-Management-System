@@ -2,17 +2,16 @@ package com.student.exception;
 
 import com.student.vo.ResultVO;
 import jakarta.validation.ConstraintViolationException;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.util.stream.Collectors;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -57,7 +56,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResultVO<Void> handleAccessDeniedException(AccessDeniedException e) {
         log.error("Access denied: {}", e.getMessage());
-        return ResultVO.error(403, "Forbidden");
+        return ResultVO.error(403, "无权访问");
     }
 
     @ExceptionHandler(BadCredentialsException.class)
@@ -69,7 +68,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResultVO<Void> handleNoResourceFoundException(NoResourceFoundException e) {
         log.error("Resource not found: {}", e.getResourcePath());
-        return ResultVO.error(404, "Not Found");
+        return ResultVO.error(404, "请求资源不存在");
     }
 
     @ExceptionHandler(Exception.class)

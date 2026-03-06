@@ -11,6 +11,8 @@ public class RbacUserListItemVO {
 
     private Long id;
 
+    private String account;
+
     private String username;
 
     private String realName;

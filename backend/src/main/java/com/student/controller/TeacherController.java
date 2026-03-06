@@ -91,13 +91,18 @@ public class TeacherController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String teacherNo,
             @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long collegeId,
             @RequestParam(required = false) Long departmentId,
             Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
+        if (scopedCollegeId == null && currentUserService.isTeacher(authentication)) {
+            effectiveCollegeId = currentUserService.resolveCurrentCollegeId(authentication);
+        }
         if (scopedCollegeId != null) {
             Page<Teacher> pageParam = new Page<>(page, size);
             com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Teacher> wrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Teacher>()
-                    .eq(Teacher::getCollegeId, scopedCollegeId)
+                    .eq(Teacher::getCollegeId, effectiveCollegeId)
                     .like(teacherNo != null && !teacherNo.isBlank(), Teacher::getTeacherNo, teacherNo)
                     .like(name != null && !name.isBlank(), Teacher::getName, name);
             Page<Teacher> result = teacherService.page(pageParam, wrapper);
@@ -113,6 +118,15 @@ public class TeacherController {
             }
             LambdaQueryWrapper<Teacher> wrapper = new LambdaQueryWrapper<Teacher>()
                     .in(Teacher::getId, scope.getTeacherIds())
+                    .like(teacherNo != null && !teacherNo.isBlank(), Teacher::getTeacherNo, teacherNo)
+                    .like(name != null && !name.isBlank(), Teacher::getName, name);
+            Page<Teacher> result = teacherService.page(pageParam, wrapper);
+            return ResultVO.success(result);
+        }
+        if (effectiveCollegeId != null) {
+            Page<Teacher> pageParam = new Page<>(page, size);
+            LambdaQueryWrapper<Teacher> wrapper = new LambdaQueryWrapper<Teacher>()
+                    .eq(Teacher::getCollegeId, effectiveCollegeId)
                     .like(teacherNo != null && !teacherNo.isBlank(), Teacher::getTeacherNo, teacherNo)
                     .like(name != null && !name.isBlank(), Teacher::getName, name);
             Page<Teacher> result = teacherService.page(pageParam, wrapper);

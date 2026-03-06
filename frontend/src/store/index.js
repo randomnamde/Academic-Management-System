@@ -104,7 +104,8 @@ const store = createStore({
       if (state.userInfo?.role) merged.add(state.userInfo.role)
       return Array.from(merged)
     },
-    username: (state) => state.userInfo?.username,
+    account: (state) => state.userInfo?.account || state.userInfo?.username,
+    username: (state) => state.userInfo?.account || state.userInfo?.username,
     tableDensity: (state) => state.uiPreference.tableDensity,
     themeMode: (state) => state.uiPreference.themeMode,
     language: (state) => normalizeLocale(state.uiPreference.language)

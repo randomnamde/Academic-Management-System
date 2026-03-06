@@ -39,11 +39,10 @@ export function updateCollegeStatus(id, status) {
   })
 }
 
-export function bindCollegeAdmin(id, adminUserId) {
+export function bindCollegeAdmin(id, adminUsername) {
   return request({
     url: `/college/${id}/admin`,
     method: 'put',
-    params: { adminUserId }
+    params: { adminUsername }
   })
 }
-

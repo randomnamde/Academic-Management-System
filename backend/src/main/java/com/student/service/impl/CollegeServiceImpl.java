@@ -18,6 +18,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> implements CollegeService {
@@ -39,14 +44,16 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
                     .or()
                     .like(College::getCollegeCode, keyword));
         }
-        return page(pageParam, query);
+        Page<College> result = page(pageParam, query);
+        populateAdminUsernames(result.getRecords());
+        return result;
     }
 
     @Override
     @Transactional
     public College createCollege(CollegeDTO dto) {
         if (collegeMapper.selectByCollegeCode(dto.getCollegeCode()) != null) {
-            throw new BusinessException("College code already exists");
+            throw new BusinessException(400, "学院编码已存在");
         }
         College college = new College();
         BeanUtils.copyProperties(dto, college);
@@ -54,8 +61,9 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
             college.setStatus(1);
         }
         save(college);
-        if (dto.getAdminUserId() != null) {
-            bindAdmin(college.getId(), dto.getAdminUserId(), null);
+        if (StringUtils.hasText(dto.getAdminUsername())) {
+            bindAdmin(college.getId(), dto.getAdminUsername(), null);
+            college.setAdminUsername(dto.getAdminUsername().trim());
         }
         return college;
     }
@@ -65,13 +73,13 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
     public void updateCollege(Long id, CollegeDTO dto, Long scopedCollegeId) {
         College existing = getById(id);
         if (existing == null) {
-            throw new BusinessException("College not found");
+            throw new BusinessException(404, "学院不存在");
         }
         assertScope(existing, scopedCollegeId);
         if (StringUtils.hasText(dto.getCollegeCode())
                 && !dto.getCollegeCode().equals(existing.getCollegeCode())
                 && collegeMapper.selectByCollegeCode(dto.getCollegeCode()) != null) {
-            throw new BusinessException("College code already exists");
+            throw new BusinessException(400, "学院编码已存在");
         }
         College update = new College();
         BeanUtils.copyProperties(dto, update);
@@ -80,8 +88,8 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
             update.setStatus(existing.getStatus());
         }
         updateById(update);
-        if (dto.getAdminUserId() != null) {
-            bindAdmin(id, dto.getAdminUserId(), scopedCollegeId);
+        if (StringUtils.hasText(dto.getAdminUsername())) {
+            bindAdmin(id, dto.getAdminUsername(), scopedCollegeId);
         }
     }
 
@@ -90,7 +98,7 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
     public void updateCollegeStatus(Long id, Integer status, Long scopedCollegeId) {
         College existing = getById(id);
         if (existing == null) {
-            throw new BusinessException("College not found");
+            throw new BusinessException(404, "学院不存在");
         }
         assertScope(existing, scopedCollegeId);
         College update = new College();
@@ -101,33 +109,59 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
 
     @Override
     @Transactional
-    public void bindAdmin(Long id, Long adminUserId, Long scopedCollegeId) {
+    public void bindAdmin(Long id, String adminUsername, Long scopedCollegeId) {
         College existing = getById(id);
         if (existing == null) {
-            throw new BusinessException("College not found");
+            throw new BusinessException(404, "学院不存在");
         }
         assertScope(existing, scopedCollegeId);
-        SysUser user = sysUserMapper.selectById(adminUserId);
-        if (user == null) {
-            throw new BusinessException("Admin user not found");
+        if (!StringUtils.hasText(adminUsername)) {
+            throw new BusinessException(400, "请输入管理员账号");
         }
 
-        College occupied = collegeMapper.selectByAdminUserId(adminUserId);
+        String normalizedUsername = adminUsername.trim();
+        SysUser user = sysUserService.getByUsername(normalizedUsername);
+        if (user == null) {
+            throw new BusinessException(404, "管理员账号不存在");
+        }
+
+        College occupied = collegeMapper.selectByAdminUserId(user.getId());
         if (occupied != null && !occupied.getId().equals(id)) {
-            throw new BusinessException("This user is already bound to another college");
+            throw new BusinessException(400, "该账号已绑定其他学院");
         }
 
         College update = new College();
         update.setId(id);
-        update.setAdminUserId(adminUserId);
+        update.setAdminUserId(user.getId());
         updateById(update);
 
-        sysUserService.grantRole(adminUserId, RoleCode.COLLEGE_ADMIN);
+        sysUserService.grantRole(user.getId(), RoleCode.COLLEGE_ADMIN);
     }
 
     private void assertScope(College college, Long scopedCollegeId) {
         if (scopedCollegeId != null && !scopedCollegeId.equals(college.getId())) {
-            throw new BusinessException(403, "Forbidden");
+            throw new BusinessException(403, "无权操作当前学院");
+        }
+    }
+
+    private void populateAdminUsernames(List<College> colleges) {
+        if (colleges == null || colleges.isEmpty()) {
+            return;
+        }
+
+        Set<Long> adminUserIds = colleges.stream()
+                .map(College::getAdminUserId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (adminUserIds.isEmpty()) {
+            return;
+        }
+
+        Map<Long, String> usernameById = sysUserMapper.selectBatchIds(adminUserIds).stream()
+                .filter(user -> user.getId() != null)
+                .collect(Collectors.toMap(SysUser::getId, SysUser::getUsername, (left, right) -> left));
+        for (College college : colleges) {
+            college.setAdminUsername(usernameById.get(college.getAdminUserId()));
         }
     }
 

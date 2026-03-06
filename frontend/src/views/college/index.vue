@@ -72,8 +72,8 @@
 
     <AppModal v-model="bindVisible" :title="t('college.bindAdminTitle')" width="520px">
       <el-form label-width="130px">
-        <el-form-item :label="t('college.adminUserId')">
-          <el-input-number v-model="bindAdminUserId" :min="1" style="width: 100%" />
+        <el-form-item :label="t('college.adminUsername')">
+          <el-input v-model="bindAdminUsername" :placeholder="t('college.adminUsernamePlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -115,6 +115,7 @@ const searchForm = reactive({
 const columns = computed(() => [
   { key: 'collegeCode', title: t('college.collegeCode'), width: 160 },
   { key: 'collegeName', title: t('college.collegeName'), width: 220 },
+  { key: 'adminUsername', title: t('college.adminUsername'), width: 180 },
   { key: 'description', title: t('college.description') },
   { key: 'status', title: t('college.status'), width: 100 },
   { key: 'actions', title: t('college.actions'), width: 250, align: 'right' }
@@ -124,7 +125,7 @@ const dialogVisible = ref(false)
 const bindVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref()
-const bindAdminUserId = ref(null)
+const bindAdminUsername = ref('')
 const form = reactive({
   id: null,
   collegeCode: '',
@@ -188,7 +189,7 @@ function openEdit(row) {
 
 function openBindAdmin(row) {
   currentCollegeId.value = row.id
-  bindAdminUserId.value = row.adminUserId || null
+  bindAdminUsername.value = row.adminUsername || ''
   bindVisible.value = true
 }
 
@@ -216,8 +217,13 @@ async function submit() {
 }
 
 async function submitBindAdmin() {
-  if (!currentCollegeId.value || !bindAdminUserId.value) return
-  await bindCollegeAdmin(currentCollegeId.value, bindAdminUserId.value)
+  const adminUsername = bindAdminUsername.value.trim()
+  if (!currentCollegeId.value) return
+  if (!adminUsername) {
+    ElMessage.warning(t('college.adminUsernameRequired'))
+    return
+  }
+  await bindCollegeAdmin(currentCollegeId.value, adminUsername)
   ElMessage.success(t('college.bindSuccess'))
   bindVisible.value = false
   fetchList()

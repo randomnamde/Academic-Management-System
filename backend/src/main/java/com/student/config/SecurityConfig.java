@@ -57,9 +57,9 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) ->
-                        writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
+                        writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "未登录或登录已失效"))
                 .accessDeniedHandler((request, response, accessDeniedException) ->
-                        writeError(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden"))
+                        writeError(response, HttpServletResponse.SC_FORBIDDEN, "无权访问"))
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**", "/api/auth/**").permitAll()

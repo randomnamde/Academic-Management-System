@@ -4,13 +4,18 @@
 
     <resultMap id="BaseResultMap" type="com.student.entity.CourseArrangement">
         <id column="id" property="id"/>
+        <result column="arrangement_code" property="arrangementCode"/>
         <result column="course_id" property="courseId"/>
         <result column="course_name" property="courseName"/>
         <result column="credit" property="credit"/>
         <result column="teacher_id" property="teacherId"/>
         <result column="teacher_name" property="teacherName"/>
+        <result column="teacher_no" property="teacherNo"/>
         <result column="class_id" property="classId"/>
         <result column="class_name" property="className"/>
+        <result column="class_code" property="classCode"/>
+        <result column="college_id" property="collegeId"/>
+        <result column="college_name" property="collegeName"/>
         <result column="semester" property="semester"/>
         <result column="schedule" property="schedule"/>
         <result column="room" property="room"/>
@@ -25,11 +30,16 @@
                co.course_name,
                co.credit,
                t.name AS teacher_name,
-               c.class_name
+               t.teacher_no,
+               c.class_name,
+               c.class_code,
+               c.college_id,
+               cg.college_name
         FROM course_arrangement ca
         LEFT JOIN course co ON ca.course_id = co.id
         LEFT JOIN teacher t ON ca.teacher_id = t.id
         LEFT JOIN class c ON ca.class_id = c.id
+        LEFT JOIN college cg ON c.college_id = cg.id
         WHERE ca.id = #{id}
     </select>
 
@@ -38,12 +48,20 @@
                co.course_name,
                co.credit,
                t.name AS teacher_name,
-               c.class_name
+               t.teacher_no,
+               c.class_name,
+               c.class_code,
+               c.college_id,
+               cg.college_name
         FROM course_arrangement ca
         LEFT JOIN course co ON ca.course_id = co.id
         LEFT JOIN teacher t ON ca.teacher_id = t.id
         LEFT JOIN class c ON ca.class_id = c.id
+        LEFT JOIN college cg ON c.college_id = cg.id
         <where>
+            <if test="collegeId != null">
+                AND c.college_id = #{collegeId}
+            </if>
             <if test="courseId != null">
                 AND ca.course_id = #{courseId}
             </if>
@@ -68,11 +86,16 @@
                co.course_name,
                co.credit,
                t.name AS teacher_name,
-               c.class_name
+               t.teacher_no,
+               c.class_name,
+               c.class_code,
+               c.college_id,
+               cg.college_name
         FROM course_arrangement ca
         LEFT JOIN course co ON ca.course_id = co.id
         LEFT JOIN teacher t ON ca.teacher_id = t.id
         LEFT JOIN class c ON ca.class_id = c.id
+        LEFT JOIN college cg ON c.college_id = cg.id
         <where>
             <if test="teacherId != null">
                 AND ca.teacher_id = #{teacherId}

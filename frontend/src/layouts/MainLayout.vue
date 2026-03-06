@@ -154,7 +154,7 @@
                 @click="userMenuVisible = !userMenuVisible"
               >
                 <img :src="userInfo.avatar || defaultAvatar" alt="avatar" class="h-6 w-6 rounded-md object-cover" />
-                <span class="hidden max-w-24 truncate md:block">{{ userInfo.realName || userInfo.username || t('common.user') }}</span>
+                <span class="hidden max-w-24 truncate md:block">{{ userInfo.realName || userInfo.account || userInfo.username || t('common.user') }}</span>
                 <ChevronDown class="h-3.5 w-3.5 text-slatex-500" />
               </button>
 
@@ -422,7 +422,8 @@ const visibleMenuGroups = computed(() => {
       })
     })
 
-  return Array.from(groups.values())
+  const groupOrder = { overview: 1, teaching: 2, assessment: 3, access: 4 }
+  return Array.from(groups.values()).sort((left, right) => (groupOrder[left.key] || 99) - (groupOrder[right.key] || 99))
 })
 
 const isGroupExpanded = (groupKey) => isCollapsed.value || !collapsedGroupKeys.value.includes(groupKey)
@@ -475,7 +476,7 @@ const toggleDensity = () => {
   store.commit('SET_TABLE_DENSITY', next)
 }
 
-const isActive = (path) => route.path === path
+const isActive = (path) => (route.meta?.activeMenu || route.path) === path
 
 const loadReadAnnouncements = () => {
   const stored = parseSafe(localStorage.getItem(readAnnouncementStorageKey.value), [])

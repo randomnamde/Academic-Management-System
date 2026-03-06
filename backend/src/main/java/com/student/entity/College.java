@@ -26,10 +26,12 @@ public class College {
 
     private Long adminUserId;
 
+    @TableField(exist = false)
+    private String adminUsername;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 }
-

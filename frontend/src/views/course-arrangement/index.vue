@@ -227,7 +227,6 @@ const userInfo = computed(() => store.state.userInfo || {})
 const role = computed(() => userInfo.value?.primaryRole || userInfo.value?.role || '')
 const isSchoolAdmin = computed(() => role.value === 'SCHOOL_ADMIN')
 const isCollegeAdmin = computed(() => role.value === 'COLLEGE_ADMIN')
-const isTeacherRole = computed(() => role.value === 'HOMEROOM_TEACHER' || role.value === 'COURSE_TEACHER')
 const collegeLocked = computed(() => !isSchoolAdmin.value)
 
 const loading = ref(false)

@@ -3,6 +3,7 @@ package com.student.vo;
 import com.student.entity.SysUser;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -25,13 +26,23 @@ public class UserInfoVO {
 
     private Integer status;
 
+    private LocalDateTime createTime;
+
     private Long collegeId;
 
     private String collegeName;
 
     private Long teacherId;
 
+    private String teacherNo;
+
+    private String teacherDepartment;
+
     private Long classId;
+
+    private String className;
+
+    private String studentNo;
 
     private SysUser.Role role;
 

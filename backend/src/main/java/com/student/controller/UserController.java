@@ -77,12 +77,19 @@ public class UserController {
             Teacher teacher = currentUserService.getCurrentTeacher(authentication);
             if (teacher != null) {
                 vo.setTeacherId(teacher.getId());
+                vo.setTeacherNo(teacher.getTeacherNo());
+                vo.setTeacherDepartment(teacher.getDepartment());
             }
         }
         if (currentUserService.isStudent(authentication)) {
             Student student = currentUserService.getCurrentStudent(authentication);
             if (student != null) {
                 vo.setClassId(student.getClassId());
+                vo.setStudentNo(student.getStudentNo());
+                if (student.getClassId() != null) {
+                    Class currentClass = classMapper.selectById(student.getClassId());
+                    vo.setClassName(currentClass != null ? currentClass.getClassName() : null);
+                }
             }
         }
         RoleCode primaryRoleCode = orderedRoles.isEmpty() ? null : orderedRoles.get(0);

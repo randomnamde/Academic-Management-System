@@ -1272,30 +1272,31 @@ class SecurityScopeIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.account").value("admin"))
-                .andExpect(jsonPath("$.data.username").value("admin"));
+                .andExpect(jsonPath("$.data.username").value("admin"))
+                .andExpect(jsonPath("$.data.createTime").isNotEmpty());
     }
 
     @Test
-    void userInfoReturnsTeacherAndClassScopeIdentifiers() throws Exception {
+    void userInfoReturnsTeacherAndStudentSummaryFields() throws Exception {
         String teacherToken = loginAndGetToken("teacher001", "123456");
-        MvcResult teacherResult = mockMvc.perform(get("/user/info")
+        mockMvc.perform(get("/user/info")
                         .header("Authorization", "Bearer " + teacherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andReturn();
-
-        JsonNode teacherData = objectMapper.readTree(teacherResult.getResponse().getContentAsString()).path("data");
-        assertTrue(teacherData.path("teacherId").asLong() > 0L);
+                .andExpect(jsonPath("$.data.teacherId").isNumber())
+                .andExpect(jsonPath("$.data.teacherNo").isNotEmpty())
+                .andExpect(jsonPath("$.data.teacherDepartment").isNotEmpty())
+                .andExpect(jsonPath("$.data.collegeName").isNotEmpty());
 
         String studentToken = loginAndGetToken("student001", "123456");
-        MvcResult studentResult = mockMvc.perform(get("/user/info")
+        mockMvc.perform(get("/user/info")
                         .header("Authorization", "Bearer " + studentToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andReturn();
-
-        JsonNode studentData = objectMapper.readTree(studentResult.getResponse().getContentAsString()).path("data");
-        assertTrue(studentData.path("classId").asLong() > 0L);
+                .andExpect(jsonPath("$.data.classId").isNumber())
+                .andExpect(jsonPath("$.data.className").isNotEmpty())
+                .andExpect(jsonPath("$.data.studentNo").isNotEmpty())
+                .andExpect(jsonPath("$.data.collegeName").isNotEmpty());
     }
 
     @Test

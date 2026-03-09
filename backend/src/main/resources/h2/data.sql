@@ -71,7 +71,8 @@ WHERE s.user_id IS NOT NULL
 );
 
 INSERT INTO sys_config (config_key, config_value, description) VALUES
-('currentSemester', '2024-2025-1', 'Current semester for workflow and notifications');
+('currentSemester', '2024-2025-1', 'Current semester for workflow and notifications'),
+('courseTimeSlots', '["08:00-09:40","10:00-11:40","14:00-15:40","16:00-17:40","19:00-20:40"]', 'Configurable course time slots for arrangements and timetables');
 
 INSERT INTO semester (id, semester_code, start_date, end_date, status, remark) VALUES
 (1, '2024-2025-1', DATE '2024-09-01', DATE '2025-01-20', 'ACTIVE', '默认激活学期');

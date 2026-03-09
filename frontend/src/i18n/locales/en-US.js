@@ -167,6 +167,17 @@ export default {
       compact: 'Compact',
       comfortable: 'Standard'
     },
+    courseTimeSlots: {
+      title: 'Course Time Slots',
+      desc: 'Maintain the shared lesson time slots used by scheduling forms and timetable views.',
+      hint: 'Format example: 08:00-09:40. Start time must be earlier than end time, up to 12 slots.',
+      preview: 'Current Preview',
+      add: 'Add Slot',
+      reset: 'Reset to Current',
+      save: 'Save Time Slots',
+      placeholder: 'e.g. 08:00-09:40',
+      updated: 'Course time slots updated'
+    },
     currentSemester: {
       kicker: 'Semester Hub',
       title: 'Semester Management',
@@ -677,6 +688,10 @@ export default {
     teacherIdRequired: 'Please select teacher',
     classIdRequired: 'Please select class',
     semesterRequired: 'Please enter semester',
+    selectScheduleDay: 'Please select weekday',
+    selectScheduleTime: 'Please select time slot',
+    scheduleDayRequired: 'Please select weekday',
+    scheduleTimeRequired: 'Please select time slot',
     scheduleRequired: 'Please enter schedule',
     capacityRequired: 'Please enter capacity',
     updateSuccess: 'Updated successfully',

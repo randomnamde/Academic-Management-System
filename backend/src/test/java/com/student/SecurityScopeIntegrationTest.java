@@ -1455,6 +1455,66 @@ class SecurityScopeIntegrationTest {
                 .andExpect(jsonPath("$.message").value("学期不存在，请先在学期管理中创建"));
     }
 
+    @Test
+    void schoolAdminCanUpdateCourseTimeSlotsAndStudentCanReadThem() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String studentToken = loginAndGetToken("student001", "123456");
+        String body = """
+                {
+                  "timeSlots": [
+                    "08:10-09:50",
+                    "10:10-11:50",
+                    "14:10-15:50"
+                  ]
+                }
+                """;
+
+        try {
+            mockMvc.perform(put("/system/config/course-time-slots")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer " + adminToken)
+                            .content(body))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200));
+
+            mockMvc.perform(get("/system/config/course-time-slots")
+                            .header("Authorization", "Bearer " + studentToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andExpect(jsonPath("$.data.timeSlots[0]").value("08:10-09:50"))
+                    .andExpect(jsonPath("$.data.timeSlots[2]").value("14:10-15:50"));
+        } finally {
+            jdbcTemplate.update("""
+                    MERGE INTO sys_config (config_key, config_value, description)
+                    KEY(config_key)
+                    VALUES (?, ?, ?)
+                    """,
+                    "courseTimeSlots",
+                    "[\"08:00-09:40\",\"10:00-11:40\",\"14:00-15:40\",\"16:00-17:40\",\"19:00-20:40\"]",
+                    "Configurable course time slots for arrangements and timetables");
+        }
+    }
+
+    @Test
+    void courseTimeSlotsRejectInvalidRange() throws Exception {
+        String adminToken = loginAndGetToken("admin", "123456");
+        String body = """
+                {
+                  "timeSlots": [
+                    "10:00-09:40"
+                  ]
+                }
+                """;
+
+        mockMvc.perform(put("/system/config/course-time-slots")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("上课结束时间必须晚于开始时间"));
+    }
+
     private String loginAndGetToken(String username, String password) throws Exception {
         String body = """
                 {

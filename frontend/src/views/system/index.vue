@@ -64,6 +64,52 @@
           </div>
         </div>
 
+        <div class="preference-card rounded-md border border-neutralx-200 p-3 md:col-span-2">
+          <div class="preference-card-head">
+            <div>
+              <p class="preference-card-title">{{ t('system.courseTimeSlots.title') }}</p>
+              <p class="preference-card-desc">{{ t('system.courseTimeSlots.desc') }}</p>
+            </div>
+            <span class="preference-pill">
+              <Clock3 class="h-4 w-4" />
+              <span>{{ t('system.courseTimeSlots.preview') }}</span>
+            </span>
+          </div>
+
+          <div class="course-slot-preview mt-3">
+            <span v-for="slot in courseTimeSlotPreview" :key="slot" class="course-slot-tag">{{ slot }}</span>
+          </div>
+
+          <p class="preference-card-note mt-3">{{ t('system.courseTimeSlots.hint') }}</p>
+
+          <div v-loading="courseTimeSlotsLoading" class="course-slot-editor mt-3">
+            <div v-for="(slot, index) in courseTimeSlots" :key="`slot-${index}`" class="course-slot-row">
+              <el-input
+                v-model="courseTimeSlots[index]"
+                :placeholder="t('system.courseTimeSlots.placeholder')"
+                class="course-slot-input"
+              />
+              <button
+                type="button"
+                class="course-slot-remove touch-target"
+                :disabled="courseTimeSlots.length === 1 && !courseTimeSlots[0]?.trim()"
+                @click="removeCourseTimeSlot(index)"
+              >
+                <Trash2 class="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          <div class="course-slot-actions mt-3">
+            <AppButton variant="secondary" :disabled="courseTimeSlots.length >= 12" @click="addCourseTimeSlot">
+              <Plus class="h-4 w-4" />
+              <span>{{ t('system.courseTimeSlots.add') }}</span>
+            </AppButton>
+            <AppButton variant="secondary" @click="resetCourseTimeSlots">{{ t('system.courseTimeSlots.reset') }}</AppButton>
+            <AppButton :loading="courseTimeSlotsSaving" @click="submitCourseTimeSlots">{{ t('system.courseTimeSlots.save') }}</AppButton>
+          </div>
+        </div>
+
         <button
           type="button"
           class="entry-card entry-card-semester touch-target"
@@ -152,14 +198,14 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
-import { ArrowRight, CalendarRange, Languages, Monitor, Moon, ShieldCheck, SunMedium } from 'lucide-vue-next'
+import { ArrowRight, CalendarRange, Clock3, Languages, Monitor, Moon, Plus, ShieldCheck, SunMedium, Trash2 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import { updatePassword } from '@/api/user'
 import { useTheme } from '@/composables/useTheme'
 import { useLanguage } from '@/composables/useLanguage'
-import { getCurrentSemester } from '@/api/system'
+import { getCourseTimeSlots, getCurrentSemester, updateCourseTimeSlots } from '@/api/system'
 import { getSemesterList } from '@/api/semester'
 
 const store = useStore()
@@ -201,6 +247,10 @@ const pwdFormRef = ref()
 const pwdLoading = ref(false)
 const currentSemester = ref('')
 const currentSemesterStatus = ref('')
+const courseTimeSlots = ref([''])
+const courseTimeSlotsSnapshot = ref([])
+const courseTimeSlotsLoading = ref(false)
+const courseTimeSlotsSaving = ref(false)
 
 const currentSemesterStatusLabel = computed(() => {
   if (!currentSemesterStatus.value) {
@@ -208,6 +258,7 @@ const currentSemesterStatusLabel = computed(() => {
   }
   return t(`semester.status.${currentSemesterStatus.value}`)
 })
+const courseTimeSlotPreview = computed(() => courseTimeSlots.value.map((item) => item.trim()).filter(Boolean))
 
 const pwdRules = computed(() => ({
   oldPassword: [{ required: true, message: t('system.password.oldRequired'), trigger: 'blur' }],
@@ -248,6 +299,53 @@ async function fetchSemesterSummary() {
   currentSemesterStatus.value = activeRes.data?.records?.[0]?.status || ''
 }
 
+function setCourseTimeSlotsState(slots = []) {
+  const nextSlots = Array.isArray(slots) && slots.length ? slots : ['']
+  courseTimeSlots.value = nextSlots.map((item) => String(item ?? ''))
+}
+
+async function fetchCourseTimeSlots() {
+  courseTimeSlotsLoading.value = true
+  try {
+    const res = await getCourseTimeSlots()
+    const slots = Array.isArray(res.data?.timeSlots) ? res.data.timeSlots : []
+    courseTimeSlotsSnapshot.value = [...slots]
+    setCourseTimeSlotsState(slots)
+  } finally {
+    courseTimeSlotsLoading.value = false
+  }
+}
+
+function addCourseTimeSlot() {
+  if (courseTimeSlots.value.length >= 12) return
+  courseTimeSlots.value.push('')
+}
+
+function removeCourseTimeSlot(index) {
+  if (courseTimeSlots.value.length === 1) {
+    courseTimeSlots.value = ['']
+    return
+  }
+  courseTimeSlots.value.splice(index, 1)
+}
+
+function resetCourseTimeSlots() {
+  setCourseTimeSlotsState(courseTimeSlotsSnapshot.value)
+}
+
+async function submitCourseTimeSlots() {
+  courseTimeSlotsSaving.value = true
+  try {
+    const payload = courseTimeSlotPreview.value
+    await updateCourseTimeSlots(payload)
+    courseTimeSlotsSnapshot.value = [...payload]
+    setCourseTimeSlotsState(payload)
+    ElMessage.success(t('system.courseTimeSlots.updated'))
+  } finally {
+    courseTimeSlotsSaving.value = false
+  }
+}
+
 async function submitPassword() {
   const valid = await pwdFormRef.value.validate().catch(() => false)
   if (!valid) return
@@ -267,7 +365,9 @@ async function submitPassword() {
   }
 }
 
-onMounted(fetchSemesterSummary)
+onMounted(async () => {
+  await Promise.all([fetchSemesterSummary(), fetchCourseTimeSlots()])
+})
 </script>
 
 <style scoped>
@@ -357,6 +457,66 @@ onMounted(fetchSemesterSummary)
   background: color-mix(in srgb, var(--accent-500) 16%, transparent);
   color: var(--accent-700);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-500) 16%, transparent);
+}
+
+.course-slot-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.course-slot-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent-500) 22%, transparent);
+  background: color-mix(in srgb, var(--accent-500) 12%, transparent);
+  color: var(--accent-700);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.course-slot-editor {
+  display: grid;
+  gap: 10px;
+}
+
+.course-slot-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.course-slot-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--danger) 28%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+  transition: all 180ms ease;
+}
+
+.course-slot-remove:hover,
+.course-slot-remove:focus-visible {
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+}
+
+.course-slot-remove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.course-slot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .entry-card {

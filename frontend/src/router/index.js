@@ -102,7 +102,7 @@ const routes = [
         meta: {
           titleKey: 'route.courseArrangement',
           icon: 'Tickets',
-          roles: MANAGE_ROLES,
+          roles: ALL_ROLES,
           menuGroup: 'teaching',
           hideInMenu: true,
           activeMenu: '/course-center'

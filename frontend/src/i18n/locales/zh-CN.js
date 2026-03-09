@@ -167,6 +167,17 @@
       compact: '紧凑',
       comfortable: '标准'
     },
+    courseTimeSlots: {
+      title: '上课时间配置',
+      desc: '统一维护排课页和课表视图使用的上课时间段，保存后全角色自动同步。',
+      hint: '格式示例：08:00-09:40。开始时间必须早于结束时间，最多配置 12 个时间段。',
+      preview: '当前预览',
+      add: '新增时间段',
+      reset: '恢复当前配置',
+      save: '保存上课时间',
+      placeholder: '例如 08:00-09:40',
+      updated: '上课时间已更新'
+    },
     currentSemester: {
       kicker: 'Semester Hub',
       title: '学期管理',
@@ -677,6 +688,10 @@
     teacherIdRequired: '请选择教师',
     classIdRequired: '请选择班级',
     semesterRequired: '请输入学期',
+    selectScheduleDay: '请选择星期',
+    selectScheduleTime: '请选择时间段',
+    scheduleDayRequired: '请选择星期',
+    scheduleTimeRequired: '请选择时间段',
     scheduleRequired: '请输入时间安排',
     capacityRequired: '请输入容量',
     updateSuccess: '修改成功',

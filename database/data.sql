@@ -109,6 +109,10 @@ INSERT INTO sys_config (config_key, config_value, description)
 VALUES ('currentSemester', '2024-2025-1', 'Current semester for workflow and notifications')
 ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), description = VALUES(description);
 
+INSERT INTO sys_config (config_key, config_value, description)
+VALUES ('courseTimeSlots', '["08:00-09:40","10:00-11:40","14:00-15:40","16:00-17:40","19:00-20:40"]', 'Configurable course time slots for arrangements and timetables')
+ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), description = VALUES(description);
+
 INSERT INTO semester (id, semester_code, start_date, end_date, status, remark)
 VALUES (1, '2024-2025-1', '2024-09-01', '2025-01-20', 'ACTIVE', '默认激活学期')
 ON DUPLICATE KEY UPDATE

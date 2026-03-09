@@ -1,7 +1,11 @@
 <template>
   <CrudPageShell :title="t('courseArrangement.pageTitle')">
     <template #header-actions>
-      <AppButton @click="openCreate">{{ t('courseArrangement.addArrangement') }}</AppButton>
+      <el-radio-group v-model="viewMode" size="small" class="mr-3" @change="handleViewModeChange">
+        <el-radio-button value="list">列表视图</el-radio-button>
+        <el-radio-button value="timetable">课表视图</el-radio-button>
+      </el-radio-group>
+      <AppButton v-if="!isStudent" @click="openCreate">{{ t('courseArrangement.addArrangement') }}</AppButton>
     </template>
 
     <template #filters>
@@ -30,7 +34,7 @@
             <el-option v-for="option in courseOptions" :key="option.value" :label="option.label" :value="option.value" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="t('courseArrangement.teacherId')">
+        <el-form-item :label="t('courseArrangement.teacherId')" v-if="!isStudent && !isTeacher">
           <el-select
             v-model="searchForm.teacherId"
             clearable
@@ -41,7 +45,7 @@
             <el-option v-for="option in searchTeacherOptions" :key="option.value" :label="option.label" :value="option.value" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="t('courseArrangement.classId')">
+        <el-form-item :label="t('courseArrangement.classId')" v-if="!isStudent">
           <el-select
             v-model="searchForm.classId"
             clearable
@@ -63,33 +67,67 @@
     </template>
 
     <template #table>
-      <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" :label="t('courseArrangement.index')" width="60" />
-        <el-table-column prop="arrangementCode" :label="t('courseArrangement.arrangementCode')" width="180" />
-        <el-table-column prop="courseName" :label="t('courseArrangement.course')" min-width="150" />
-        <el-table-column prop="teacherName" :label="t('courseArrangement.teacher')" width="140" />
-        <el-table-column prop="className" :label="t('courseArrangement.class')" width="140" />
-        <el-table-column prop="semester" :label="t('courseArrangement.semester')" width="140" />
-        <el-table-column prop="schedule" :label="t('courseArrangement.schedule')" min-width="170" />
-        <el-table-column prop="room" :label="t('courseArrangement.room')" width="100" />
-        <el-table-column :label="t('courseArrangement.people')" width="120">
-          <template #default="{ row }">{{ row.enrolledCount || 0 }}/{{ row.capacity || 0 }}</template>
-        </el-table-column>
-        <el-table-column :label="t('courseArrangement.status')" width="90">
-          <template #default="{ row }">
-            <AppBadge :type="statusBadgeType(row.status)">{{ statusLabel(row.status) }}</AppBadge>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('courseArrangement.actions')" width="180" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">{{ t('courseArrangement.edit') }}</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">{{ t('courseArrangement.delete') }}</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div v-if="viewMode === 'list'">
+        <el-table :data="tableData" v-loading="loading" stripe>
+          <el-table-column type="index" :label="t('courseArrangement.index')" width="60" />
+          <el-table-column prop="arrangementCode" :label="t('courseArrangement.arrangementCode')" width="180" />
+          <el-table-column prop="courseName" :label="t('courseArrangement.course')" min-width="150" />
+          <el-table-column prop="teacherName" :label="t('courseArrangement.teacher')" width="140" />
+          <el-table-column prop="className" :label="t('courseArrangement.class')" width="140" />
+          <el-table-column prop="semester" :label="t('courseArrangement.semester')" width="140" />
+          <el-table-column prop="schedule" :label="t('courseArrangement.schedule')" min-width="170" />
+          <el-table-column prop="room" :label="t('courseArrangement.room')" width="100" />
+          <el-table-column :label="t('courseArrangement.people')" width="120">
+            <template #default="{ row }">{{ row.enrolledCount || 0 }}/{{ row.capacity || 0 }}</template>
+          </el-table-column>
+          <el-table-column :label="t('courseArrangement.status')" width="90">
+            <template #default="{ row }">
+              <AppBadge :type="statusBadgeType(row.status)">{{ statusLabel(row.status) }}</AppBadge>
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('courseArrangement.actions')" width="180" fixed="right" v-if="!isStudent">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="openEdit(row)">{{ t('courseArrangement.edit') }}</el-button>
+              <el-button link type="danger" @click="handleDelete(row)">{{ t('courseArrangement.delete') }}</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      
+      <div v-else-if="viewMode === 'timetable'" class="timetable-container" v-loading="loading">
+        <template v-if="!canViewTimetable">
+          <el-empty description="请先选择学期和班级（或教师）以查看准确的课表" />
+        </template>
+        <template v-else>
+          <div class="timetable-grid">
+            <!-- Table Header (Days) -->
+            <div class="time-header-cell">时间\星期</div>
+            <div v-for="day in weekDays" :key="day" class="day-header-cell">{{ day }}</div>
+            
+            <!-- Table Rows (Time slots) -->
+            <template v-for="(slot, sIndex) in timetableTimeSlots" :key="slot">
+              <!-- Row Header (Time slot) -->
+              <div class="time-slot-cell">{{ slot }}</div>
+              
+              <!-- Content Cells -->
+              <div v-for="(day, dIndex) in weekDays" :key="`${day}-${slot}`" class="timetable-cell">
+                <div v-if="timetableGrid[dIndex][sIndex] && timetableGrid[dIndex][sIndex].length > 0" class="course-cards">
+                  <div v-for="(course, cIndex) in timetableGrid[dIndex][sIndex]" :key="cIndex" 
+                       class="course-card" :class="getColorClass(course.courseId)">
+                    <div class="course-title" :title="course.courseName">{{ course.courseName }}</div>
+                    <div class="course-info">{{ course.room }}</div>
+                    <div class="course-info" v-if="!isTeacher">{{ course.teacherName }}</div>
+                    <div class="course-info" v-if="!isStudent">{{ course.className }}</div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
     </template>
 
-    <template #pagination>
+    <template #pagination v-if="viewMode === 'list'">
       <el-pagination
         class="pagination"
         v-model:current-page="page"
@@ -173,8 +211,19 @@
           </el-col>
         </el-row>
 
-        <el-form-item :label="t('courseArrangement.schedule')" prop="schedule">
-          <el-input v-model="form.schedule" :placeholder="t('courseArrangement.schedulePlaceholder')" />
+        <el-form-item :label="t('courseArrangement.schedule')" prop="scheduleDay">
+          <el-row :gutter="8" style="width: 100%">
+            <el-col :span="10">
+              <el-select v-model="form.scheduleDay" :placeholder="t('courseArrangement.selectScheduleDay')">
+                <el-option v-for="day in weekDays" :key="day" :label="day" :value="day" />
+              </el-select>
+            </el-col>
+            <el-col :span="14">
+              <el-select v-model="form.scheduleTime" :placeholder="t('courseArrangement.selectScheduleTime')">
+                <el-option v-for="time in formTimeSlotOptions" :key="time" :label="time" :value="time" />
+              </el-select>
+            </el-col>
+          </el-row>
         </el-form-item>
 
         <el-row :gutter="16">
@@ -202,7 +251,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onActivated, onMounted, reactive, ref } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -219,6 +268,7 @@ import {
   updateCourseArrangement
 } from '@/api/courseArrangement'
 import { getClassList } from '@/api/clazz'
+import { getCourseTimeSlots } from '@/api/system'
 import { getTeacherList } from '@/api/teacher'
 
 const store = useStore()
@@ -227,7 +277,20 @@ const userInfo = computed(() => store.state.userInfo || {})
 const role = computed(() => userInfo.value?.primaryRole || userInfo.value?.role || '')
 const isSchoolAdmin = computed(() => role.value === 'SCHOOL_ADMIN')
 const isCollegeAdmin = computed(() => role.value === 'COLLEGE_ADMIN')
+const isTeacher = computed(() => ['COURSE_TEACHER', 'HOMEROOM_TEACHER'].includes(role.value))
+const isStudent = computed(() => role.value === 'STUDENT')
 const collegeLocked = computed(() => !isSchoolAdmin.value)
+
+const viewMode = ref('timetable') // default to timetable
+const weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+const defaultTimeSlots = ['08:00-09:40', '10:00-11:40', '14:00-15:40', '16:00-17:40', '19:00-20:40']
+const timeSlots = ref([...defaultTimeSlots])
+
+const canViewTimetable = computed(() => {
+  if (isStudent.value) return !!searchForm.semester // Students just need semester, classId is implicit
+  if (isTeacher.value) return !!searchForm.semester // Teachers just need semester
+  return !!searchForm.semester && (!!searchForm.classId || !!searchForm.teacherId) // Admins need semester AND (class or teacher)
+})
 
 const loading = ref(false)
 const page = ref(1)
@@ -260,6 +323,8 @@ const form = reactive({
   teacherId: null,
   classId: null,
   semester: '',
+  scheduleDay: '',
+  scheduleTime: '',
   schedule: '',
   room: '',
   capacity: 50,
@@ -272,9 +337,36 @@ const rules = computed(() => ({
   teacherId: [{ required: true, message: t('courseArrangement.teacherIdRequired'), trigger: 'change' }],
   classId: [{ required: true, message: t('courseArrangement.classIdRequired'), trigger: 'change' }],
   semester: [{ required: true, message: t('courseArrangement.semesterRequired'), trigger: 'blur' }],
-  schedule: [{ required: true, message: t('courseArrangement.scheduleRequired'), trigger: 'blur' }],
+  scheduleDay: [{ required: true, message: t('courseArrangement.scheduleDayRequired'), trigger: 'change' }],
+  scheduleTime: [{ required: true, message: t('courseArrangement.scheduleTimeRequired'), trigger: 'change' }],
   capacity: [{ required: true, message: t('courseArrangement.capacityRequired'), trigger: 'change' }]
 }))
+
+const formTimeSlotOptions = computed(() => {
+  const slots = [...timeSlots.value]
+  if (form.scheduleTime && !slots.includes(form.scheduleTime)) {
+    slots.push(form.scheduleTime)
+  }
+  return slots
+})
+
+const scheduleTimeOrder = computed(() => {
+  const slots = []
+  tableData.value.forEach((item) => {
+    const scheduleTime = extractScheduleTime(item?.schedule)
+    if (scheduleTime && !slots.includes(scheduleTime)) {
+      slots.push(scheduleTime)
+    }
+  })
+  return slots.sort(compareTimeSlot)
+})
+
+const timetableTimeSlots = computed(() => {
+  if (timeSlots.value.length) {
+    return [...timeSlots.value]
+  }
+  return scheduleTimeOrder.value
+})
 
 function statusLabel(status) {
   return Number(status) === 1 ? t('courseArrangement.statusEnabled') : t('courseArrangement.statusDisabled')
@@ -334,7 +426,9 @@ function resetForm() {
     courseId: null,
     teacherId: null,
     classId: null,
-    semester: '',
+    semester: searchForm.semester,
+    scheduleDay: '',
+    scheduleTime: '',
     schedule: '',
     room: '',
     capacity: 50,
@@ -394,12 +488,92 @@ async function syncFormScopedOptions() {
   ])
 }
 
+function extractScheduleTime(schedule) {
+  if (!schedule) return ''
+  const parts = String(schedule).trim().split(/\s+/)
+  return parts.length >= 2 ? parts.slice(1).join(' ') : ''
+}
+
+function parseSlotStartMinutes(slot) {
+  const [start] = String(slot || '').split('-')
+  const [hour, minute] = String(start || '').split(':').map((value) => Number(value))
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return Number.MAX_SAFE_INTEGER
+  return hour * 60 + minute
+}
+
+function compareTimeSlot(left, right) {
+  return parseSlotStartMinutes(left) - parseSlotStartMinutes(right)
+}
+
+function resolveTimetableTimeIndex(scheduleTime) {
+  if (!scheduleTime) return -1
+
+  const directIndex = timetableTimeSlots.value.indexOf(scheduleTime)
+  if (directIndex >= 0) {
+    return directIndex
+  }
+
+  const orderedIndex = scheduleTimeOrder.value.indexOf(scheduleTime)
+  if (orderedIndex >= 0 && orderedIndex < timetableTimeSlots.value.length) {
+    return orderedIndex
+  }
+
+  return -1
+}
+
+async function loadCourseTimeSlotOptions() {
+  try {
+    const res = await getCourseTimeSlots()
+    const slots = Array.isArray(res.data?.timeSlots) ? res.data.timeSlots.filter(Boolean) : []
+    timeSlots.value = slots.length ? slots : [...defaultTimeSlots]
+  } catch {
+    timeSlots.value = [...defaultTimeSlots]
+  }
+}
+
+const timetableGrid = computed(() => {
+  const grid = Array(7).fill(null).map(() => Array(timetableTimeSlots.value.length).fill(null).map(() => []))
+  
+  if (!tableData.value || !tableData.value.length) return grid;
+  
+  tableData.value.forEach(item => {
+    if (!item.schedule) return;
+    const parts = String(item.schedule).split(' ');
+    if (parts.length >= 2) {
+      const day = parts[0];
+      const time = parts.slice(1).join(' ');
+      
+      const dayIndex = weekDays.indexOf(day);
+      const timeIndex = resolveTimetableTimeIndex(time);
+      
+      if (dayIndex >= 0 && timeIndex >= 0) {
+        grid[dayIndex][timeIndex].push(item);
+      }
+    }
+  });
+  
+  return grid;
+});
+
+const colorClasses = ['bg-blue', 'bg-green', 'bg-purple', 'bg-orange', 'bg-pink', 'bg-cyan'];
+function getColorClass(id) {
+  if (!id) return colorClasses[0];
+  const hash = Number(id) % colorClasses.length;
+  return colorClasses[Math.abs(hash)];
+}
+
 async function fetchList() {
+  if (viewMode.value === 'timetable' && !canViewTimetable.value) {
+    tableData.value = [];
+    total.value = 0;
+    return;
+  }
+
   loading.value = true
   try {
     const res = await getCourseArrangementList({
-      page: page.value,
-      size: size.value,
+      page: viewMode.value === 'list' ? page.value : 1, // Timetable needs all data
+      size: viewMode.value === 'list' ? size.value : 500,
       collegeId: searchForm.collegeId || undefined,
       courseId: searchForm.courseId || undefined,
       teacherId: searchForm.teacherId || undefined,
@@ -411,6 +585,16 @@ async function fetchList() {
   } finally {
     loading.value = false
   }
+}
+
+function handleViewModeChange() {
+  if (viewMode.value === 'timetable') {
+    if (!searchForm.semester) {
+      // Default to current semester if not set
+      searchForm.semester = '2024-2025-1';
+    }
+  }
+  fetchList();
 }
 
 function handleSearch() {
@@ -450,6 +634,17 @@ async function openCreate() {
 async function openEdit(row) {
   isEdit.value = true
   resetForm()
+  
+  let scheduleDay = '';
+  let scheduleTime = '';
+  if (row.schedule) {
+    const parts = String(row.schedule).split(' ');
+    if (parts.length >= 2) {
+      scheduleDay = parts[0];
+      scheduleTime = parts.slice(1).join(' ');
+    }
+  }
+  
   Object.assign(form, {
     id: row.id,
     collegeId: row.collegeId || getDefaultCollegeId(),
@@ -457,6 +652,8 @@ async function openEdit(row) {
     teacherId: row.teacherId,
     classId: row.classId,
     semester: row.semester || '',
+    scheduleDay: scheduleDay,
+    scheduleTime: scheduleTime,
     schedule: row.schedule || '',
     room: row.room || '',
     capacity: row.capacity || 50,
@@ -469,6 +666,8 @@ async function openEdit(row) {
 async function submit() {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
+  
+  form.schedule = `${form.scheduleDay} ${form.scheduleTime}`
 
   const payload = {
     collegeId: form.collegeId,
@@ -503,12 +702,14 @@ async function handleDelete(row) {
 
 async function initializePage() {
   await ensureUserScopeInfo()
-  await loadCollegeOptions()
-  await loadCourseOptions()
+  await Promise.all([loadCollegeOptions(), loadCourseOptions(), loadCourseTimeSlotOptions()])
 
   const defaultCollegeId = getDefaultCollegeId()
   if (defaultCollegeId) {
     searchForm.collegeId = defaultCollegeId
+  }
+  if (!searchForm.semester) {
+    searchForm.semester = '2024-2025-1' // 默认学期
   }
 
   await syncSearchScopedOptions()
@@ -518,4 +719,95 @@ async function initializePage() {
 }
 
 onMounted(initializePage)
+onActivated(loadCourseTimeSlotOptions)
 </script>
+
+<style scoped>
+.timetable-container {
+  padding: 10px 0;
+  overflow-x: auto;
+}
+
+.timetable-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(7, minmax(140px, 1fr));
+  gap: 1px;
+  background-color: var(--el-border-color-lighter);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.time-header-cell, .day-header-cell {
+  background-color: var(--el-fill-color-light);
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--el-text-color-regular);
+  font-size: 14px;
+}
+
+.time-slot-cell {
+  background-color: var(--el-fill-color-extra-light);
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timetable-cell {
+  background-color: var(--el-bg-color);
+  padding: 6px;
+  min-height: 100px;
+}
+
+.course-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+}
+
+.course-card {
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.2;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+
+.course-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.course-title {
+  font-weight: bold;
+  font-size: 13px;
+  margin-bottom: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.course-info {
+  opacity: 0.9;
+}
+
+/* Course Colors */
+.bg-blue { background: linear-gradient(135deg, #409EFF, #53a8ff); }
+.bg-green { background: linear-gradient(135deg, #67C23A, #85ce61); }
+.bg-purple { background: linear-gradient(135deg, #9b59b6, #a569bd); }
+.bg-orange { background: linear-gradient(135deg, #E6A23C, #ebb563); }
+.bg-pink { background: linear-gradient(135deg, #ff4d4f, #ff7875); }
+.bg-cyan { background: linear-gradient(135deg, #13c2c2, #36cfc9); }
+</style>

@@ -15,3 +15,17 @@ export function updateCurrentSemester(currentSemester) {
   })
 }
 
+export function getCourseTimeSlots() {
+  return request({
+    url: '/system/config/course-time-slots',
+    method: 'get'
+  })
+}
+
+export function updateCourseTimeSlots(timeSlots) {
+  return request({
+    url: '/system/config/course-time-slots',
+    method: 'put',
+    data: { timeSlots }
+  })
+}

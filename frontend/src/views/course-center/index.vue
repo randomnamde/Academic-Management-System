@@ -61,16 +61,22 @@
 <script setup>
 import { computed, onActivated, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { ArrowRight, BookOpenText, CalendarRange } from 'lucide-vue-next'
 import AppCard from '@/components/ui/AppCard.vue'
 import { getCourseList } from '@/api/course'
 import { getCourseArrangementList } from '@/api/courseArrangement'
+import { canRoute } from '@/permission/ability'
 
 const router = useRouter()
+const store = useStore()
 const { t } = useI18n()
 const courseTotal = ref(null)
 const arrangementTotal = ref(null)
+const userInfo = computed(() => store.state.userInfo || {})
+const userRole = computed(() => userInfo.value?.primaryRole || userInfo.value?.role || '')
+const userPermissions = computed(() => userInfo.value?.permissions || [])
 
 const stats = computed(() => [
   {
@@ -85,26 +91,30 @@ const stats = computed(() => [
   }
 ])
 
-const cards = computed(() => [
-  {
-    path: '/course',
-    variant: 'course',
-    icon: BookOpenText,
-    kicker: t('courseCenter.courseKicker'),
-    title: t('courseCenter.courseTitle'),
-    desc: t('courseCenter.courseDesc'),
-    tags: [t('courseCenter.courseTagCatalog'), t('courseCenter.courseTagCredit')]
-  },
-  {
-    path: '/course-arrangement',
-    variant: 'arrangement',
-    icon: CalendarRange,
-    kicker: t('courseCenter.arrangementKicker'),
-    title: t('courseCenter.arrangementTitle'),
-    desc: t('courseCenter.arrangementDesc'),
-    tags: [t('courseCenter.arrangementTagScope'), t('courseCenter.arrangementTagSchedule')]
-  }
-])
+const cards = computed(() =>
+  [
+    {
+      path: '/course',
+      routeName: 'Course',
+      variant: 'course',
+      icon: BookOpenText,
+      kicker: t('courseCenter.courseKicker'),
+      title: t('courseCenter.courseTitle'),
+      desc: t('courseCenter.courseDesc'),
+      tags: [t('courseCenter.courseTagCatalog'), t('courseCenter.courseTagCredit')]
+    },
+    {
+      path: '/course-arrangement',
+      routeName: 'CourseArrangement',
+      variant: 'arrangement',
+      icon: CalendarRange,
+      kicker: t('courseCenter.arrangementKicker'),
+      title: t('courseCenter.arrangementTitle'),
+      desc: t('courseCenter.arrangementDesc'),
+      tags: [t('courseCenter.arrangementTagScope'), t('courseCenter.arrangementTagSchedule')]
+    }
+  ].filter((card) => canRoute(userRole.value, card.routeName, userPermissions.value))
+)
 
 async function loadStats() {
   try {

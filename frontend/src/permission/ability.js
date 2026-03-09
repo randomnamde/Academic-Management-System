@@ -74,6 +74,8 @@ const ROLE_ROUTE_MAP = {
   STUDENT: new Set([
     'Dashboard',
     'Analytics',
+    'CourseCenter',
+    'CourseArrangement',
     'Score',
     'Attendance',
     'LeaveRequest',

@@ -67,7 +67,7 @@ const routes = [
         meta: {
           titleKey: 'route.courseCenter',
           icon: 'Reading',
-          roles: MANAGE_ROLES,
+          roles: ALL_ROLES,
           menuGroup: 'teaching'
         }
       },

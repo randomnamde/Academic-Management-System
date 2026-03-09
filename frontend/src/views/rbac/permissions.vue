@@ -44,6 +44,8 @@ const matrixRows = [
   { routeKey: 'route.dashboard', routeCode: 'Dashboard', admin: true, teacher: true, student: true },
   { routeKey: 'route.student', routeCode: 'Student', admin: true, teacher: true, student: false },
   { routeKey: 'route.class', routeCode: 'Class', admin: true, teacher: true, student: false },
+  { routeKey: 'route.courseCenter', routeCode: 'CourseCenter', admin: true, teacher: true, student: true },
+  { routeKey: 'route.courseArrangement', routeCode: 'CourseArrangement', admin: true, teacher: true, student: true },
   { routeKey: 'route.score', routeCode: 'Score', admin: true, teacher: true, student: true },
   { routeKey: 'route.analytics', routeCode: 'Analytics', admin: true, teacher: true, student: true },
   { routeKey: 'route.rbacUsers', routeCode: 'RBACUsers', admin: true, teacher: false, student: false },

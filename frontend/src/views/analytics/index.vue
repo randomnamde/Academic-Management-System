@@ -17,18 +17,21 @@
         </div>
       </div>
 
-      <div class="analytics-stats">
-        <div
+      <div class="analytics-stats" :style="statsTrackStyle">
+        <article
           v-for="stat in statCards"
           :key="stat.label"
           class="analytics-stat"
+          :class="[
+            `analytics-stat-${stat.tone}`,
+            stat.featured ? 'is-featured' : '',
+            stat.compact ? 'is-compact' : ''
+          ]"
         >
-          <p class="analytics-stat-label">{{ stat.label }}</p>
-          <div class="analytics-stat-row">
-            <div>
-              <p class="analytics-stat-value">{{ stat.value }}</p>
-              <p class="analytics-stat-note">{{ stat.note }}</p>
-            </div>
+          <div class="analytics-stat-head">
+            <span class="analytics-stat-badge">
+              <component :is="stat.icon" class="h-4 w-4" />
+            </span>
             <span
               v-if="stat.delta"
               class="analytics-stat-trend"
@@ -37,18 +40,27 @@
               {{ stat.delta }}
             </span>
           </div>
-        </div>
+          <div class="analytics-stat-main">
+            <p class="analytics-stat-label">{{ stat.label }}</p>
+            <p class="analytics-stat-value">{{ stat.value }}</p>
+          </div>
+          <p class="analytics-stat-note">{{ stat.note }}</p>
+        </article>
       </div>
 
       <section class="analytics-section">
-        <div class="analytics-section-head">
-          <div>
-            <p class="analytics-section-title">{{ t('analytics.filterTitle') }}</p>
-            <p class="analytics-section-desc">{{ t('analytics.filterDesc') }}</p>
-          </div>
-        </div>
-
         <div class="analytics-filter-panel">
+          <div class="analytics-workspace-head">
+            <div>
+              <p class="analytics-workspace-kicker">{{ t('analytics.filterTitle') }}</p>
+              <h3 class="analytics-workspace-title">{{ t('analytics.filterDesc') }}</h3>
+            </div>
+            <div class="analytics-workspace-meta">
+              <span class="analytics-workspace-chip">{{ currentRangeLabel }}</span>
+              <span class="analytics-workspace-chip">{{ currentGranularityLabel }}</span>
+            </div>
+          </div>
+
           <el-form class="analytics-filter-form" label-position="top">
             <el-form-item :label="t('analytics.dateRange')">
               <el-date-picker
@@ -134,10 +146,22 @@
 
         <div class="analytics-chart-grid">
           <AppCard class="analytics-panel" :title="t('analytics.abnormalTrend')" surface="glass" content-class="p-4">
+            <template #header>
+              <span class="analytics-workspace-chip">{{ currentGranularityLabel }}</span>
+            </template>
+            <div class="analytics-panel-copy">
+              <p class="analytics-panel-note">{{ t('analytics.attendanceRateNote') }}</p>
+            </div>
             <div ref="attendanceTrendRef" class="chart-canvas"></div>
           </AppCard>
 
           <AppCard class="analytics-panel" :title="t('analytics.scoreTrend')" surface="glass" content-class="p-4">
+            <template #header>
+              <span class="analytics-workspace-chip">{{ currentRangeLabel }}</span>
+            </template>
+            <div class="analytics-panel-copy">
+              <p class="analytics-panel-note">{{ t('analytics.chartSectionDesc') }}</p>
+            </div>
             <div ref="scoreTrendRef" class="chart-canvas"></div>
           </AppCard>
         </div>
@@ -153,12 +177,34 @@
 
         <AppCard class="analytics-panel analytics-risk-card" :title="t('analytics.riskList')" surface="base" content-class="p-4">
           <template #header>
-            <div class="analytics-risk-switcher">
-              <el-radio-group v-model="riskType" size="small" @change="handleRiskTypeChange">
-                <el-radio-button label="low_score">{{ t('analytics.riskLowScore') }}</el-radio-button>
-                <el-radio-button label="abnormal_attendance">{{ t('analytics.riskAbnormalAttendance') }}</el-radio-button>
-                <el-radio-button label="approval_overdue">{{ t('analytics.riskApprovalOverdue') }}</el-radio-button>
-              </el-radio-group>
+            <div class="analytics-risk-switcher" role="tablist" :aria-label="t('analytics.riskList')">
+              <button
+                type="button"
+                class="analytics-risk-switcher-button"
+                :class="{ 'is-active': riskType === 'low_score' }"
+                :aria-selected="riskType === 'low_score'"
+                @click="handleRiskTypeChange('low_score')"
+              >
+                {{ t('analytics.riskLowScore') }}
+              </button>
+              <button
+                type="button"
+                class="analytics-risk-switcher-button"
+                :class="{ 'is-active': riskType === 'abnormal_attendance' }"
+                :aria-selected="riskType === 'abnormal_attendance'"
+                @click="handleRiskTypeChange('abnormal_attendance')"
+              >
+                {{ t('analytics.riskAbnormalAttendance') }}
+              </button>
+              <button
+                type="button"
+                class="analytics-risk-switcher-button"
+                :class="{ 'is-active': riskType === 'approval_overdue' }"
+                :aria-selected="riskType === 'approval_overdue'"
+                @click="handleRiskTypeChange('approval_overdue')"
+              >
+                {{ t('analytics.riskApprovalOverdue') }}
+              </button>
             </div>
           </template>
 
@@ -238,6 +284,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { AlarmClockCheck, BadgeAlert, CalendarClock, UsersRound, Waypoints } from 'lucide-vue-next'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import store from '@/store'
@@ -317,12 +364,31 @@ let scoreTrendChart = null
 let themeObserver = null
 
 const currentRoleLabel = computed(() => t(roleLabelMap[userRole] || 'common.user'))
+const currentGranularityLabel = computed(() => {
+  const map = {
+    day: t('analytics.day'),
+    week: t('analytics.week'),
+    month: t('analytics.month')
+  }
+  return `${t('analytics.granularity')} · ${map[filters.granularity] || t('analytics.day')}`
+})
+const currentRangeLabel = computed(() => {
+  const [start, end] = dateRange.value || []
+  if (!start || !end) return t('analytics.dateRange')
+  return `${start} - ${end}`
+})
+const statsTrackStyle = computed(() => ({
+  '--analytics-stat-columns': String(Math.max(statCards.value.length, 1))
+}))
 
 const statCards = computed(() => {
   const items = []
 
   if (!isStudent) {
     items.push({
+      icon: UsersRound,
+      tone: 'slate',
+      compact: true,
       label: t('analytics.studentScale'),
       value: formatNumber(overview.studentCount),
       note: t('analytics.studentScaleNote')
@@ -331,11 +397,16 @@ const statCards = computed(() => {
 
   items.push(
     {
+      icon: CalendarClock,
+      tone: 'amber',
+      featured: isStudent,
       label: pendingKpiLabel,
       value: formatNumber(overview.pendingApprovalCount),
       note: t('analytics.pendingApprovalNote')
     },
     {
+      icon: Waypoints,
+      tone: 'emerald',
       label: t('analytics.attendanceRate'),
       value: formatPercent(overview.attendanceRate),
       note: t('analytics.attendanceRateNote'),
@@ -343,6 +414,8 @@ const statCards = computed(() => {
       deltaValue: overview.attendanceRateChange
     },
     {
+      icon: AlarmClockCheck,
+      tone: 'sky',
       label: t('analytics.avgApprovalHours'),
       value: formatNumber(overview.approvalAvgHours),
       note: t('analytics.avgApprovalHoursNote'),
@@ -350,6 +423,8 @@ const statCards = computed(() => {
       deltaValue: -overview.approvalAvgHoursChange
     },
     {
+      icon: BadgeAlert,
+      tone: 'rose',
       label: lowScoreKpiLabel,
       value: formatNumber(overview.lowScoreRiskCount),
       note: t('analytics.lowScoreRiskNote'),
@@ -938,48 +1013,104 @@ onBeforeUnmount(() => {
 .analytics-stats {
   display: grid;
   gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .analytics-stat {
+  --stat-accent: var(--accent-600);
+  --stat-accent-soft: color-mix(in srgb, var(--stat-accent) 14%, transparent);
+  --stat-accent-border: color-mix(in srgb, var(--stat-accent) 26%, var(--panel-border));
+  position: relative;
   display: grid;
-  gap: 10px;
-  padding: 16px 18px;
-  border-radius: 18px;
+  gap: 14px;
+  min-height: 168px;
+  padding: 18px 18px 16px;
+  overflow: hidden;
+  border-radius: 22px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 92%, transparent), color-mix(in srgb, var(--surface-elevated) 76%, transparent));
+    radial-gradient(circle at top right, var(--stat-accent-soft), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 96%, transparent), color-mix(in srgb, var(--surface-elevated) 82%, transparent));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-white) 18%, transparent);
+}
+
+.analytics-stat::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--stat-accent) 82%, white 8%), color-mix(in srgb, var(--stat-accent) 34%, transparent));
+  opacity: 0.92;
+}
+
+.analytics-stat.is-featured {
+  border-color: var(--stat-accent-border);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-white) 18%, transparent),
+    0 14px 34px color-mix(in srgb, var(--stat-accent) 14%, transparent);
+}
+
+.analytics-stat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.analytics-stat-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  color: color-mix(in srgb, var(--stat-accent) 82%, white 10%);
+  background: color-mix(in srgb, var(--stat-accent) 14%, var(--surface-elevated));
+  border: 1px solid color-mix(in srgb, var(--stat-accent) 24%, transparent);
+}
+
+.analytics-stat-main {
+  display: grid;
+  gap: 10px;
 }
 
 .analytics-stat-label {
   margin: 0;
   font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--text-secondary);
-}
-
-.analytics-stat-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
 }
 
 .analytics-stat-value {
   margin: 0;
-  font-size: 30px;
-  line-height: 1;
+  font-size: clamp(28px, 3.2vw, 38px);
+  line-height: 0.96;
   font-weight: 700;
   color: var(--text-primary);
 }
 
 .analytics-stat-note {
-  margin: 8px 0 0;
+  margin: auto 0 0;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 74%, transparent);
   font-size: 12px;
-  color: color-mix(in srgb, var(--text-primary) 66%, var(--text-secondary));
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--text-primary) 68%, var(--text-secondary));
 }
 
 .analytics-stat-trend {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 10%, transparent);
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .analytics-stat-trend.positive {
@@ -992,6 +1123,26 @@ onBeforeUnmount(() => {
 
 .analytics-stat-trend.neutral {
   color: var(--text-secondary);
+}
+
+.analytics-stat-slate {
+  --stat-accent: #64748b;
+}
+
+.analytics-stat-amber {
+  --stat-accent: #d97706;
+}
+
+.analytics-stat-emerald {
+  --stat-accent: #059669;
+}
+
+.analytics-stat-sky {
+  --stat-accent: #0284c7;
+}
+
+.analytics-stat-rose {
+  --stat-accent: #e11d48;
 }
 
 .analytics-section {
@@ -1034,6 +1185,53 @@ onBeforeUnmount(() => {
   padding: 18px;
 }
 
+.analytics-workspace-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid color-mix(in srgb, var(--panel-border) 72%, transparent);
+}
+
+.analytics-workspace-kicker {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.analytics-workspace-title {
+  margin: 6px 0 0;
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--text-primary) 90%, var(--text-secondary));
+}
+
+.analytics-workspace-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.analytics-workspace-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 76%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--text-primary) 76%, var(--text-secondary));
+}
+
 .analytics-filter-form {
   display: grid;
   gap: 10px 14px;
@@ -1050,6 +1248,29 @@ onBeforeUnmount(() => {
   gap: 14px;
 }
 
+.analytics-panel :deep(.app-panel-header) {
+  align-items: flex-start;
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--panel-border) 72%, transparent);
+}
+
+.analytics-panel :deep(.app-panel-title) {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.analytics-panel-copy {
+  margin-bottom: 14px;
+}
+
+.analytics-panel-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--text-primary) 68%, var(--text-secondary));
+}
+
 .analytics-risk-card :deep(.app-card__header-actions) {
   flex-wrap: wrap;
 }
@@ -1064,17 +1285,61 @@ onBeforeUnmount(() => {
 }
 
 .analytics-risk-switcher {
-  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
   max-width: 100%;
+  padding: 6px;
+  border-radius: 999px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 2px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 76%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 76%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-white) 20%, transparent);
+  white-space: nowrap;
 }
 
-.analytics-risk-switcher :deep(.el-radio-group) {
+.analytics-risk-switcher-button {
   display: inline-flex;
-  flex-wrap: nowrap;
-  white-space: nowrap;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 38px;
+  min-width: 96px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: color-mix(in srgb, var(--text-primary) 78%, var(--text-secondary));
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.analytics-risk-switcher-button:hover {
+  background: color-mix(in srgb, var(--surface-base) 88%, var(--accent-500) 12%);
+  color: var(--text-primary);
+}
+
+.analytics-risk-switcher-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent-500) 22%, transparent);
+}
+
+.analytics-risk-switcher-button.is-active {
+  background: color-mix(in srgb, var(--accent-500) 16%, var(--surface-elevated));
+  color: var(--text-primary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-500) 16%, transparent);
+  transform: translateY(-1px);
 }
 
 .analytics-risk-table-wrap {
@@ -1108,10 +1373,6 @@ onBeforeUnmount(() => {
 }
 
 @media (min-width: 768px) {
-  .analytics-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .analytics-filter-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1119,7 +1380,7 @@ onBeforeUnmount(() => {
 
 @media (min-width: 1280px) {
   .analytics-stats {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--analytics-stat-columns), minmax(0, 1fr));
   }
 
   .analytics-chart-grid {

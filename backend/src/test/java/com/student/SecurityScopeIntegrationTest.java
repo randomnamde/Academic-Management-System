@@ -519,6 +519,84 @@ class SecurityScopeIntegrationTest {
     }
 
     @Test
+    void studentCourseArrangementListDefaultsToOwnClassCurrentSemester() throws Exception {
+        String originalSemester = jdbcTemplate.queryForObject(
+                "SELECT semester_code FROM semester WHERE status = 'ACTIVE' LIMIT 1",
+                String.class
+        );
+        String suffix = String.valueOf(System.nanoTime());
+        String currentSemester = "STU-" + suffix.substring(Math.max(0, suffix.length() - 6));
+        String otherSemester = currentSemester + "-ALT";
+        jdbcTemplate.update(
+                "UPDATE semester SET semester_code = ? WHERE status = 'ACTIVE'",
+                currentSemester
+        );
+
+        try {
+            Long studentClassId = jdbcTemplate.queryForObject(
+                    "SELECT class_id FROM student WHERE id = 1",
+                    Long.class
+            );
+            Long studentCollegeId = jdbcTemplate.queryForObject(
+                    "SELECT college_id FROM class WHERE id = ?",
+                    Long.class,
+                    studentClassId
+            );
+            jdbcTemplate.update(
+                    """
+                    INSERT INTO class (class_name, class_code, grade, major, college_id, teacher_id, room, student_count, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    "Scope Class " + suffix,
+                    "SC" + suffix.substring(Math.max(0, suffix.length() - 6)),
+                    2026,
+                    "Computer Science",
+                    studentCollegeId,
+                    1L,
+                    "S101",
+                    0,
+                    1
+            );
+            Long otherClassId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM class", Long.class);
+
+            String adminToken = loginAndGetToken("admin", "123456");
+            createArrangementForClassAndSemester(adminToken, studentClassId, currentSemester, "Mon 08:00-" + suffix);
+            createArrangementForClassAndSemester(adminToken, studentClassId, otherSemester, "Tue 10:00-" + suffix);
+            createArrangementForClassAndSemester(adminToken, otherClassId, currentSemester, "Wed 14:00-" + suffix);
+
+            String studentToken = loginAndGetToken("student001", "123456");
+            MvcResult result = mockMvc.perform(get("/course-arrangement")
+                            .param("page", "1")
+                            .param("size", "100")
+                            .header("Authorization", "Bearer " + studentToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andReturn();
+
+            JsonNode records = objectMapper.readTree(result.getResponse().getContentAsString())
+                    .path("data")
+                    .path("records");
+            assertFalse(records.isEmpty());
+
+            boolean foundCurrentSemesterOwnClass = false;
+            for (JsonNode node : records) {
+                assertEquals(studentClassId, node.path("classId").asLong());
+                assertEquals(currentSemester, node.path("semester").asText());
+                assertEquals(1, node.path("status").asInt());
+                if (("Mon 08:00-" + suffix).equals(node.path("schedule").asText())) {
+                    foundCurrentSemesterOwnClass = true;
+                }
+            }
+            assertTrue(foundCurrentSemesterOwnClass);
+        } finally {
+            jdbcTemplate.update(
+                    "UPDATE semester SET semester_code = ? WHERE status = 'ACTIVE'",
+                    originalSemester
+            );
+        }
+    }
+
+    @Test
     void studentCannotAccessClassOutsideOwnScope() throws Exception {
         String token = loginAndGetToken("student001", "123456");
         Set<Long> classIds = resolveStudentScopeIds(token, "classId");
@@ -1595,6 +1673,29 @@ class SecurityScopeIntegrationTest {
                 .path("records");
         assertFalse(records.isEmpty());
         return records.get(0).path("id").asLong();
+    }
+
+    private void createArrangementForClassAndSemester(String token, Long classId, String semester, String schedule) throws Exception {
+        String body = """
+                {
+                  "collegeId": 1,
+                  "courseId": 1,
+                  "teacherId": 1,
+                  "classId": %d,
+                  "semester": "%s",
+                  "schedule": "%s",
+                  "room": "A401",
+                  "capacity": 50,
+                  "status": 1
+                }
+                """.formatted(classId, semester, schedule);
+
+        mockMvc.perform(post("/course-arrangement")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + token)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
     }
 
     private Long createScore(String token, Long arrangementId) throws Exception {

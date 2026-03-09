@@ -7,6 +7,7 @@ import com.student.entity.Student;
 import com.student.security.CurrentUserService;
 import com.student.security.DataScopeService;
 import com.student.service.CourseArrangementService;
+import com.student.service.SysConfigService;
 import com.student.vo.ResultVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +25,7 @@ public class CourseArrangementController {
     private final CourseArrangementService courseArrangementService;
     private final CurrentUserService currentUserService;
     private final DataScopeService dataScopeService;
+    private final SysConfigService sysConfigService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
@@ -126,7 +128,13 @@ public class CourseArrangementController {
             teacherId = currentUserService.getCurrentTeacherId(authentication);
         } else if (currentUserService.isStudent(authentication)) {
             Student student = currentUserService.getCurrentStudent(authentication);
+            if (student.getClassId() == null) {
+                return ResultVO.success(new Page<>(page, size));
+            }
             classId = student.getClassId();
+            if (semester == null || semester.isBlank()) {
+                semester = sysConfigService.getCurrentSemester();
+            }
             status = 1;
         }
         Page<CourseArrangement> result = courseArrangementService.getArrangementPage(page, size, effectiveCollegeId, courseId, teacherId, classId, semester, status);

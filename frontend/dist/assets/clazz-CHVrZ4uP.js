@@ -1,0 +1,1 @@
+import{s as t}from"./index-BJBi9PmC.js";function a(s){return t({url:"/class",method:"get",params:s})}function u(s){return t({url:"/class",method:"post",data:s})}function l(s,e){return t({url:`/class/${s}`,method:"put",data:e})}function n(s){return t({url:`/class/${s}`,method:"delete"})}export{u as c,n as d,a as g,l as u};

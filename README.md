@@ -4,9 +4,11 @@
 
 ## 技术栈
 
-- 后端：Java 21、Spring Boot 3.2.x、Spring Security、MyBatis-Plus、JWT
-- 数据库：MySQL 8（默认）/ H2（开发与演示）
-- 前端：Vue 3、Vue Router、Vuex、Element Plus、ECharts、Axios
+- **后端**：Java 21、Spring Boot 3.2.12、Spring Security、MyBatis-Plus 3.5.7、JWT 0.11.5
+- **数据库**：MySQL 8（默认）/ H2（开发与演示）
+- **前端**：Vue 3.3、Vue Router 4、Vuex 4、Element Plus 2.3、ECharts 5、Vite 5、Tailwind CSS 3.4
+- **测试**：Playwright（E2E 测试）
+- **工具**：Lombok、Apache POI（Excel 导出）
 
 ## 主要功能
 
@@ -58,8 +60,10 @@ mvn spring-boot:run "-Dspring-boot.run.profiles=h2"
 ```powershell
 cd frontend
 npm install
-npm run serve
+npm run dev      # 或 npm run serve
 ```
+
+启动后访问：`http://localhost:3000`
 
 ### 方式三：命令行启动（MySQL）
 
@@ -77,8 +81,10 @@ mvn spring-boot:run
 ```powershell
 cd frontend
 npm install
-npm run serve
+npm run dev
 ```
+
+启动后访问：`http://localhost:3000`
 
 ## 默认端口与地址
 
@@ -139,14 +145,48 @@ npm run serve
 
 ## 常用命令
 
+### 后端
+
 ```powershell
-# 后端编译
+# 编译
 cd backend
 mvn -q -DskipTests compile
 
-# 前端构建
+# 运行测试
+cd backend
+mvn test
+
+# 打包
+cd backend
+mvn -DskipTests package
+```
+
+### 前端
+
+```powershell
+# 安装依赖
+cd frontend
+npm install
+
+# 开发模式启动
+cd frontend
+npm run dev
+
+# 构建生产环境
 cd frontend
 npm run build
+
+# 预览生产构建
+cd frontend
+npm run preview
+
+# E2E 测试
+cd frontend
+npm run test:e2e
+
+# 代码检查
+cd frontend
+npm run lint
 ```
 
 ## 说明

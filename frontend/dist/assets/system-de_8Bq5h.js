@@ -1,0 +1,1 @@
+import{s as e}from"./index-BG9qvlBy.js";function r(){return e({url:"/system/config/current-semester",method:"get"})}function o(){return e({url:"/system/config/course-time-slots",method:"get"})}function u(t){return e({url:"/system/config/course-time-slots",method:"put",data:{timeSlots:t}})}export{r as a,o as g,u};

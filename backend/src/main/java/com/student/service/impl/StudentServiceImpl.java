@@ -176,9 +176,16 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
-    public Page<Student> getStudentPage(Integer page, Integer size, String studentNo, String name, Long classId, Student.Status status) {
+    public Page<Student> getStudentPage(Integer page,
+                                        Integer size,
+                                        String studentNo,
+                                        String name,
+                                        Long classId,
+                                        Long collegeId,
+                                        Student.Status status,
+                                        List<Long> classIds) {
         Page<Student> pageParam = new Page<>(page, size);
-        return studentMapper.selectPageWithClass(pageParam, studentNo, name, classId, status);
+        return studentMapper.selectPageWithClass(pageParam, studentNo, name, classId, collegeId, status, classIds);
     }
 
     @Override

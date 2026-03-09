@@ -34,6 +34,12 @@ public class Student {
     
     @TableField(exist = false)
     private String className;
+
+    @TableField(exist = false)
+    private Long collegeId;
+
+    @TableField(exist = false)
+    private String collegeName;
     
     private LocalDate enrollmentDate;
     

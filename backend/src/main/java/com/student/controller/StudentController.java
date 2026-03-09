@@ -1,6 +1,5 @@
 package com.student.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.dto.StudentDTO;
 import com.student.entity.Class;
@@ -18,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +91,7 @@ public class StudentController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String studentNo,
             @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long collegeId,
             @RequestParam(required = false) Long classId,
             @RequestParam(required = false) Student.Status status,
             Authentication authentication) {
@@ -109,6 +110,7 @@ public class StudentController {
         }
 
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
         if (scopedCollegeId != null) {
             Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
             if (classIds.isEmpty()) {
@@ -117,19 +119,20 @@ public class StudentController {
                 emptyPage.setTotal(0);
                 return ResultVO.success(emptyPage);
             }
-            LambdaQueryWrapper<Student> query = new LambdaQueryWrapper<Student>()
-                    .in(Student::getClassId, classIds)
-                    .like(studentNo != null && !studentNo.isBlank(), Student::getStudentNo, studentNo)
-                    .like(name != null && !name.isBlank(), Student::getName, name)
-                    .eq(classId != null, Student::getClassId, classId)
-                    .eq(status != null, Student::getStatus, status)
-                    .orderByDesc(Student::getCreateTime);
-            Page<Student> pageParam = new Page<>(page, size);
-            Page<Student> result = studentService.page(pageParam, query);
+            Page<Student> result = studentService.getStudentPage(
+                    page,
+                    size,
+                    studentNo,
+                    name,
+                    classId,
+                    effectiveCollegeId,
+                    status,
+                    new ArrayList<>(classIds)
+            );
             return ResultVO.success(result);
         }
 
-        Page<Student> result = studentService.getStudentPage(page, size, studentNo, name, classId, status);
+        Page<Student> result = studentService.getStudentPage(page, size, studentNo, name, classId, effectiveCollegeId, status, null);
         return ResultVO.success(result);
     }
 

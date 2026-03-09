@@ -21,7 +21,14 @@ public interface StudentService extends IService<Student> {
     
     Student getStudentById(Long id);
     
-    Page<Student> getStudentPage(Integer page, Integer size, String studentNo, String name, Long classId, Student.Status status);
+    Page<Student> getStudentPage(Integer page,
+                                 Integer size,
+                                 String studentNo,
+                                 String name,
+                                 Long classId,
+                                 Long collegeId,
+                                 Student.Status status,
+                                 List<Long> classIds);
     
     List<Student> getStudentsByClassId(Long classId);
     

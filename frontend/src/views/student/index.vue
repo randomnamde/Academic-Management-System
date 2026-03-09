@@ -8,8 +8,11 @@
       <div class="grid grid-cols-12 gap-2">
         <el-input v-model="searchForm.studentNo" clearable :placeholder="t('student.studentNo')" class="col-span-12 md:col-span-2" />
         <el-input v-model="searchForm.name" clearable :placeholder="t('student.name')" class="col-span-12 md:col-span-2" />
+        <el-select v-model="searchForm.collegeId" clearable :placeholder="t('student.college')" class="col-span-12 md:col-span-2">
+          <el-option v-for="item in collegeList" :key="item.id" :label="item.collegeName" :value="item.id" />
+        </el-select>
         <el-select v-model="searchForm.classId" clearable :placeholder="t('student.class')" class="col-span-12 md:col-span-2">
-          <el-option v-for="item in classList" :key="item.id" :label="item.className" :value="item.id" />
+          <el-option v-for="item in searchClassList" :key="item.id" :label="item.className" :value="item.id" />
         </el-select>
         <el-select v-model="searchForm.status" clearable :placeholder="t('student.status')" class="col-span-12 md:col-span-2">
           <el-option :label="t('student.statusEnrolled')" value="ENROLLED" />
@@ -17,7 +20,7 @@
           <el-option :label="t('student.statusGraduated')" value="GRADUATED" />
           <el-option :label="t('student.statusDropped')" value="DROPPED" />
         </el-select>
-        <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-4">
+        <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-2">
           <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
           <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
         </div>
@@ -27,7 +30,8 @@
     <template #table>
       <AppTable :columns="columns" :rows="studentList" :loading="loading" :density="tableDensity">
         <template #cell-gender="{ row }">{{ row.gender === 'MALE' ? t('student.genderMale') : t('student.genderFemale') }}</template>
-        <template #cell-className="{ row }">{{ row.className || getClassNameById(row.classId) || '-' }}</template>
+        <template #cell-collegeName="{ row }">{{ row.collegeName || getCollegeNameById(row.collegeId) || '-' }}</template>
+        <template #cell-className="{ row }">{{ row.className || getClassNameById(row.classId, row.collegeId) || '-' }}</template>
         <template #cell-status="{ row }">
           <AppBadge :type="statusBadgeType(row.status)">{{ getStatusText(row.status) }}</AppBadge>
         </template>
@@ -78,9 +82,9 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item :label="t('student.class')" prop="classId">
-              <el-select v-model="form.classId" :placeholder="t('student.selectClass')" style="width: 100%">
-                <el-option v-for="item in classList" :key="item.id" :label="item.className" :value="item.id" />
+            <el-form-item :label="t('student.college')" prop="collegeId">
+              <el-select v-model="form.collegeId" :placeholder="t('student.selectCollege')" style="width: 100%">
+                <el-option v-for="item in collegeList" :key="item.id" :label="item.collegeName" :value="item.id" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -88,23 +92,33 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item :label="t('student.phone')" prop="phone">
-              <el-input v-model="form.phone" />
+            <el-form-item :label="t('student.class')" prop="classId">
+              <el-select v-model="form.classId" :placeholder="t('student.selectClass')" style="width: 100%" :disabled="!form.collegeId && isSchoolAdmin">
+                <el-option v-for="item in formClassList" :key="item.id" :label="item.className" :value="item.id" />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item :label="t('student.email')" prop="email">
-              <el-input v-model="form.email" />
+            <el-form-item :label="t('student.phone')" prop="phone">
+              <el-input v-model="form.phone" />
             </el-form-item>
           </el-col>
         </el-row>
 
         <el-row :gutter="16">
           <el-col :span="12">
+            <el-form-item :label="t('student.email')" prop="email">
+              <el-input v-model="form.email" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
             <el-form-item :label="t('student.idCard')" prop="idCard">
               <el-input v-model="form.idCard" />
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('student.enrollmentDate')" prop="enrollmentDate">
               <el-date-picker v-model="form.enrollmentDate" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
@@ -141,14 +155,20 @@ import AppTable from '@/components/ui/AppTable.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { createStudent, deleteStudent, getNextStudentNo, getStudentList, updateStudent } from '@/api/student'
 import { getClassList } from '@/api/clazz'
+import { getCollegeList } from '@/api/college'
 
 const router = useRouter()
 const store = useStore()
 const { t } = useI18n()
 const tableDensity = computed(() => store.getters.tableDensity)
+const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
+const userInfo = computed(() => store.state.userInfo || {})
+const isSchoolAdmin = computed(() => role.value === 'SCHOOL_ADMIN')
 
 const studentList = ref([])
-const classList = ref([])
+const collegeList = ref([])
+const searchClassList = ref([])
+const formClassList = ref([])
 const loading = ref(false)
 const page = ref(1)
 const size = ref(10)
@@ -158,6 +178,7 @@ const columns = computed(() => [
   { key: 'studentNo', title: t('student.studentNo'), width: 140 },
   { key: 'name', title: t('student.name'), width: 120 },
   { key: 'gender', title: t('student.gender'), width: 80 },
+  { key: 'collegeName', title: t('student.college'), width: 170 },
   { key: 'className', title: t('student.class'), width: 160 },
   { key: 'phone', title: t('student.phone'), width: 150 },
   { key: 'email', title: t('student.email') },
@@ -168,6 +189,7 @@ const columns = computed(() => [
 const searchForm = reactive({
   studentNo: '',
   name: '',
+  collegeId: null,
   classId: null,
   status: ''
 })
@@ -187,6 +209,7 @@ const form = reactive({
   email: '',
   idCard: '',
   address: '',
+  collegeId: null,
   classId: null,
   enrollmentDate: '',
   password: ''
@@ -195,12 +218,48 @@ const form = reactive({
 const rules = computed(() => ({
   name: [{ required: true, message: t('student.nameRequired'), trigger: 'blur' }],
   gender: [{ required: true, message: t('student.genderRequired'), trigger: 'change' }],
+  collegeId: [{ required: true, message: t('student.collegeRequired'), trigger: 'change' }],
   classId: [{ required: true, message: t('student.classRequired'), trigger: 'change' }]
 }))
 
-async function fetchClassList() {
-  const res = await getClassList({ page: 1, size: 500 })
-  classList.value = res.data?.records || []
+function getDefaultCollegeId() {
+  if (role.value === 'SCHOOL_ADMIN') return null
+  if (collegeList.value.length === 1) return collegeList.value[0].id
+  return userInfo.value?.collegeId || null
+}
+
+async function fetchCollegeList() {
+  if (role.value === 'SCHOOL_ADMIN' || role.value === 'COLLEGE_ADMIN') {
+    const res = await getCollegeList({ page: 1, size: 500 })
+    collegeList.value = res.data?.records || []
+  } else if (userInfo.value?.collegeId) {
+    collegeList.value = [
+      {
+        id: userInfo.value.collegeId,
+        collegeName: userInfo.value.collegeName || `${t('student.college')} #${userInfo.value.collegeId}`
+      }
+    ]
+  } else {
+    collegeList.value = []
+  }
+
+  if (!searchForm.collegeId && role.value !== 'SCHOOL_ADMIN') {
+    searchForm.collegeId = getDefaultCollegeId()
+  }
+}
+
+async function fetchClassList(collegeId, targetRef, allowAll = false) {
+  if (!collegeId && !allowAll) {
+    targetRef.value = []
+    return
+  }
+
+  const res = await getClassList({
+    page: 1,
+    size: 500,
+    collegeId: collegeId || undefined
+  })
+  targetRef.value = res.data?.records || []
 }
 
 async function fetchList() {
@@ -211,6 +270,7 @@ async function fetchList() {
       size: size.value,
       studentNo: searchForm.studentNo || undefined,
       name: searchForm.name || undefined,
+      collegeId: searchForm.collegeId || undefined,
       classId: searchForm.classId || undefined,
       status: searchForm.status || undefined
     })
@@ -229,6 +289,7 @@ function handleSearch() {
 function handleReset() {
   searchForm.studentNo = ''
   searchForm.name = ''
+  searchForm.collegeId = getDefaultCollegeId()
   searchForm.classId = null
   searchForm.status = ''
   handleSearch()
@@ -254,6 +315,7 @@ function resetForm() {
     email: '',
     idCard: '',
     address: '',
+    collegeId: getDefaultCollegeId(),
     classId: null,
     enrollmentDate: '',
     password: ''
@@ -261,19 +323,22 @@ function resetForm() {
 }
 
 async function handleAdd() {
-  await fetchClassList()
   isEdit.value = false
   dialogTitleKey.value = 'student.dialogAddTitle'
   resetForm()
+  await fetchClassList(form.collegeId, formClassList, !isSchoolAdmin.value)
   dialogVisible.value = true
 }
 
 async function handleEdit(row) {
-  await fetchClassList()
   isEdit.value = true
   dialogTitleKey.value = 'student.dialogEditTitle'
   resetForm()
-  Object.assign(form, row, { password: '' })
+  Object.assign(form, row, {
+    collegeId: row.collegeId || getDefaultCollegeId(),
+    password: ''
+  })
+  await fetchClassList(form.collegeId, formClassList, !isSchoolAdmin.value)
   dialogVisible.value = true
 }
 
@@ -293,6 +358,7 @@ async function handleSubmit() {
   if (!valid) return
 
   const payload = { ...form }
+  delete payload.collegeId
   if (!payload.password) delete payload.password
 
   if (!isEdit.value && !payload.password) {
@@ -345,9 +411,32 @@ function statusBadgeType(status) {
 
 function getClassNameById(classId) {
   if (!classId) return ''
-  const hit = classList.value.find((item) => item.id === classId)
+  const hit = [...searchClassList.value, ...formClassList.value].find((item) => item.id === classId)
   return hit?.className || ''
 }
+
+function getCollegeNameById(collegeId) {
+  if (!collegeId) return ''
+  const hit = collegeList.value.find((item) => item.id === collegeId)
+  return hit?.collegeName || ''
+}
+
+watch(
+  () => searchForm.collegeId,
+  async (collegeId) => {
+    searchForm.classId = null
+    await fetchClassList(collegeId, searchClassList, true)
+  }
+)
+
+watch(
+  () => form.collegeId,
+  async (collegeId) => {
+    form.classId = null
+    if (!dialogVisible.value) return
+    await fetchClassList(collegeId, formClassList, !isSchoolAdmin.value)
+  }
+)
 
 watch(
   () => [form.classId, form.enrollmentDate, dialogVisible.value, isEdit.value],
@@ -357,7 +446,8 @@ watch(
 )
 
 onMounted(async () => {
-  await fetchClassList()
+  await fetchCollegeList()
+  await fetchClassList(searchForm.collegeId, searchClassList, true)
   await fetchList()
 })
 </script>

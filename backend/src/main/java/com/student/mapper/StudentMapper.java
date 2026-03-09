@@ -14,14 +14,15 @@ import java.util.Map;
 @Mapper
 public interface StudentMapper extends BaseMapper<Student> {
     
-    @Select("SELECT s.*, c.class_name FROM student s LEFT JOIN class c ON s.class_id = c.id WHERE s.id = #{id}")
+    @Select("SELECT s.*, c.class_name, c.college_id, co.college_name FROM student s LEFT JOIN class c ON s.class_id = c.id LEFT JOIN college co ON c.college_id = co.id WHERE s.id = #{id}")
     Student selectByIdWithClass(@Param("id") Long id);
 
     @Select({
             "<script>",
-            "SELECT s.*, c.class_name",
+            "SELECT s.*, c.class_name, c.college_id, co.college_name",
             "FROM student s",
             "LEFT JOIN class c ON s.class_id = c.id",
+            "LEFT JOIN college co ON c.college_id = co.id",
             "WHERE s.id IN",
             "<foreach item='id' collection='ids' open='(' separator=',' close=')'>",
             "  #{id}",
@@ -32,9 +33,10 @@ public interface StudentMapper extends BaseMapper<Student> {
 
     @Select({
             "<script>",
-            "SELECT s.*, c.class_name",
+            "SELECT s.*, c.class_name, c.college_id, co.college_name",
             "FROM student s",
             "LEFT JOIN class c ON s.class_id = c.id",
+            "LEFT JOIN college co ON c.college_id = co.id",
             "<where>",
             "  <if test='studentNo != null and studentNo != \"\"'>",
             "    AND s.student_no LIKE CONCAT('%', #{studentNo}, '%')",
@@ -45,18 +47,29 @@ public interface StudentMapper extends BaseMapper<Student> {
             "  <if test='classId != null'>",
             "    AND s.class_id = #{classId}",
             "  </if>",
+            "  <if test='collegeId != null'>",
+            "    AND c.college_id = #{collegeId}",
+            "  </if>",
             "  <if test='status != null'>",
             "    AND s.status = #{status}",
+            "  </if>",
+            "  <if test='classIds != null and classIds.size() > 0'>",
+            "    AND s.class_id IN",
+            "    <foreach item='classIdItem' collection='classIds' open='(' separator=',' close=')'>",
+            "      #{classIdItem}",
+            "    </foreach>",
             "  </if>",
             "</where>",
             "ORDER BY s.create_time DESC",
             "</script>"
     })
-    Page<Student> selectPageWithClass(Page<Student> page, 
-                                       @Param("studentNo") String studentNo,
-                                       @Param("name") String name,
-                                       @Param("classId") Long classId,
-                                       @Param("status") Student.Status status);
+    Page<Student> selectPageWithClass(Page<Student> page,
+                                      @Param("studentNo") String studentNo,
+                                      @Param("name") String name,
+                                      @Param("classId") Long classId,
+                                      @Param("collegeId") Long collegeId,
+                                      @Param("status") Student.Status status,
+                                      @Param("classIds") List<Long> classIds);
     
     @Select("SELECT * FROM student WHERE student_no = #{studentNo}")
     Student selectByStudentNo(@Param("studentNo") String studentNo);
@@ -64,7 +77,7 @@ public interface StudentMapper extends BaseMapper<Student> {
     @Select("SELECT student_no FROM student WHERE student_no LIKE CONCAT(#{prefix}, '%') ORDER BY student_no DESC LIMIT 1")
     String selectLatestStudentNoByPrefix(@Param("prefix") String prefix);
     
-    @Select("SELECT s.*, c.class_name FROM student s LEFT JOIN class c ON s.class_id = c.id WHERE s.class_id = #{classId}")
+    @Select("SELECT s.*, c.class_name, c.college_id, co.college_name FROM student s LEFT JOIN class c ON s.class_id = c.id LEFT JOIN college co ON c.college_id = co.id WHERE s.class_id = #{classId}")
     List<Student> selectByClassId(@Param("classId") Long classId);
     
     @Update("UPDATE student SET status = #{status} WHERE id = #{id}")

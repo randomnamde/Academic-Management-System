@@ -1,195 +1,398 @@
-﻿# 教务管理系统（Academic Management System）
+﻿# 🎓 教务管理系统（Academic Management System）
 
-一个面向高校教务协同的前后端分离系统，采用“学校管理员、学院管理员、班主任、任课教师、学生”五角色统一权限模型，支持多角色账号并集授权与主角色优先级。系统覆盖认证鉴权、学生/教师/班级/课程管理、成绩与考勤、请假审批、定向公告、统计看板、个人中心与系统偏好等核心校园管理场景。
+<p align="center">
+  <img src="frontend/public/favicon.svg" alt="Logo" width="80" height="80">
+</p>
 
-## 技术栈
+<p align="center">
+  <b>面向高校的全场景教务协同管理平台</b>
+</p>
 
-- **后端**：Java 21、Spring Boot 3.2.12、Spring Security、MyBatis-Plus 3.5.7、JWT 0.11.5
-- **数据库**：MySQL 8（默认）/ H2（开发与演示）
-- **前端**：Vue 3.3、Vue Router 4、Vuex 4、Element Plus 2.3、ECharts 5、Vite 5、Tailwind CSS 3.4
-- **测试**：Playwright（E2E 测试）
-- **工具**：Lombok、Apache POI（Excel 导出）
+<p align="center">
+  <a href="#功能特性"><img src="https://img.shields.io/badge/功能-全场景覆盖-blue" alt="Features"></a>
+  <a href="#技术栈"><img src="https://img.shields.io/badge/技术-前后端分离-green" alt="Tech Stack"></a>
+  <a href="#快速开始"><img src="https://img.shields.io/badge/部署-一键启动-orange" alt="Deployment"></a>
+  <a href="#测试账号"><img src="https://img.shields.io/badge/演示-在线体验-purple" alt="Demo"></a>
+</p>
 
-## 主要功能
+---
 
-- 登录、注册、JWT 鉴权
-- 五角色权限模型：学校管理员、学院管理员、班主任、任课教师、学生
-- 学生管理、教师管理、班级管理、课程管理
-- 成绩管理、考勤管理、请假管理
-- 公告管理与首页看板
-- 个人中心（资料修改、密码修改、头像上传）
-- 登录页「智慧校园管控中枢」实时指标展示
+## 📋 目录
 
-## 项目结构
+- [项目简介](#项目简介)
+- [功能特性](#功能特性)
+- [技术栈](#技术栈)
+- [项目结构](#项目结构)
+- [快速开始](#快速开始)
+- [开发指南](#开发指南)
+- [API文档](#api文档)
+- [测试账号](#测试账号)
+- [更新日志](#更新日志)
+- [常见问题](#常见问题)
+- [贡献指南](#贡献指南)
+- [许可证](#许可证)
 
-```text
+---
+
+## 🎯 项目简介
+
+教务管理系统是一个**前后端分离**的高校教务协同平台，采用创新的**五角色统一权限模型**，支持多角色账号并集授权与主角色优先级机制。
+
+### 核心优势
+
+- 🏗️ **五角色权限模型**：学校管理员、学院管理员、班主任、任课教师、学生
+- 🔐 **RBAC权限控制**：基于角色的细粒度访问控制
+- 📊 **数据可视化**：实时统计看板与数据分析
+- 📱 **响应式设计**：支持桌面端和移动端访问
+- 🌍 **国际化支持**：中英文双语切换
+- 🎨 **现代UI设计**：玻璃质感风格，专业美观
+
+---
+
+## ✨ 功能特性
+
+### 认证与权限
+- [x] JWT Token 认证机制
+- [x] 五角色权限模型（RBAC）
+- [x] 多角色账号并集授权
+- [x] 主角色优先级机制
+- [x] 数据域权限控制
+
+### 基础数据管理
+- [x] 学生信息管理（CRUD）
+- [x] 教师信息管理（CRUD）
+- [x] 班级信息管理（CRUD）
+- [x] 学院信息管理（CRUD）
+- [x] 课程信息管理（CRUD）
+- [x] 学期管理
+
+### 教学业务
+- [x] 课程安排管理
+- [x] 成绩录入与查询
+- [x] 考勤记录管理
+- [x] 请假申请与审批流程
+- [x] 公告发布与定向推送
+
+### 数据分析
+- [x] 首页数据看板
+- [x] 学生成绩分析
+- [x] 考勤统计分析
+- [x] 风险学生预警
+- [x] 课程统计报表
+
+### 个人中心
+- [x] 个人资料管理
+- [x] 密码修改
+- [x] 头像上传
+- [x] 语言偏好设置
+
+### 系统管理
+- [x] 用户管理
+- [x] 角色权限管理
+- [x] 系统日志审计
+- [x] 系统配置管理
+
+---
+
+## 🛠️ 技术栈
+
+### 后端技术
+
+| 技术 | 版本 | 说明 |
+|------|------|------|
+| Java | 21 | 编程语言 |
+| Spring Boot | 3.2.12 | 应用框架 |
+| Spring Security | 6.x | 安全框架 |
+| MyBatis-Plus | 3.5.7 | ORM框架 |
+| JWT | 0.11.5 | 身份认证 |
+| MySQL | 8.0 | 生产数据库 |
+| H2 | 2.x | 开发/测试数据库 |
+| Maven | 3.9+ | 构建工具 |
+| Lombok | 1.18.38 | 代码简化 |
+
+### 前端技术
+
+| 技术 | 版本 | 说明 |
+|------|------|------|
+| Vue.js | 3.3.4 | 前端框架 |
+| Vue Router | 4.2.4 | 路由管理 |
+| Vuex | 4.1.0 | 状态管理 |
+| Element Plus | 2.3.14 | UI组件库 |
+| ECharts | 5.4.3 | 数据可视化 |
+| Vite | 5.4.11 | 构建工具 |
+| Tailwind CSS | 3.4.17 | CSS框架 |
+| Vue I18n | 9.14.1 | 国际化 |
+
+### 测试与工具
+
+| 技术 | 说明 |
+|------|------|
+| Playwright | E2E端到端测试 |
+| ESLint | 代码规范检查 |
+| Apache POI | Excel导入导出 |
+
+---
+
+## 📁 项目结构
+
+```
 student-management-system/
-├─ backend/      # Spring Boot 后端
-├─ frontend/     # Vue 前端
-├─ database/     # MySQL 建表与初始化脚本
-└─ .run/         # IDEA 运行配置（含 H2 一键启动）
+├── 📂 backend/                    # Spring Boot 后端
+│   ├── src/main/java/com/student/
+│   │   ├── 📂 config/             # 配置类
+│   │   ├── 📂 controller/         # 控制器层
+│   │   ├── 📂 service/            # 业务层
+│   │   ├── 📂 mapper/             # 数据访问层
+│   │   ├── 📂 entity/             # 实体类
+│   │   ├── 📂 dto/                # 数据传输对象
+│   │   ├── 📂 vo/                 # 视图对象
+│   │   ├── 📂 security/           # 安全配置
+│   │   └── 📂 util/               # 工具类
+│   └── src/main/resources/
+│       ├── application.yml        # 主配置文件
+│       ├── application-h2.yml     # H2配置
+│       └── mapper/                # MyBatis映射文件
+│
+├── 📂 frontend/                   # Vue 前端
+│   ├── src/
+│   │   ├── 📂 api/                # API接口
+│   │   ├── 📂 components/         # 组件
+│   │   ├── 📂 views/              # 页面视图
+│   │   ├── 📂 router/             # 路由配置
+│   │   ├── 📂 store/              # 状态管理
+│   │   ├── 📂 i18n/               # 国际化
+│   │   ├── 📂 styles/             # 样式文件
+│   │   └── 📂 utils/              # 工具函数
+│   ├── public/                    # 静态资源
+│   └── tests/                     # 测试文件
+│
+├── 📂 database/                   # 数据库脚本
+│   ├── schema.sql                 # 表结构
+│   ├── data.sql                   # 初始化数据
+│   └── migrations/                # 迁移脚本
+│
+└── 📂 .run/                       # IDEA运行配置
 ```
 
-## 环境要求
+---
 
-- JDK 21+
-- Maven 3.9+
-- Node.js 18+（建议 LTS）
-- npm 9+
-- MySQL 8（仅 MySQL 模式需要）
+## 🚀 快速开始
 
-## 快速启动
+### 环境要求
 
-### 方式一：IDEA 一键启动（推荐，H2 内存库）
+- **JDK**: 21+
+- **Maven**: 3.9+
+- **Node.js**: 18+ (建议 LTS)
+- **npm**: 9+
+- **MySQL**: 8.0 (仅MySQL模式需要)
 
-1. 打开项目后，运行 `.run/Start All (H2)`。
-2. 前端地址：`http://localhost:3000`
-3. 后端地址：`http://localhost:8080/api`
+### 方式一：IDEA 一键启动（推荐）
 
-### 方式二：命令行启动（H2）
+1. 使用 IntelliJ IDEA 打开项目
+2. 运行 `.run/Start All (H2)` 配置
+3. 访问前端：`http://localhost:3000`
+4. 后端API：`http://localhost:8080/api`
 
-后端：
+### 方式二：命令行启动（H2 内存数据库）
 
-```powershell
+**启动后端：**
+```bash
 cd backend
-mvn spring-boot:run "-Dspring-boot.run.profiles=h2"
+mvn spring-boot:run -D"spring-boot.run.profiles"=h2
 ```
 
-前端：
-
-```powershell
-cd frontend
-npm install
-npm run dev      # 或 npm run serve
-```
-
-启动后访问：`http://localhost:3000`
-
-### 方式三：命令行启动（MySQL）
-
-1. 在 MySQL 中执行：
-   - `database/schema.sql`
-   - `database/data.sql`
-2. 按需修改 `backend/src/main/resources/application.yml` 中数据库连接信息。
-3. 启动后端与前端：
-
-```powershell
-cd backend
-mvn spring-boot:run
-```
-
-```powershell
+**启动前端：**
+```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-启动后访问：`http://localhost:3000`
+**访问地址：** http://localhost:3000
 
-## 默认端口与地址
+### 方式三：命令行启动（MySQL 数据库）
 
-- 前端开发服务：`3000`
-- 后端服务：`8080`
-- 后端上下文：`/api`
-- 前端代理：`/api -> http://localhost:8080/api`
+1. **初始化数据库：**
+```bash
+# 在MySQL中执行
+source database/schema.sql
+source database/data.sql
+```
 
-## 测试账号（H2 初始化数据）
+2. **配置数据库连接：**
+编辑 `backend/src/main/resources/application.yml`
 
-- 学校管理员：`admin / 123456`
-- 学院管理员：`college_admin_cs / 123456`
-- 班主任/任课教师（双角色）：`teacher001 / 123456`
-- 学生：`student001 / 123456`
+3. **启动服务：**
+```bash
+# 后端
+cd backend
+mvn spring-boot:run
 
-## 最近更新
+# 前端
+cd frontend
+npm install
+npm run dev
+```
 
-- 2026-03-04：权限模型升级为五角色并切断旧三角色兼容。
-  - 角色：统一为 `SCHOOL_ADMIN`、`COLLEGE_ADMIN`、`HOMEROOM_TEACHER`、`COURSE_TEACHER`、`STUDENT`。
-  - 鉴权：路由与接口权限改为五角色矩阵，旧 `ADMIN/TEACHER` 不再作为运行时角色。
-  - 数据：新增迁移脚本 `database/migrations/20260304_role_refactor.sql`，包含用户主角色回填与公告目标角色拆分迁移。
-  - 公告：`targetRole` 升级为 `ALL + 五角色`，历史 `ADMIN/TEACHER` 公告按双角色复制拆分。
+---
 
-- 2026-02-28：学生分析中心风险榜单改为“仅本人明细”展示。
-  - 后端：`/analytics/risk-students` 在学生角色下切换为明细模式，按风险类型返回本人数据：
-    - `low_score`：按课程维度去重，返回低分课程、最低分、低分次数。
-    - `abnormal_attendance`：返回本人异常考勤明细（日期、课程、状态）。
-    - `approval_overdue`：仅返回本人已超时（`PENDING` 且超过 48 小时）的审批记录，并返回超时小时数。
-  - 数据结构：`RiskStudentDTO` 新增 `courseName`、`score`、`attendanceDate`、`attendanceStatus`、`leaveRequestId`、`submitTime`、`overdue`、`overdueHours` 字段。
-  - 前端：分析中心风险榜单在学生视角按 `riskType` 切换专用列（课程/考勤/审批超时明细），教师与管理员维持原聚合榜单。
-  - 测试：新增 3 个集成测试覆盖学生低分课程明细、异常考勤明细、仅本人超时审批明细。
+## 💻 开发指南
 
-- 2026-02-28：完成学生端“首页 + 分析中心”权限与口径收敛。
-  - 首页：学生“我的信息/任课教师数/我的课程数/我的班级数”支持点击跳转；我的信息不显示计数，其余按本人范围统计并回显。
-  - 菜单与路由：学生可从首页进入教师/课程/班级页面，但侧栏隐藏这三项菜单；页面统一只读，后端继续做范围校验兜底。
-  - 数据口径：`/dashboard/overview` 与学生可见范围保持一致；学生无班级归属时 `classCount = 0`。
-  - 分析中心：学生隐藏“学生规模”，审批指标改为“我的待办审批”（`PENDING + REJECTED`，不含 `APPROVED`），低分指标改为“低分课程统计数”（按 `courseId` 去重）。
-  - 测试：扩展 `SecurityScopeIntegrationTest`，覆盖学生审批计数新口径与低分课程去重统计。
+### 后端开发
 
-- 2026-02-28：收紧学生权限展示范围（首页总览与分析中心仅展示本人相关数据）。
-  - 后端：分析中心接口在学生角色下强制使用本人数据域，忽略 `classId`、`teacherId` 跨域参数，防止越权查看。
-  - 前端：首页学生视角改为“我的数据”（任课教师数、我的课程数、我的班级数、我的运营概览），不再展示全局统计分布。
-  - 测试：新增学生跨域参数访问分析接口的集成测试，验证数据域收口持续生效。
-
-- 2026-02-28：修复「请假审批」页面在 `pending` 页签下点击“查询”无效的问题。
-  - 修复前：审批角色在 `pending` 页签会始终调用 `/leave-request/pending`，导致查询条件被忽略。
-  - 修复后：仅在未设置查询条件时使用快捷接口；带条件查询时走分页列表接口，查询按钮生效。
-
-## 常见问题
-
-- `localhost` 拒绝连接：
-  - 确认前端在 `3000` 端口、后端在 `8080` 端口监听。
-  - 浏览器访问 `http://localhost:3000`（不是 `http://localhost`）。
-- 新接口返回 404 或旧数据：
-  - 通常是后端旧进程未重启，请重启后端服务。
-- 上传头像后无法访问：
-  - 检查后端是否正常启动，`uploads/` 目录是否有文件。
-
-## 常用命令
-
-### 后端
-
-```powershell
+```bash
 # 编译
 cd backend
 mvn -q -DskipTests compile
 
 # 运行测试
-cd backend
 mvn test
 
 # 打包
-cd backend
 mvn -DskipTests package
+
+# 运行
+mvn spring-boot:run
 ```
 
-### 前端
+### 前端开发
 
-```powershell
-# 安装依赖
+```bash
 cd frontend
+
+# 安装依赖
 npm install
 
-# 开发模式启动
-cd frontend
+# 开发模式（热重载）
 npm run dev
 
-# 构建生产环境
-cd frontend
+# 生产构建
 npm run build
 
 # 预览生产构建
-cd frontend
 npm run preview
 
-# E2E 测试
-cd frontend
+# 代码检查
+npm run lint
+
+# E2E测试
 npm run test:e2e
 
-# 代码检查
-cd frontend
-npm run lint
+# UTF-8编码检查
+npm run check:utf8
 ```
 
-## 说明
+### 端口配置
 
-- `frontend/dist` 为构建后的静态资源目录。
-- `uploads/` 为运行时上传目录，已在 `.gitignore` 中忽略。
+| 服务 | 端口 | 地址 |
+|------|------|------|
+| 前端开发服务器 | 3000 | http://localhost:3000 |
+| 后端API服务 | 8080 | http://localhost:8080/api |
+
+---
+
+## 📚 API文档
+
+### 认证接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/auth/login | 用户登录 |
+| POST | /api/auth/register | 用户注册 |
+| POST | /api/auth/refresh | 刷新Token |
+
+### 核心业务接口
+
+| 模块 | 基础路径 | 说明 |
+|------|----------|------|
+| 学生管理 | /api/students | 学生CRUD操作 |
+| 教师管理 | /api/teachers | 教师CRUD操作 |
+| 课程管理 | /api/courses | 课程CRUD操作 |
+| 成绩管理 | /api/scores | 成绩录入查询 |
+| 考勤管理 | /api/attendance | 考勤记录管理 |
+| 请假管理 | /api/leave-requests | 请假申请审批 |
+| 公告管理 | /api/announcements | 公告发布管理 |
+| 数据分析 | /api/analytics | 统计报表数据 |
+
+---
+
+## 🔑 测试账号
+
+系统预置了以下测试账号（H2模式）：
+
+| 角色 | 账号 | 密码 | 权限说明 |
+|------|------|------|----------|
+| 🏫 学校管理员 | `admin` | `123456` | 系统最高权限，管理所有数据 |
+| 🏢 学院管理员 | `college_admin_cs` | `123456` | 管理学院内所有数据 |
+| 👨‍🏫 班主任/教师 | `teacher001` | `123456` | 班级管理 + 课程教学 |
+| 👨‍🎓 学生 | `student001` | `123456` | 查看个人数据，申请请假 |
+
+---
+
+## 📝 更新日志
+
+### 2026-03-04
+**权限模型重大升级**
+- ✨ 五角色权限模型正式启用
+- 🔧 角色代码统一：`SCHOOL_ADMIN`、`COLLEGE_ADMIN`、`HOMEROOM_TEACHER`、`COURSE_TEACHER`、`STUDENT`
+- 🗃️ 数据迁移脚本：`database/migrations/20260304_role_refactor.sql`
+- 📢 公告系统升级：支持 `ALL + 五角色` 定向推送
+
+### 2026-02-28
+**学生端功能优化**
+- 📊 分析中心：学生视角改为"仅本人明细"展示
+- 🎯 数据口径：首页统计与学生可见范围保持一致
+- 🔒 权限控制：学生数据域强制收口，防止越权查看
+- 🐛 问题修复：请假审批查询功能修复
+
+---
+
+## ❓ 常见问题
+
+### Q: 无法访问 localhost:3000？
+**A:** 
+- 确认前端服务已启动（端口3000）
+- 确认后端服务已启动（端口8080）
+- 检查防火墙设置
+- 使用 `http://localhost:3000` 而非 `https://`
+
+### Q: 接口返回 404 或旧数据？
+**A:**
+- 通常是后端旧进程未重启
+- 请完全关闭后端服务后重新启动
+- 检查端口是否被占用
+
+### Q: 头像上传后无法显示？
+**A:**
+- 确认后端服务正常运行
+- 检查 `uploads/` 目录是否存在且有写入权限
+- 确认文件已正确保存到该目录
+
+### Q: 数据库连接失败？
+**A:**
+- H2模式：无需额外配置，自动创建内存数据库
+- MySQL模式：检查数据库服务是否启动，连接配置是否正确
+
+---
+
+## 🤝 贡献指南
+
+欢迎提交 Issue 和 Pull Request！
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送分支 (`git push origin feature/AmazingFeature`)
+5. 创建 Pull Request
+
+---
+
+## 📄 许可证
+
+本项目基于 [MIT](LICENSE) 许可证开源。
+
+---
+
+<p align="center">
+  Made with ❤️ for Education
+</p>

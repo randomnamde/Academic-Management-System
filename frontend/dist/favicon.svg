@@ -1,13 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0b3d91" />
-      <stop offset="100%" stop-color="#1f7a8c" />
+    <linearGradient id="bgGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4A90E2" />
+      <stop offset="100%" stop-color="#2D5F9E" />
     </linearGradient>
+    <linearGradient id="glassGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.3" />
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.1" />
+    </linearGradient>
+    <linearGradient id="borderGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5" />
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.2" />
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
+    </filter>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#bg)" />
-  <path
-    d="M32 14 14 22l18 8 14.8-6.58V34.6h2.8V22L32 14Zm-8.2 18.3v8.8c0 3.7 4.2 6.9 8.2 6.9s8.2-3.2 8.2-6.9v-8.8L32 36.1l-8.2-3.8Z"
-    fill="#ffffff"
-  />
+  <rect width="64" height="64" rx="14" fill="url(#bgGradient)" />
+  <rect x="8" y="8" width="48" height="48" rx="10" fill="url(#glassGradient)" filter="url(#blur)" />
+  <rect x="8" y="8" width="48" height="48" rx="10" fill="none" stroke="url(#borderGradient)" stroke-width="1.5" />
+  <rect x="16" y="22" width="32" height="20" rx="3" fill="#ffffff" opacity="0.9" />
+  <path d="M20 30h24v2H20z" fill="#4A90E2" opacity="0.6" />
+  <path d="M20 34h18v2H20z" fill="#4A90E2" opacity="0.6" />
+  <path d="M18 18c0-2 2-4 4-4h20c2 0 4 2 4 4v2H18v-2z" fill="#ffffff" opacity="0.8" />
+  <circle cx="32" cy="20" r="3" fill="#ffffff" opacity="0.9" />
 </svg>

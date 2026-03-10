@@ -1,0 +1,21 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:/api}
+
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB:student_management}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:change_me}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+logging:
+  file:
+    name: ${APP_LOG_FILE:logs/student-management.log}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost}
+
+file:
+  upload-dir: ${FILE_UPLOAD_DIR:/opt/student-management/uploads}

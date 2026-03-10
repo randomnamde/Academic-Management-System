@@ -1,0 +1,18 @@
+[Unit]
+Description=Student Management Backend
+After=network.target mysqld.service
+
+[Service]
+Type=forking
+User=sms
+Group=sms
+PIDFile=/opt/student-management/run/student-management.pid
+WorkingDirectory=/opt/student-management
+ExecStart=/opt/student-management/scripts/start-backend.sh
+ExecStop=/opt/student-management/scripts/stop-backend.sh
+ExecReload=/opt/student-management/scripts/restart-backend.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

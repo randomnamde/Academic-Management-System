@@ -24,6 +24,7 @@
 - [技术栈](#技术栈)
 - [项目结构](#项目结构)
 - [快速开始](#快速开始)
+- [内网部署（Nginx + 前端）](#内网部署nginx--前端)
 - [开发指南](#开发指南)
 - [API文档](#api文档)
 - [测试账号](#测试账号)
@@ -235,6 +236,120 @@ npm run dev
 ```
 
 ---
+
+## 内网部署（Nginx + 前端）
+
+如果你准备把项目部署到企业内网，推荐使用下面这套方式：
+
+- 前端：先在 Windows 或有网构建机执行 `npm run build`，产出 `frontend/dist`
+- Web 服务：CentOS 上使用 Nginx 托管前端静态文件
+- 后端：Spring Boot 以 Jar 方式运行
+- 数据库：MySQL 8.0
+
+推荐访问链路：
+
+`浏览器 -> Nginx(80/443) -> 前端静态资源`
+
+`浏览器 -> Nginx /api -> Spring Boot(127.0.0.1:8080) -> MySQL(3306)`
+
+### 部署前需要准备什么
+
+#### 1. 服务器与系统准备
+
+- 一台 CentOS 服务器
+- 已安装 `Nginx`
+- 已安装 `JDK 21`
+- 已安装 `MySQL 8.0`
+- 已开放访问端口：`80`，如果后端直连排障可临时开放 `8080`
+
+#### 2. 前端发布准备
+
+前端在内网服务器上通常**不需要**安装 Node.js，只需要准备构建后的静态文件：
+
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+构建完成后，会得到：
+
+- `frontend/dist/index.html`
+- `frontend/dist/assets/*`
+
+这些文件上传到 CentOS 后，交给 Nginx 托管即可。
+
+#### 3. Nginx 部署准备
+
+你需要准备一份 Nginx 配置，把：
+
+- `/` 指向前端静态目录
+- `/api/` 反向代理到后端 `http://127.0.0.1:8080/api/`
+
+项目里已经提供了可直接使用的配置文件：
+
+- `deploy/centos/student-management.conf`
+
+#### 4. 后端与数据库准备
+
+需要准备：
+
+- 后端 Jar 包：`backend/target/student-management-1.0.0.jar`
+- 数据库脚本：`database/schema.sql`、`database/data.sql`
+- 生产配置或环境变量
+
+建议提前创建数据库：
+
+```sql
+CREATE DATABASE student_management DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+```
+
+### 推荐发布方式
+
+如果 CentOS 服务器不能访问公网，推荐在 Windows 或有网构建机先打好发布包，再上传到内网服务器：
+
+```powershell
+cd D:\Learn\crm\student-management-system
+powershell -ExecutionPolicy Bypass -File .\deploy\windows\build-release.ps1
+```
+
+执行后会生成：
+
+- `release/student-management/backend/`
+- `release/student-management/frontend/`
+- `release/student-management/database/`
+- `release/student-management/scripts/`
+- `release/student-management/nginx/`
+
+上传到 CentOS 后，只需要：
+
+1. 放置前端静态文件到 Nginx 目录
+2. 放置后端 Jar
+3. 导入 MySQL 数据
+4. 修改 `app.env`
+5. 启动 Nginx 和后端服务
+
+### Nginx 托管前端的最小步骤
+
+```bash
+sudo mkdir -p /opt/student-management/frontend
+sudo cp -r frontend-dist/* /opt/student-management/frontend/
+sudo cp /opt/student-management/nginx/student-management.conf /etc/nginx/conf.d/student-management.conf
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+说明：
+
+- `frontend-dist/*` 指的是你本地构建好的 `frontend/dist/*`
+- Nginx 配置中的 `root` 应该指向 `/opt/student-management/frontend`
+- 如果前后端统一走 Nginx 入口，前端不需要再单独配置 `VITE_APP_BASE_API`
+
+### 完整部署文档
+
+更完整的 CentOS 内网部署步骤可以查看：
+
+- `deploy/centos/README.md`
 
 ## 💻 开发指南
 

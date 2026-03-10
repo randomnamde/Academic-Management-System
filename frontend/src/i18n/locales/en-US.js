@@ -44,7 +44,8 @@ export default {
     rbacAudit: 'Audit Logs',
     profile: 'Profile',
     system: 'System Preferences',
-    semester: 'Semester Management'
+    semester: 'Semester Management',
+    selection: 'Course Selection'
   },
   menuGroup: {
     overview: 'Overview',
@@ -93,6 +94,16 @@ export default {
     goAnnouncementList: 'Go to announcements',
     logoutConfirm: 'Are you sure you want to log out?',
     logoutSuccess: 'Logged out',
+    logoutDialog: {
+      title: 'Log out',
+      badge: 'Secure sign-out',
+      headline: 'Log out of the current account?',
+      description: 'You will be taken back to the sign-in page. On a shared device, it is safer to close the browser or clear saved records afterward.',
+      currentAccount: 'Current account',
+      sessionMeta: 'Current session',
+      note: 'This only ends the current session and does not delete any data.',
+      confirmAction: 'Log out'
+    },
     announcementDetailFailed: 'Failed to load announcement details',
     noticeType: {
       system: 'System',
@@ -1204,5 +1215,28 @@ export default {
       operationFailed: 'Operation failed',
       networkRetry: 'Network error, please try again later'
     }
+  },
+  selection: {
+    pageTitle: 'Course Selection',
+    pageDesc: 'View available courses and submit selection requests. Please wait during peak enrollment times.',
+    availableCourses: 'Available Courses',
+    mySelections: 'My Selections',
+    courseArrangement: 'Arrangement',
+    teacher: 'Teacher',
+    credit: 'Credit',
+    capacity: 'Capacity',
+    enrolledCount: 'Enrolled',
+    availableCount: 'Available',
+    status: 'Status',
+    select: 'Select',
+    selectConfirm: 'Are you sure you want to select this course?',
+    queuing: 'Queuing...',
+    success: 'Success',
+    failed: 'Failed',
+    dropped: 'Dropped',
+    preloadInventory: 'Preload Inventory',
+    preloadSuccess: 'Inventory preloaded successfully',
+    startTime: 'Start Time',
+    endTime: 'End Time'
   }
 }

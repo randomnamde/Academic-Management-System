@@ -1,4 +1,4 @@
-﻿export default {
+export default {
   common: {
     close: '关闭',
     cancel: '取消',
@@ -43,6 +43,7 @@
     profile: '个人中心',
     system: '系统偏好',
     semester: '学期管理',
+    selection: '在线选课',
     rbacUserAssignments: '\u89d2\u8272\u5206\u914d',
     rbacUserList: '\u7528\u6237\u5217\u8868'
   },
@@ -93,6 +94,16 @@
     goAnnouncementList: '前往公告列表',
     logoutConfirm: '确认退出登录吗？',
     logoutSuccess: '已退出登录',
+    logoutDialog: {
+      title: '退出登录',
+      badge: '安全退出',
+      headline: '确认要退出当前账号吗？',
+      description: '退出后将返回登录页。如果是在公共设备上使用，建议退出后关闭浏览器或清理已保存记录。',
+      currentAccount: '当前账号',
+      sessionMeta: '当前会话',
+      note: '本次操作不会删除数据，只会结束当前登录状态。',
+      confirmAction: '退出登录'
+    },
     announcementDetailFailed: '获取公告详情失败',
     noticeType: {
       system: '系统',
@@ -1204,6 +1215,29 @@
       operationFailed: '操作失败',
       networkRetry: '网络错误，请稍后重试'
     }
+  },
+  selection: {
+    pageTitle: '在线选课',
+    pageDesc: '查看可选课程并实时提交选课申请，高并发选课期间请耐心等待排队结果。',
+    availableCourses: '可选课程',
+    mySelections: '我的选课',
+    courseArrangement: '课程安排',
+    teacher: '任课教师',
+    credit: '学分',
+    capacity: '容量',
+    enrolledCount: '已选',
+    availableCount: '余位',
+    status: '选课状态',
+    select: '选课',
+    selectConfirm: '确认选这门课吗？',
+    queuing: '排队处理中',
+    success: '选课成功',
+    failed: '选课失败',
+    dropped: '已退课',
+    preloadInventory: '预热选课库存',
+    preloadSuccess: '库存预热成功',
+    startTime: '开始时间',
+    endTime: '结束时间'
   }
 }
 

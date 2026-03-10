@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import Cookies from 'js-cookie'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
@@ -69,6 +69,17 @@ const routes = [
           icon: 'Reading',
           roles: ALL_ROLES,
           menuGroup: 'teaching'
+        }
+      },
+      {
+        path: 'course-selection',
+        name: 'CourseSelection',
+        component: () => import('@/views/student/CourseSelection.vue'),
+        meta: { 
+          titleKey: 'route.selection', 
+          icon: 'Postcard', 
+          roles: ['STUDENT', 'SCHOOL_ADMIN'], 
+          menuGroup: 'teaching' 
         }
       },
       {

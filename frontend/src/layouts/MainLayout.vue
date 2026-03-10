@@ -250,6 +250,47 @@
         <button class="app-btn-primary" @click="openAnnouncementPage">{{ t('layout.goAnnouncementList') }}</button>
       </template>
     </AppModal>
+
+    <AppModal v-model="logoutDialogVisible" :title="t('layout.logoutDialog.title')" width="460px">
+      <div class="logout-dialog">
+        <div class="logout-dialog__surface">
+          <div class="logout-dialog__badge">
+            <ShieldCheck class="h-3.5 w-3.5" />
+            <span>{{ t('layout.logoutDialog.badge') }}</span>
+          </div>
+
+          <div class="logout-dialog__hero">
+            <div class="logout-dialog__icon" aria-hidden="true">
+              <LogOut class="h-5 w-5" />
+            </div>
+            <div class="logout-dialog__copy">
+              <p class="logout-dialog__headline">{{ t('layout.logoutDialog.headline') }}</p>
+              <p class="logout-dialog__description">{{ t('layout.logoutDialog.description') }}</p>
+            </div>
+          </div>
+
+          <div class="logout-dialog__account">
+            <div class="logout-dialog__account-avatar-wrap">
+              <img :src="userInfo.avatar || defaultAvatar" alt="avatar" class="logout-dialog__account-avatar" />
+            </div>
+            <div class="logout-dialog__account-copy">
+              <p class="logout-dialog__account-label">{{ t('layout.logoutDialog.currentAccount') }}</p>
+              <p class="logout-dialog__account-name">{{ logoutDisplayName }}</p>
+              <p class="logout-dialog__account-meta">{{ logoutAccountMeta }}</p>
+            </div>
+          </div>
+
+          <div class="logout-dialog__note">
+            <Shield class="h-4 w-4 shrink-0" />
+            <span>{{ t('layout.logoutDialog.note') }}</span>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <button class="app-btn-secondary" @click="logoutDialogVisible = false">{{ t('common.cancel') }}</button>
+        <button class="app-btn-danger" @click="confirmLogout">{{ t('layout.logoutDialog.confirmAction') }}</button>
+      </template>
+    </AppModal>
   </div>
 </template>
 
@@ -274,7 +315,7 @@ import {
   SunMedium,
   User
 } from 'lucide-vue-next'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import {
   BellFilled,
   Calendar as EpCalendar,
@@ -316,6 +357,7 @@ const latestAnnouncements = ref([])
 const lastNotificationFetchAt = ref(0)
 const noticePopoverVisible = ref(false)
 const noticeDetailVisible = ref(false)
+const logoutDialogVisible = ref(false)
 const userMenuVisible = ref(false)
 const mobileMenuVisible = ref(false)
 const readAnnouncementIds = ref([])
@@ -339,6 +381,8 @@ const currentThemeLabel = computed(() => t(`theme.mode.${themeMode.value}`))
 const languageLabel = computed(() => (language.value === 'en-US' ? t('language.enUS') : t('language.zhCN')))
 
 const userInfo = computed(() => store.state.userInfo || {})
+const logoutDisplayName = computed(() => userInfo.value?.realName || userInfo.value?.account || userInfo.value?.username || t('common.user'))
+const logoutAccountMeta = computed(() => userInfo.value?.account || userInfo.value?.username || t('layout.logoutDialog.sessionMeta'))
 const isAuthenticated = computed(() => Boolean(store.state.token))
 const role = computed(() => userInfo.value?.primaryRole || userInfo.value?.role || '')
 const permissions = computed(() => userInfo.value?.permissions || [])
@@ -570,15 +614,14 @@ const openAnnouncementDetail = async (item) => {
 }
 
 const executeLogout = () => {
-  ElMessageBox.confirm(t('layout.logoutConfirm'), t('common.tip'), {
-    confirmButtonText: t('common.confirm'),
-    cancelButtonText: t('common.cancel'),
-    type: 'warning'
-  }).then(() => {
-    store.dispatch('logout')
-    router.push('/login')
-    ElMessage.success(t('layout.logoutSuccess'))
-  })
+  logoutDialogVisible.value = true
+}
+
+const confirmLogout = () => {
+  logoutDialogVisible.value = false
+  store.dispatch('logout')
+  router.push('/login')
+  ElMessage.success(t('layout.logoutSuccess'))
 }
 
 const handleCommand = (command) => {
@@ -600,6 +643,7 @@ watch(
   () => route.fullPath,
   () => {
     noticePopoverVisible.value = false
+    logoutDialogVisible.value = false
     userMenuVisible.value = false
     mobileMenuVisible.value = false
     fetchNotificationSummary()
@@ -968,6 +1012,190 @@ onUnmounted(() => {
 .menu-item:hover {
   background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
   color: var(--text-primary);
+}
+
+.logout-dialog {
+  position: relative;
+}
+
+.logout-dialog__surface {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--popup-border) 86%, transparent);
+  border-radius: 18px;
+  padding: 14px;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--accent-500) 18%, transparent), transparent 38%),
+    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--danger) 16%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 92%, transparent), color-mix(in srgb, var(--surface-base) 94%, transparent));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
+    0 18px 40px color-mix(in srgb, black 10%, transparent);
+}
+
+.logout-dialog__surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, white 14%, transparent), transparent 28%),
+    linear-gradient(180deg, transparent, color-mix(in srgb, black 5%, transparent));
+  pointer-events: none;
+}
+
+.logout-dialog__badge {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  border: 1px solid color-mix(in srgb, var(--accent-500) 20%, transparent);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--text-primary) 88%, var(--accent-700));
+  background: color-mix(in srgb, var(--surface-base) 70%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.logout-dialog__hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.logout-dialog__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 16px;
+  color: color-mix(in srgb, white 92%, var(--danger));
+  background:
+    radial-gradient(circle at 30% 25%, color-mix(in srgb, white 48%, transparent), transparent 55%),
+    linear-gradient(135deg, color-mix(in srgb, var(--danger) 86%, white), color-mix(in srgb, var(--danger) 68%, black 6%));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 42%, transparent),
+    0 18px 30px color-mix(in srgb, var(--danger) 18%, transparent);
+  flex-shrink: 0;
+}
+
+.logout-dialog__copy {
+  min-width: 0;
+}
+
+.logout-dialog__headline {
+  margin: 1px 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.logout-dialog__description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.logout-dialog__account {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 76%, transparent);
+  border-radius: 16px;
+  padding: 11px 12px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 84%, transparent), color-mix(in srgb, var(--surface-elevated) 80%, transparent));
+  backdrop-filter: blur(10px);
+}
+
+.logout-dialog__account-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.logout-dialog__account-avatar-wrap::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent-500) 18%, transparent);
+}
+
+.logout-dialog__account-avatar {
+  display: block;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--text-primary) 10%, transparent);
+}
+
+.logout-dialog__account-copy {
+  min-width: 0;
+}
+
+.logout-dialog__account-label,
+.logout-dialog__account-meta,
+.logout-dialog__account-name {
+  margin: 0;
+}
+
+.logout-dialog__account-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.logout-dialog__account-name {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.logout-dialog__account-meta {
+  margin-top: 3px;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--text-secondary) 88%, transparent);
+}
+
+.logout-dialog__note {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--danger) 14%, var(--panel-border));
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--text-primary) 82%, var(--danger));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--danger) 7%, transparent), transparent),
+    color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+}
+
+:root[data-theme='dark'] .logout-dialog__surface {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--accent-500) 14%, transparent), transparent 38%),
+    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--danger) 12%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 92%, transparent), color-mix(in srgb, var(--surface-base) 96%, transparent));
 }
 
 @media (max-width: 1279px) {

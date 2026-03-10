@@ -24,39 +24,56 @@
       >
         <section
           ref="loginCardRef"
-          class="login-card w-full max-w-md"
+          class="login-card w-full max-w-xl"
           role="dialog"
           aria-modal="true"
           aria-labelledby="login-dialog-title"
         >
-          <button class="close-btn touch-target" :aria-label="t('login.closeDialog')" @click="closeLoginCard">×</button>
-          <h2 id="login-dialog-title" class="login-title">{{ t('login.enterSystem') }}</h2>
-          <p class="login-tip">{{ t('login.tip') }}</p>
+          <div class="login-card-noise" aria-hidden="true"></div>
+          <div class="login-card-orbit orbit-a" aria-hidden="true"></div>
+          <div class="login-card-orbit orbit-b" aria-hidden="true"></div>
+          <div class="login-card-inner">
+            <div class="login-card-topbar">
+              <div class="login-chip">{{ fullTitle }}</div>
+              <button class="close-btn touch-target" :aria-label="t('login.closeDialog')" @click="closeLoginCard">×</button>
+            </div>
 
-          <form class="mt-4 space-y-3" @submit.prevent="handleLogin">
-            <div>
-              <label for="login-username" class="mb-1 block text-[13px] font-medium text-slatex-700">{{ t('login.username') }}</label>
-              <AppInput
-                id="login-username"
-                v-model="loginForm.username"
-                name="username"
-                autocomplete="username"
-                :placeholder="t('login.usernamePlaceholder')"
-              />
+            <div class="login-card-copy">
+              <p class="login-eyebrow">{{ t('login.enterSystem') }}</p>
+              <h2 id="login-dialog-title" class="login-title">{{ t('login.enterSystem') }}</h2>
+              <p class="login-tip">{{ t('login.tip') }}</p>
             </div>
-            <div>
-              <label for="login-password" class="mb-1 block text-[13px] font-medium text-slatex-700">{{ t('login.password') }}</label>
-              <AppInput
-                id="login-password"
-                v-model="loginForm.password"
-                name="password"
-                type="password"
-                autocomplete="current-password"
-                :placeholder="t('login.passwordPlaceholder')"
-              />
+
+            <form class="login-form" @submit.prevent="handleLogin">
+              <div class="field-shell">
+                <label for="login-username" class="field-label">{{ t('login.username') }}</label>
+                <AppInput
+                  id="login-username"
+                  v-model="loginForm.username"
+                  name="username"
+                  autocomplete="username"
+                  :placeholder="t('login.usernamePlaceholder')"
+                />
+              </div>
+              <div class="field-shell">
+                <label for="login-password" class="field-label">{{ t('login.password') }}</label>
+                <AppInput
+                  id="login-password"
+                  v-model="loginForm.password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  :placeholder="t('login.passwordPlaceholder')"
+                />
+              </div>
+              <AppButton class="submit-btn" tone="accent" block :loading="loading" native-type="submit">{{ t('login.login') }}</AppButton>
+            </form>
+
+            <div class="login-footline">
+              <span class="footline-pulse" aria-hidden="true"></span>
+              <span>{{ t('login.subtitle') }}</span>
             </div>
-            <AppButton class="submit-btn" tone="accent" block :loading="loading" native-type="submit">{{ t('login.login') }}</AppButton>
-          </form>
+          </div>
         </section>
       </div>
     </Transition>
@@ -98,7 +115,6 @@ let motionMediaQuery = null
 let motionMediaHandler = null
 
 const displayTitle = computed(() => (reduceMotion.value ? fullTitle.value : typedText.value))
-
 function getElementFromRef(target) {
   if (!target) return null
   return target.$el || target
@@ -480,21 +496,107 @@ onBeforeUnmount(() => {
 
 .login-card {
   position: relative;
-  border-radius: 20px;
+  overflow: hidden;
+  border-radius: 30px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
-  background: color-mix(in srgb, var(--surface-base) 92%, transparent);
-  box-shadow: var(--shadow-overlay);
-  padding: 22px 18px 18px;
+  background:
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--accent-500) 18%, transparent), transparent 30%),
+    radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--success) 12%, transparent), transparent 34%),
+    linear-gradient(160deg, color-mix(in srgb, var(--surface-base) 96%, transparent), color-mix(in srgb, var(--surface-elevated) 88%, transparent));
+  box-shadow:
+    0 34px 78px color-mix(in srgb, var(--color-black) 18%, transparent),
+    0 8px 24px color-mix(in srgb, var(--accent-500) 10%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-white) 16%, transparent);
+  backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
   transform: translateY(0) scale(1);
   opacity: 1;
 }
 
-.close-btn {
+.login-card-noise {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 30px;
-  height: 30px;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-white) 0.05%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-white) 0.05%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.32;
+  pointer-events: none;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.1));
+}
+
+.login-card-orbit {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(2px);
+  opacity: 0.8;
+}
+
+.orbit-a {
+  top: -74px;
+  right: -64px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-500) 30%, transparent), transparent 68%);
+}
+
+.orbit-b {
+  left: -82px;
+  bottom: -96px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--success) 18%, transparent), transparent 70%);
+}
+
+.login-card-inner {
+  position: relative;
+  z-index: 1;
+  padding: 24px 24px 22px;
+}
+
+.login-card-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.login-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent-500) 26%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 44%, transparent);
+  color: color-mix(in srgb, var(--text-primary) 80%, var(--accent-700));
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.login-card-copy {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.login-eyebrow {
+  margin: 0;
+  color: color-mix(in srgb, var(--text-secondary) 92%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.close-btn {
+  position: relative;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 72%, transparent);
   background: color-mix(in srgb, var(--surface-elevated) 76%, transparent);
@@ -520,30 +622,96 @@ onBeforeUnmount(() => {
 
 .login-title {
   margin: 0;
-  text-align: center;
-  font-size: 25px;
+  text-align: left;
+  font-size: clamp(30px, 4vw, 38px);
+  line-height: 1.02;
+  letter-spacing: 0.02em;
   color: var(--text-primary);
 }
 
 .login-tip {
-  margin: 6px 0 0;
-  text-align: center;
-  font-size: 13px;
+  margin: 0;
+  max-width: 420px;
+  font-size: 14px;
+  line-height: 1.75;
   color: var(--text-secondary);
 }
 
+.login-form {
+  display: grid;
+  gap: 14px;
+}
+
+.field-shell {
+  display: grid;
+  gap: 9px;
+  padding: 14px 14px 12px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 74%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 74%, transparent), color-mix(in srgb, var(--surface-elevated) 72%, transparent));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-white) 10%, transparent),
+    0 10px 22px color-mix(in srgb, var(--color-black) 4%, transparent);
+}
+
+.field-label {
+  color: color-mix(in srgb, var(--text-primary) 88%, var(--text-secondary));
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .login-card :deep(.app-input) {
-  min-height: 44px;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  min-height: 52px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 72%, transparent);
+  background: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-white) 10%, transparent);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background-color 180ms ease;
 }
 
 .login-card :deep(.app-input:hover),
 .login-card :deep(.app-input:focus-visible) {
   transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent-500) 34%, transparent);
+  background: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent-500) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-white) 10%, transparent);
 }
 
 .submit-btn {
-  min-height: 44px;
+  min-height: 54px;
+  margin-top: 4px;
+  border-radius: 18px;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow:
+    0 18px 34px color-mix(in srgb, var(--accent-600) 28%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-white) 16%, transparent);
+}
+
+.login-footline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 74%, transparent);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.footline-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--accent-500), var(--success));
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-500) 10%, transparent);
 }
 
 .login-overlay-fade-enter-active,
@@ -678,6 +846,20 @@ onBeforeUnmount(() => {
   .entry-title {
     font-size: clamp(32px, 11vw, 52px);
     letter-spacing: 0.06em;
+  }
+}
+
+@media (max-width: 900px) {
+  .login-card-inner {
+    padding: 20px 18px 18px;
+  }
+
+  .login-title {
+    font-size: clamp(28px, 8vw, 34px);
+  }
+
+  .login-tip {
+    max-width: none;
   }
 }
 

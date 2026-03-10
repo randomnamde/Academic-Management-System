@@ -3,11 +3,11 @@ USE student_management;
 
 -- 插入系统用户（密码：123456，使用BCrypt加密）
 INSERT INTO sys_user (username, password, real_name, phone, email, role, status) VALUES
-('admin', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '管理员', '13800000001', 'admin@school.com', 'SCHOOL_ADMIN', 1),
-('teacher001', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '张老师', '13800000002', 'teacher001@school.com', 'COURSE_TEACHER', 1),
-('teacher002', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '李老师', '13800000003', 'teacher002@school.com', 'COURSE_TEACHER', 1),
-('student001', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '王同学', '13800000004', 'student001@school.com', 'STUDENT', 1),
-('student002', '$2a$10$7JB720yubVSOSv9/DdBNEObud5IS9AbJhB4Va8HGJ5JHhB4Vq7y/6', '李同学', '13800000005', 'student002@school.com', 'STUDENT', 1);
+('admin', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '管理员', '13800000001', 'admin@school.com', 'SCHOOL_ADMIN', 1),
+('teacher001', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '张老师', '13800000002', 'teacher001@school.com', 'COURSE_TEACHER', 1),
+('teacher002', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '李老师', '13800000003', 'teacher002@school.com', 'COURSE_TEACHER', 1),
+('student001', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '王同学', '13800000004', 'student001@school.com', 'STUDENT', 1),
+('student002', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '李同学', '13800000005', 'student002@school.com', 'STUDENT', 1);
 
 -- 插入教师信息
 INSERT INTO teacher (user_id, teacher_no, name, gender, phone, email, title, department, hire_date, status) VALUES

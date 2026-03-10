@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Start All (Dev)" type="CompoundRunConfigurationType" factoryName="Compound">
+    <toRun name="Backend Dev (WSL)" type="ShConfigurationType" />
+    <toRun name="Frontend Serve (npm)" type="ShConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>

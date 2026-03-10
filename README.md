@@ -235,6 +235,39 @@ npm install
 npm run dev
 ```
 
+### 方式四：WSL 本地开发（MySQL + Redis 都在 WSL）
+
+```bash
+cd backend
+mvn spring-boot:run -D"spring-boot.run.profiles"=dev
+```
+
+如果 `8080` 已被占用，可以改成：
+
+```bash
+mvn spring-boot:run -D"spring-boot.run.profiles"=dev -D"spring-boot.run.arguments=--server.port=8081"
+```
+
+如果 WSL 中的 MySQL `root` 账号使用了系统认证或不是这个项目的密码，建议先创建一个单独的开发账号：
+
+```sql
+CREATE DATABASE IF NOT EXISTS student_management CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'student_app'@'localhost' IDENTIFIED BY 'student123';
+CREATE USER IF NOT EXISTS 'student_app'@'127.0.0.1' IDENTIFIED BY 'student123';
+GRANT ALL PRIVILEGES ON student_management.* TO 'student_app'@'localhost';
+GRANT ALL PRIVILEGES ON student_management.* TO 'student_app'@'127.0.0.1';
+FLUSH PRIVILEGES;
+```
+
+然后用这个账号启动后端：
+
+```bash
+cd backend
+export MYSQL_USERNAME=student_app
+export MYSQL_PASSWORD=student123
+mvn spring-boot:run -D"spring-boot.run.profiles"=dev
+```
+
 ---
 
 ## 内网部署（Nginx + 前端）
@@ -367,7 +400,7 @@ mvn test
 mvn -DskipTests package
 
 # 运行
-mvn spring-boot:run
+mvn spring-boot:run -D"spring-boot.run.profiles"=dev
 ```
 
 ### 前端开发

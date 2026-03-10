@@ -9,6 +9,8 @@ import './styles/tokens.css'
 import './styles/base.css'
 import './styles/tailwind.css'
 import './styles/global.scss'
+import 'element-plus/es/components/message/style/css'
+import 'element-plus/es/components/message-box/style/css'
 import { initializeTheme } from './composables/useTheme'
 
 const resizeObserverErrorPattern = /ResizeObserver loop (completed with undelivered notifications|limit exceeded)/i

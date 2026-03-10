@@ -299,12 +299,147 @@ CREATE TABLE IF NOT EXISTS semester (
     INDEX idx_semester_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Semester master data';
 
-ALTER TABLE teacher ADD COLUMN IF NOT EXISTS college_id BIGINT NULL;
-ALTER TABLE class ADD COLUMN IF NOT EXISTS college_id BIGINT NULL;
-ALTER TABLE leave_request ADD COLUMN IF NOT EXISTS workflow_type VARCHAR(20) NULL;
-ALTER TABLE leave_request ADD COLUMN IF NOT EXISTS current_node VARCHAR(50) NULL;
-ALTER TABLE leave_request ADD COLUMN IF NOT EXISTS final_status VARCHAR(20) NULL;
+SET @stmt = IF(
+    EXISTS (
+        SELECT 1
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'teacher'
+          AND COLUMN_NAME = 'college_id'
+    ),
+    'SELECT 1',
+    'ALTER TABLE teacher ADD COLUMN college_id BIGINT NULL'
+);
+PREPARE ddl_stmt FROM @stmt;
+EXECUTE ddl_stmt;
+DEALLOCATE PREPARE ddl_stmt;
 
-CREATE INDEX idx_teacher_college_id ON teacher(college_id);
-CREATE INDEX idx_class_college_id ON class(college_id);
-CREATE INDEX idx_leave_node_status ON leave_request(current_node, status);
+SET @stmt = IF(
+    EXISTS (
+        SELECT 1
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'class'
+          AND COLUMN_NAME = 'college_id'
+    ),
+    'SELECT 1',
+    'ALTER TABLE class ADD COLUMN college_id BIGINT NULL'
+);
+PREPARE ddl_stmt FROM @stmt;
+EXECUTE ddl_stmt;
+DEALLOCATE PREPARE ddl_stmt;
+
+SET @stmt = IF(
+    EXISTS (
+        SELECT 1
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'leave_request'
+          AND COLUMN_NAME = 'workflow_type'
+    ),
+    'SELECT 1',
+    'ALTER TABLE leave_request ADD COLUMN workflow_type VARCHAR(20) NULL'
+);
+PREPARE ddl_stmt FROM @stmt;
+EXECUTE ddl_stmt;
+DEALLOCATE PREPARE ddl_stmt;
+
+SET @stmt = IF(
+    EXISTS (
+        SELECT 1
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'leave_request'
+          AND COLUMN_NAME = 'current_node'
+    ),
+    'SELECT 1',
+    'ALTER TABLE leave_request ADD COLUMN current_node VARCHAR(50) NULL'
+);
+PREPARE ddl_stmt FROM @stmt;
+EXECUTE ddl_stmt;
+DEALLOCATE PREPARE ddl_stmt;
+
+SET @stmt = IF(
+    EXISTS (
+        SELECT 1
+        FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'leave_request'
+          AND COLUMN_NAME = 'final_status'
+    ),
+    'SELECT 1',
+    'ALTER TABLE leave_request ADD COLUMN final_status VARCHAR(20) NULL'
+);
+PREPARE ddl_stmt FROM @stmt;
+EXECUTE ddl_stmt;
+DEALLOCATE PREPARE ddl_stmt;
+
+SET @stmt = IF(
+    EXISTS (
+        SELECT 1
+        FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'teacher'
+          AND INDEX_NAME = 'idx_teacher_college_id'
+    ),
+    'SELECT 1',
+    'CREATE INDEX idx_teacher_college_id ON teacher(college_id)'
+);
+PREPARE ddl_stmt FROM @stmt;
+EXECUTE ddl_stmt;
+DEALLOCATE PREPARE ddl_stmt;
+
+SET @stmt = IF(
+    EXISTS (
+        SELECT 1
+        FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'class'
+          AND INDEX_NAME = 'idx_class_college_id'
+    ),
+    'SELECT 1',
+    'CREATE INDEX idx_class_college_id ON class(college_id)'
+);
+PREPARE ddl_stmt FROM @stmt;
+EXECUTE ddl_stmt;
+DEALLOCATE PREPARE ddl_stmt;
+
+SET @stmt = IF(
+    EXISTS (
+        SELECT 1
+        FROM information_schema.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'leave_request'
+          AND INDEX_NAME = 'idx_leave_node_status'
+    ),
+    'SELECT 1',
+    'CREATE INDEX idx_leave_node_status ON leave_request(current_node, status)'
+);
+PREPARE ddl_stmt FROM @stmt;
+EXECUTE ddl_stmt;
+DEALLOCATE PREPARE ddl_stmt;
+
+-- ===== 2026-03 High-Concurrency Course Selection =====
+CREATE TABLE IF NOT EXISTS selection_round (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    round_name VARCHAR(100) NOT NULL,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME NOT NULL,
+    status TINYINT DEFAULT 0 COMMENT '0-关闭, 1-开启',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='选课轮次表';
+
+CREATE TABLE IF NOT EXISTS student_course_selection (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    student_id BIGINT NOT NULL,
+    course_arrangement_id BIGINT NOT NULL,
+    status ENUM('PENDING', 'SUCCESS', 'FAILED', 'DROPPED') DEFAULT 'PENDING',
+    remark VARCHAR(255),
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_student_arrangement (student_id, course_arrangement_id),
+    INDEX idx_student_id (student_id),
+    CONSTRAINT fk_selection_student FOREIGN KEY (student_id) REFERENCES student(id) ON DELETE CASCADE,
+    CONSTRAINT fk_selection_arrangement FOREIGN KEY (course_arrangement_id) REFERENCES course_arrangement(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学生选课记录表';

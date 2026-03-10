@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Cleanup Ports (3000,8080)" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="$ports = @(3000,8080); $pids = @(); foreach ($port in $ports) { $pids += Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess }; $pids = $pids | Sort-Object -Unique; if ($pids.Count -gt 0) { foreach ($processId in $pids) { try { Stop-Process -Id $processId -Force -ErrorAction Stop; Write-Output ('Stopped PID ' + $processId) } catch {} } } else { Write-Output 'No process is listening on 3000/8080' }" />
+  <configuration default="false" name="Backend Dev (WSL)" type="ShConfigurationType">
+    <option name="SCRIPT_TEXT" value="wsl.exe -e sh -lc &quot;cd /mnt/d/Learn/crm/student-management-system/backend &amp;&amp; mvn spring-boot:run -Dspring-boot.run.profiles=dev&quot;" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="" />
     <option name="SCRIPT_OPTIONS" value="" />

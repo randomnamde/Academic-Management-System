@@ -195,6 +195,36 @@ export default {
       enter: 'Open RBAC Center'
     },
     accountSecurity: 'Account Security',
+    securityPanel: {
+      overviewTitle: 'Password & Sign-in Security',
+      overviewDesc: 'Review password strength guidance and confirm the key safety checks before updating credentials.',
+      formTitle: 'Update Sign-in Password',
+      formDesc: 'Your new password takes effect immediately. Use a high-strength password and avoid reusing it elsewhere.',
+      formChip: 'Security Update',
+      newPasswordHint: 'Use at least 8 characters with upper/lowercase letters, numbers, and symbols.',
+      submitNote: 'After saving, sign in again on any other devices with the new password.',
+      tipTitle: 'Security Tips',
+      tips: {
+        rotate: 'Rotate your password regularly instead of keeping the same credentials for long periods.',
+        reuse: 'Do not reuse the same password for email, work tools, or social accounts.',
+        sharedDevice: 'On shared devices, log out promptly and clear any saved sign-in data.'
+      },
+      rules: {
+        length: 'At least 8 characters',
+        caseMix: 'Includes both uppercase and lowercase letters',
+        number: 'Includes at least one number',
+        special: 'Includes at least one symbol'
+      },
+      strength: {
+        title: 'Password Strength',
+        desc: 'This indicator updates in real time based on the new password you enter.',
+        empty: 'Empty',
+        weak: 'Weak',
+        medium: 'Medium',
+        strong: 'Strong',
+        excellent: 'Excellent'
+      }
+    },
     password: {
       old: 'Current Password',
       new: 'New Password',

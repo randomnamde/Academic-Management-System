@@ -143,7 +143,7 @@
 
         <button
           type="button"
-          class="entry-card entry-card-permission touch-target md:col-span-2"
+          class="entry-card entry-card-permission touch-target"
           @click="goPermissionCenter"
         >
           <div class="entry-card-head">
@@ -175,20 +175,85 @@
     </AppCard>
 
     <AppCard :title="t('system.accountSecurity')" surface="base" content-class="p-4">
-      <el-form ref="pwdFormRef" :model="passwordForm" :rules="pwdRules" label-width="96px" class="max-w-2xl">
-        <el-form-item :label="t('system.password.old')" prop="oldPassword">
-          <el-input v-model="passwordForm.oldPassword" type="password" show-password />
-        </el-form-item>
-        <el-form-item :label="t('system.password.new')" prop="newPassword">
-          <el-input v-model="passwordForm.newPassword" type="password" show-password />
-        </el-form-item>
-        <el-form-item :label="t('system.password.confirm')" prop="confirmPassword">
-          <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
-        </el-form-item>
-        <el-form-item>
-          <AppButton :loading="pwdLoading" @click="submitPassword">{{ t('system.password.save') }}</AppButton>
-        </el-form-item>
-      </el-form>
+      <div class="security-grid">
+        <section class="security-overview">
+          <div class="security-overview-head">
+            <div class="security-badge">
+              <ShieldCheck class="h-5 w-5" />
+            </div>
+            <div class="security-overview-copy">
+              <p class="security-overview-title">{{ t('system.securityPanel.overviewTitle') }}</p>
+              <p class="security-overview-desc">{{ t('system.securityPanel.overviewDesc') }}</p>
+            </div>
+          </div>
+
+          <div class="security-strength-card">
+            <div class="security-strength-head">
+              <span class="security-strength-title">{{ t('system.securityPanel.strength.title') }}</span>
+              <span class="security-strength-badge" :class="`is-${passwordStrengthMeta.tone}`">
+                {{ passwordStrengthMeta.label }}
+              </span>
+            </div>
+            <div class="security-strength-bar" aria-hidden="true">
+              <span :class="`is-${passwordStrengthMeta.tone}`" :style="{ width: `${passwordStrengthMeta.percent}%` }" />
+            </div>
+            <p class="security-strength-desc">{{ t('system.securityPanel.strength.desc') }}</p>
+          </div>
+
+          <div class="security-rule-list">
+            <div
+              v-for="rule in passwordRuleChecks"
+              :key="rule.key"
+              class="security-rule-item"
+              :class="{ 'is-passed': rule.passed }"
+            >
+              <component :is="rule.passed ? CheckCircle2 : CircleAlert" class="h-4 w-4 shrink-0" />
+              <span>{{ rule.label }}</span>
+            </div>
+          </div>
+
+          <div class="security-tip-panel">
+            <p class="security-tip-title">{{ t('system.securityPanel.tipTitle') }}</p>
+            <p
+              v-for="tip in securityTips"
+              :key="tip"
+              class="security-tip-item"
+            >
+              {{ tip }}
+            </p>
+          </div>
+        </section>
+
+        <section class="security-form-panel">
+          <div class="security-form-head">
+            <div>
+              <p class="security-form-title">{{ t('system.securityPanel.formTitle') }}</p>
+              <p class="security-form-desc">{{ t('system.securityPanel.formDesc') }}</p>
+            </div>
+            <span class="security-form-chip">
+              <KeyRound class="h-4 w-4" />
+              <span>{{ t('system.securityPanel.formChip') }}</span>
+            </span>
+          </div>
+
+          <el-form ref="pwdFormRef" :model="passwordForm" :rules="pwdRules" label-position="top" class="security-form">
+            <el-form-item :label="t('system.password.old')" prop="oldPassword">
+              <el-input v-model="passwordForm.oldPassword" type="password" show-password />
+            </el-form-item>
+            <el-form-item :label="t('system.password.new')" prop="newPassword">
+              <el-input v-model="passwordForm.newPassword" type="password" show-password />
+              <p class="security-input-hint">{{ t('system.securityPanel.newPasswordHint') }}</p>
+            </el-form-item>
+            <el-form-item :label="t('system.password.confirm')" prop="confirmPassword">
+              <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
+            </el-form-item>
+            <div class="security-submit-row">
+              <AppButton :loading="pwdLoading" block @click="submitPassword">{{ t('system.password.save') }}</AppButton>
+              <p class="security-submit-note">{{ t('system.securityPanel.submitNote') }}</p>
+            </div>
+          </el-form>
+        </section>
+      </div>
     </AppCard>
   </div>
 </template>
@@ -198,7 +263,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
-import { ArrowRight, CalendarRange, Clock3, Languages, Monitor, Moon, Plus, ShieldCheck, SunMedium, Trash2 } from 'lucide-vue-next'
+import { ArrowRight, CalendarRange, CheckCircle2, CircleAlert, Clock3, KeyRound, Languages, Monitor, Moon, Plus, ShieldCheck, SunMedium, Trash2 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
@@ -259,6 +324,44 @@ const currentSemesterStatusLabel = computed(() => {
   return t(`semester.status.${currentSemesterStatus.value}`)
 })
 const courseTimeSlotPreview = computed(() => courseTimeSlots.value.map((item) => item.trim()).filter(Boolean))
+const passwordRuleChecks = computed(() => {
+  const password = passwordForm.newPassword || ''
+  return [
+    { key: 'length', label: t('system.securityPanel.rules.length'), passed: password.length >= 8 },
+    { key: 'case', label: t('system.securityPanel.rules.caseMix'), passed: /[a-z]/.test(password) && /[A-Z]/.test(password) },
+    { key: 'number', label: t('system.securityPanel.rules.number'), passed: /\d/.test(password) },
+    { key: 'special', label: t('system.securityPanel.rules.special'), passed: /[^A-Za-z0-9]/.test(password) }
+  ]
+})
+const passwordStrengthMeta = computed(() => {
+  const password = passwordForm.newPassword || ''
+  if (!password) {
+    return { label: t('system.securityPanel.strength.empty'), percent: 8, tone: 'idle' }
+  }
+
+  let score = 0
+  if (password.length >= 8) score += 1
+  if (password.length >= 12) score += 1
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1
+  if (/\d/.test(password)) score += 1
+  if (/[^A-Za-z0-9]/.test(password)) score += 1
+
+  if (score <= 1) {
+    return { label: t('system.securityPanel.strength.weak'), percent: 28, tone: 'weak' }
+  }
+  if (score <= 3) {
+    return { label: t('system.securityPanel.strength.medium'), percent: 62, tone: 'medium' }
+  }
+  if (score === 4) {
+    return { label: t('system.securityPanel.strength.strong'), percent: 84, tone: 'strong' }
+  }
+  return { label: t('system.securityPanel.strength.excellent'), percent: 100, tone: 'excellent' }
+})
+const securityTips = computed(() => ([
+  t('system.securityPanel.tips.rotate'),
+  t('system.securityPanel.tips.reuse'),
+  t('system.securityPanel.tips.sharedDevice')
+]))
 
 const pwdRules = computed(() => ({
   oldPassword: [{ required: true, message: t('system.password.oldRequired'), trigger: 'blur' }],
@@ -669,6 +772,251 @@ onMounted(async () => {
   border-color: rgba(28, 113, 168, 0.24);
 }
 
+.security-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(280px, 0.92fr) minmax(0, 1.08fr);
+}
+
+.security-overview,
+.security-form-panel {
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+  overflow: hidden;
+}
+
+.security-overview {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(26, 109, 91, 0.18), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 96%, transparent), color-mix(in srgb, var(--surface-elevated) 88%, transparent));
+}
+
+.security-overview-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.security-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent-500) 20%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 86%, transparent);
+  color: color-mix(in srgb, var(--accent-700) 84%, var(--text-primary));
+}
+
+.security-overview-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.security-overview-title,
+.security-form-title,
+.security-tip-title {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.security-overview-title,
+.security-form-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.security-overview-desc,
+.security-form-desc,
+.security-strength-desc,
+.security-submit-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: color-mix(in srgb, var(--text-primary) 76%, var(--text-secondary));
+}
+
+.security-strength-card,
+.security-tip-panel {
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 78%, transparent);
+}
+
+.security-strength-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.security-strength-head,
+.security-form-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.security-strength-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.security-strength-badge,
+.security-form-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 82%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.security-strength-badge.is-idle {
+  color: var(--text-secondary);
+}
+
+.security-strength-badge.is-weak {
+  color: var(--danger);
+}
+
+.security-strength-badge.is-medium {
+  color: #a16912;
+}
+
+.security-strength-badge.is-strong,
+.security-strength-badge.is-excellent {
+  color: #17715c;
+}
+
+.security-strength-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+}
+
+.security-strength-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 180ms ease, background-color 180ms ease;
+}
+
+.security-strength-bar > span.is-idle {
+  background: color-mix(in srgb, var(--panel-border) 72%, transparent);
+}
+
+.security-strength-bar > span.is-weak {
+  background: linear-gradient(90deg, rgba(214, 74, 74, 0.9), rgba(190, 44, 44, 0.86));
+}
+
+.security-strength-bar > span.is-medium {
+  background: linear-gradient(90deg, rgba(219, 157, 44, 0.94), rgba(194, 122, 52, 0.9));
+}
+
+.security-strength-bar > span.is-strong,
+.security-strength-bar > span.is-excellent {
+  background: linear-gradient(90deg, rgba(32, 157, 115, 0.92), rgba(27, 120, 136, 0.92));
+}
+
+.security-rule-list {
+  display: grid;
+  gap: 10px;
+}
+
+.security-rule-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 76%, transparent);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.security-rule-item.is-passed {
+  border-color: color-mix(in srgb, var(--accent-500) 28%, transparent);
+  background: color-mix(in srgb, var(--accent-500) 12%, transparent);
+  color: color-mix(in srgb, var(--accent-700) 84%, var(--text-primary));
+}
+
+.security-tip-panel {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+}
+
+.security-tip-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.security-tip-item {
+  margin: 0;
+  padding-left: 14px;
+  position: relative;
+  font-size: 13px;
+  line-height: 1.75;
+  color: color-mix(in srgb, var(--text-primary) 76%, var(--text-secondary));
+}
+
+.security-tip-item::before {
+  content: '';
+  position: absolute;
+  top: 9px;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-500) 78%, white);
+}
+
+.security-form-panel {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 98%, transparent), color-mix(in srgb, var(--surface-elevated) 90%, transparent));
+}
+
+.security-form-chip {
+  color: color-mix(in srgb, var(--accent-700) 80%, var(--text-primary));
+}
+
+.security-form {
+  display: grid;
+  gap: 4px;
+}
+
+.security-input-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.security-submit-row {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+
 @media (max-width: 767px) {
   .preference-card-head {
     flex-direction: column;
@@ -676,6 +1024,18 @@ onMounted(async () => {
   }
 
   .preference-pill {
+    align-self: flex-start;
+  }
+
+  .security-grid,
+  .security-strength-head,
+  .security-form-head {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .security-strength-badge,
+  .security-form-chip {
     align-self: flex-start;
   }
 }

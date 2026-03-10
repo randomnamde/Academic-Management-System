@@ -195,6 +195,36 @@
       enter: '进入权限中心'
     },
     accountSecurity: '账号安全',
+    securityPanel: {
+      overviewTitle: '密码与登录安全',
+      overviewDesc: '统一查看当前密码强度建议，并在修改前快速确认关键安全要求。',
+      formTitle: '更新登录密码',
+      formDesc: '修改后新密码会立即生效，建议使用高强度密码并避免与其他平台复用。',
+      formChip: '安全更新',
+      newPasswordHint: '建议至少 8 位，并同时包含大小写字母、数字和特殊字符。',
+      submitNote: '保存后请使用新密码重新登录其他设备上的账号。',
+      tipTitle: '安全建议',
+      tips: {
+        rotate: '建议定期更换密码，避免长期使用同一组凭据。',
+        reuse: '不要与邮箱、办公平台或社交账号使用相同密码。',
+        sharedDevice: '在共享设备上操作后请及时退出登录并清理保存记录。'
+      },
+      rules: {
+        length: '密码长度至少 8 位',
+        caseMix: '同时包含大写与小写字母',
+        number: '至少包含 1 个数字',
+        special: '至少包含 1 个特殊字符'
+      },
+      strength: {
+        title: '密码强度',
+        desc: '这里会根据你当前输入的新密码给出实时强度反馈。',
+        empty: '未输入',
+        weak: '较弱',
+        medium: '中等',
+        strong: '较强',
+        excellent: '很强'
+      }
+    },
     password: {
       old: '旧密码',
       new: '新密码',

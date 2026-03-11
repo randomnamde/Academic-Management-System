@@ -107,7 +107,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
     public void approveLeaveRequest(Long id,
                                     boolean approved,
                                     String remark,
-                                    Long approverUserId,
+                                    String approverUserId,
                                     Long approverTeacherId,
                                     Set<RoleCode> approverRoles) {
         LeaveRequest leaveRequest = leaveRequestMapper.selectById(id);
@@ -118,7 +118,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
             throw new BusinessException("This request has already been processed");
         }
 
-        Student student = studentMapper.selectById(leaveRequest.getStudentId());
+        Student student = studentMapper.selectByStudentNo(leaveRequest.getStudentId());
         if (student == null) {
             throw new BusinessException("Student not found");
         }
@@ -182,7 +182,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
     }
 
     @Override
-    public Page<LeaveRequest> getLeaveRequestPage(Integer page, Integer size, Long studentId, Long teacherId, LeaveRequest.Status status) {
+    public Page<LeaveRequest> getLeaveRequestPage(Integer page, Integer size, String studentId, Long teacherId, LeaveRequest.Status status) {
         if (teacherId == null) {
             Page<LeaveRequest> pageParam = new Page<>(page, size);
             return leaveRequestMapper.selectPageWithDetail(pageParam, studentId, null, status);
@@ -196,12 +196,12 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
                 classIds.add(clazz.getClassCode());
             }
         }
-        Set<Long> allowedStudentIds = new HashSet<>();
+        Set<String> allowedStudentIds = new HashSet<>();
         if (!classIds.isEmpty()) {
             List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getClassId, classIds));
             for (Student student : students) {
-                if (student.getId() != null) {
-                    allowedStudentIds.add(student.getId());
+                if (student.getStudentNo() != null) {
+                    allowedStudentIds.add(student.getStudentNo());
                 }
             }
         }
@@ -247,7 +247,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
     @Override
     public Page<LeaveRequest> getLeaveRequestPageByStudentIds(Integer page,
                                                               Integer size,
-                                                              Set<Long> studentIds,
+                                                              Set<String> studentIds,
                                                               LeaveRequest.Status status) {
         Page<LeaveRequest> pageParam = new Page<>(page, size);
         if (studentIds == null || studentIds.isEmpty()) {
@@ -269,7 +269,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
     }
 
     @Override
-    public List<LeaveRequest> getStudentLeaveRequests(Long studentId) {
+    public List<LeaveRequest> getStudentLeaveRequests(String studentId) {
         return leaveRequestMapper.selectByStudentId(studentId);
     }
 
@@ -284,7 +284,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
             return List.of();
         }
         List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getClassId, classIds));
-        Set<Long> studentIds = students.stream().map(Student::getId).collect(java.util.stream.Collectors.toSet());
+        Set<String> studentIds = students.stream().map(Student::getStudentNo).collect(java.util.stream.Collectors.toSet());
         if (studentIds.isEmpty()) {
             return List.of();
         }
@@ -305,7 +305,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
         }
         Set<String> classIds = classes.stream().map(Class::getClassCode).collect(java.util.stream.Collectors.toSet());
         List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getClassId, classIds));
-        Set<Long> studentIds = students.stream().map(Student::getId).collect(java.util.stream.Collectors.toSet());
+        Set<String> studentIds = students.stream().map(Student::getStudentNo).collect(java.util.stream.Collectors.toSet());
         if (studentIds.isEmpty()) {
             return List.of();
         }
@@ -319,7 +319,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
     }
 
     @Override
-    public List<LeaveRequestCc> getCcList(Long receiverUserId) {
+    public List<LeaveRequestCc> getCcList(String receiverUserId) {
         return leaveRequestCcMapper.selectList(
                 new LambdaQueryWrapper<LeaveRequestCc>()
                         .eq(LeaveRequestCc::getReceiverUserId, receiverUserId)
@@ -328,7 +328,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
 
     @Override
     @Transactional
-    public void markCcRead(Long ccId, Long receiverUserId) {
+    public void markCcRead(Long ccId, String receiverUserId) {
         LeaveRequestCc cc = leaveRequestCcMapper.selectById(ccId);
         if (cc == null) {
             throw new BusinessException("CC record not found");
@@ -361,7 +361,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
     private void assertApprovalPermission(LeaveRequest leaveRequest,
                                           Class clazz,
                                           College college,
-                                          Long approverUserId,
+                                          String approverUserId,
                                           Long approverTeacherId,
                                           Set<RoleCode> approverRoles) {
         if (approverRoles.contains(RoleCode.SCHOOL_ADMIN)) {
@@ -393,7 +393,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
     }
 
     private void recordApproval(LeaveRequest leaveRequest,
-                                Long approverUserId,
+                                String approverUserId,
                                 Long approverTeacherId,
                                 boolean approved,
                                 String remark) {
@@ -414,7 +414,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
         if (arrangement == null || arrangement.getTeacherId() == null) {
             return;
         }
-        Teacher teacher = teacherMapper.selectById(arrangement.getTeacherId());
+        Teacher teacher = teacherMapper.selectByInternalId(arrangement.getTeacherId());
         if (teacher == null || teacher.getUserId() == null) {
             return;
         }
@@ -440,7 +440,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
                 .filter(id -> id != null)
                 .collect(java.util.stream.Collectors.toSet());
         for (Long teacherId : teacherIds) {
-            Teacher teacher = teacherMapper.selectById(teacherId);
+            Teacher teacher = teacherMapper.selectByInternalId(teacherId);
             if (teacher == null || teacher.getUserId() == null) {
                 continue;
             }
@@ -448,7 +448,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
         }
     }
 
-    private void insertCc(Long leaveRequestId, Long receiverUserId, Long receiverTeacherId, String remark) {
+    private void insertCc(Long leaveRequestId, String receiverUserId, Long receiverTeacherId, String remark) {
         LeaveRequestCc exists = leaveRequestCcMapper.selectOne(
                 new LambdaQueryWrapper<LeaveRequestCc>()
                         .eq(LeaveRequestCc::getLeaveRequestId, leaveRequestId)

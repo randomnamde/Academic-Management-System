@@ -51,7 +51,7 @@ public class ReportController {
 
     @GetMapping("/score")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
-    public void exportScore(@RequestParam(required = false) Long studentId,
+    public void exportScore(@RequestParam(required = false) String studentId,
                             @RequestParam(required = false) Long courseArrangementId,
                             @RequestParam(required = false) Long collegeId,
                             @RequestParam(required = false) String classId,
@@ -59,7 +59,7 @@ public class ReportController {
                             @RequestParam(required = false) String format,
                             Authentication authentication,
                             HttpServletResponse response) {
-        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+        String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         Set<Long> scopedArrangementIds = resolveCollegeArrangementScope(authentication, courseArrangementId);
@@ -113,14 +113,14 @@ public class ReportController {
 
     @GetMapping("/attendance")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
-    public void exportAttendance(@RequestParam(required = false) Long studentId,
+    public void exportAttendance(@RequestParam(required = false) String studentId,
                                  @RequestParam(required = false) Long courseArrangementId,
                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate attendanceDate,
                                  @RequestParam(required = false) Attendance.Status status,
                                  @RequestParam(required = false) String format,
                                  Authentication authentication,
                                  HttpServletResponse response) {
-        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+        String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         Set<Long> scopedArrangementIds = resolveCollegeArrangementScope(authentication, courseArrangementId);
@@ -160,16 +160,16 @@ public class ReportController {
 
     @GetMapping("/leave-request")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
-    public void exportLeaveRequest(@RequestParam(required = false) Long studentId,
+    public void exportLeaveRequest(@RequestParam(required = false) String studentId,
                                    @RequestParam(required = false) LeaveRequest.Status status,
                                    @RequestParam(required = false) String format,
                                    Authentication authentication,
                                    HttpServletResponse response) {
-        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+        String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         Page<LeaveRequest> result;
         if (currentUserService.isCollegeAdmin(authentication)) {
-            Set<Long> studentIds = new HashSet<>(dataScopeService.resolveCollegeStudentIds(authentication));
+            Set<String> studentIds = new HashSet<>(dataScopeService.resolveCollegeStudentNos(authentication));
             if (scopedStudentId != null) {
                 studentIds = studentIds.contains(scopedStudentId) ? Set.of(scopedStudentId) : Set.of();
             }

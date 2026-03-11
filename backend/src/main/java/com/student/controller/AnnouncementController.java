@@ -61,7 +61,7 @@ public class AnnouncementController {
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody Announcement announcement, Authentication authentication) {
         SysUser currentUser = currentUserService.getCurrentUser(authentication);
-        announcement.setAuthorId(currentUser.getId());
+        announcement.setAuthorId(currentUser.getUsername());
         announcementService.createAnnouncement(announcement);
         return ResultVO.success();
     }

@@ -39,7 +39,7 @@ public class JwtTokenProvider {
                 : (user.getRole() == null ? null : user.getRole().name());
 
         JwtBuilder builder = Jwts.builder()
-                .setSubject(user.getId().toString())
+                .setSubject(user.getUsername())
                 .claim("username", user.getUsername())
                 .claim("roles", roleCodes)
                 .claim("primaryRole", primaryRole)
@@ -52,9 +52,9 @@ public class JwtTokenProvider {
         return builder.compact();
     }
     
-    public Long getUserIdFromToken(String token) {
+    public String getUserIdFromToken(String token) {
         Claims claims = parseToken(token);
-        return Long.parseLong(claims.getSubject());
+        return claims.getSubject();
     }
     
     public String getUsernameFromToken(String token) {

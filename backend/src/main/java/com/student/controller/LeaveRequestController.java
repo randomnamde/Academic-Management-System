@@ -31,7 +31,7 @@ public class LeaveRequestController {
     @PostMapping
     @PreAuthorize("hasAnyRole('STUDENT')")
     public ResultVO<Void> submit(@RequestBody @Validated LeaveRequestDTO leaveRequestDTO, Authentication authentication) {
-        leaveRequestDTO.setStudentId(currentUserService.getCurrentStudentId(authentication));
+        leaveRequestDTO.setStudentId(currentUserService.getCurrentStudentNo(authentication));
         leaveRequestService.submitLeaveRequest(leaveRequestDTO);
         return ResultVO.success();
     }
@@ -39,7 +39,7 @@ public class LeaveRequestController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('STUDENT')")
     public ResultVO<Void> update(@PathVariable Long id, @RequestBody @Validated LeaveRequestDTO leaveRequestDTO, Authentication authentication) {
-        Long studentId = currentUserService.getCurrentStudentId(authentication);
+        String studentId = currentUserService.getCurrentStudentNo(authentication);
         validateStudentOwnsRequest(id, studentId);
         leaveRequestDTO.setId(id);
         leaveRequestDTO.setStudentId(studentId);
@@ -50,7 +50,7 @@ public class LeaveRequestController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('STUDENT')")
     public ResultVO<Void> cancel(@PathVariable Long id, Authentication authentication) {
-        validateStudentOwnsRequest(id, currentUserService.getCurrentStudentId(authentication));
+        validateStudentOwnsRequest(id, currentUserService.getCurrentStudentNo(authentication));
         leaveRequestService.cancelLeaveRequest(id);
         return ResultVO.success();
     }
@@ -61,7 +61,7 @@ public class LeaveRequestController {
                                   @RequestParam boolean approved,
                                   @RequestParam(required = false) String remark,
                                   Authentication authentication) {
-        Long approverUserId = currentUserService.getCurrentUser(authentication).getId();
+        String approverUserId = currentUserService.getCurrentUser(authentication).getUsername();
         Long approverTeacherId = null;
         if (currentUserService.isTeacher(authentication)) {
             approverTeacherId = currentUserService.getCurrentTeacherId(authentication);
@@ -79,11 +79,11 @@ public class LeaveRequestController {
             return ResultVO.error(404, "Leave request not found");
         }
         if (currentUserService.isStudent(authentication)
-                && !currentUserService.getCurrentStudentId(authentication).equals(leaveRequest.getStudentId())) {
+                && !currentUserService.getCurrentStudentNo(authentication).equals(leaveRequest.getStudentId())) {
             return ResultVO.error(403, "Forbidden");
         }
         if (currentUserService.isCollegeAdmin(authentication)) {
-            Set<Long> scopedStudentIds = dataScopeService.resolveCollegeStudentIds(authentication);
+            Set<String> scopedStudentIds = dataScopeService.resolveCollegeStudentNos(authentication);
             if (!scopedStudentIds.contains(leaveRequest.getStudentId())) {
                 return ResultVO.error(403, "Forbidden");
             }
@@ -96,7 +96,7 @@ public class LeaveRequestController {
                     1, 20, leaveRequest.getStudentId(), teacherId, null);
             boolean canView = scopedPage.getRecords().stream().anyMatch(item -> id.equals(item.getId()));
             if (!canView) {
-                Long userId = currentUserService.getCurrentUser(authentication).getId();
+                String userId = currentUserService.getCurrentUser(authentication).getUsername();
                 canView = leaveRequestService.getCcList(userId).stream().anyMatch(item -> id.equals(item.getLeaveRequestId()));
             }
             if (!canView) {
@@ -110,15 +110,15 @@ public class LeaveRequestController {
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Page<LeaveRequest>> list(@RequestParam(defaultValue = "1") Integer page,
                                              @RequestParam(defaultValue = "10") Integer size,
-                                             @RequestParam(required = false) Long studentId,
+                                             @RequestParam(required = false) String studentId,
                                              @RequestParam(required = false) LeaveRequest.Status status,
                                              Authentication authentication) {
-        Long scopedStudentId = studentId;
+        String scopedStudentId = studentId;
         if (currentUserService.isStudent(authentication)) {
-            scopedStudentId = currentUserService.getCurrentStudentId(authentication);
+            scopedStudentId = currentUserService.getCurrentStudentNo(authentication);
         }
         if (currentUserService.isCollegeAdmin(authentication)) {
-            Set<Long> studentIds = new HashSet<>(dataScopeService.resolveCollegeStudentIds(authentication));
+            Set<String> studentIds = new HashSet<>(dataScopeService.resolveCollegeStudentNos(authentication));
             if (scopedStudentId != null) {
                 if (!studentIds.contains(scopedStudentId)) {
                     Page<LeaveRequest> emptyPage = new Page<>(page, size, 0);
@@ -141,13 +141,13 @@ public class LeaveRequestController {
 
     @GetMapping("/student/{studentId}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
-    public ResultVO<List<LeaveRequest>> getByStudentId(@PathVariable Long studentId, Authentication authentication) {
+    public ResultVO<List<LeaveRequest>> getByStudentId(@PathVariable String studentId, Authentication authentication) {
         if (currentUserService.isStudent(authentication)
-                && !currentUserService.getCurrentStudentId(authentication).equals(studentId)) {
+                && !currentUserService.getCurrentStudentNo(authentication).equals(studentId)) {
             return ResultVO.error(403, "Forbidden");
         }
         if (currentUserService.isCollegeAdmin(authentication)) {
-            Set<Long> scopedStudentIds = dataScopeService.resolveCollegeStudentIds(authentication);
+            Set<String> scopedStudentIds = dataScopeService.resolveCollegeStudentNos(authentication);
             if (!scopedStudentIds.contains(studentId)) {
                 return ResultVO.error(403, "Forbidden");
             }
@@ -186,19 +186,19 @@ public class LeaveRequestController {
     @GetMapping("/cc")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<List<LeaveRequestCc>> getCc(Authentication authentication) {
-        Long userId = currentUserService.getCurrentUser(authentication).getId();
+        String userId = currentUserService.getCurrentUser(authentication).getUsername();
         return ResultVO.success(leaveRequestService.getCcList(userId));
     }
 
     @PutMapping("/cc/{id}/read")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> readCc(@PathVariable Long id, Authentication authentication) {
-        Long userId = currentUserService.getCurrentUser(authentication).getId();
+        String userId = currentUserService.getCurrentUser(authentication).getUsername();
         leaveRequestService.markCcRead(id, userId);
         return ResultVO.success();
     }
 
-    private void validateStudentOwnsRequest(Long requestId, Long studentId) {
+    private void validateStudentOwnsRequest(Long requestId, String studentId) {
         LeaveRequest leaveRequest = leaveRequestService.getById(requestId);
         if (leaveRequest == null) {
             throw new com.student.exception.BusinessException("Leave request not found");

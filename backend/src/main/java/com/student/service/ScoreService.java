@@ -22,11 +22,11 @@ public interface ScoreService extends IService<Score> {
 
     Page<Score> getScorePage(Integer page, Integer size, ScoreQueryDTO queryDTO);
 
-    List<Score> getScoresByStudentId(Long studentId);
+    List<Score> getScoresByStudentId(String studentId);
 
     List<Score> getScoresByCourseArrangementId(Long courseArrangementId);
 
-    ScoreStatisticsDTO getStudentStatistics(Long studentId);
+    ScoreStatisticsDTO getStudentStatistics(String studentId);
 
     List<Map<String, Object>> getScoreDistribution(Long courseArrangementId);
 

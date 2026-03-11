@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class CourseSelectionRequestDTO {
-    private Long studentId;
+    private String studentId;
     private Long courseArrangementId;
 }

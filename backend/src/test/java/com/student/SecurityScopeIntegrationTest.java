@@ -30,6 +30,11 @@ import java.util.Set;
 @ActiveProfiles("h2")
 class SecurityScopeIntegrationTest {
 
+    private static final String TEST_TEACHER_USERNAME = "T00CS20240001";
+    private static final String TEST_STUDENT_USERNAME = "2023SO0001";
+    private static final String OTHER_STUDENT_USERNAME = "2023SO0002";
+    private static final String TEST_CLASS_CODE = "CSXXSOFT20230001";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -41,17 +46,17 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentCannotCreateScore() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         String body = """
                 {
-                  "studentId": 1,
+                  "studentId": "%s",
                   "courseArrangementId": 1,
                   "usualScore": 80,
                   "midtermScore": 80,
                   "finalScore": 80,
                   "status": "NORMAL"
                 }
-                """;
+                """.formatted(TEST_STUDENT_USERNAME);
 
         mockMvc.perform(post("/score")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -63,7 +68,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentQueryStudentScoreIsForcedToSelfScope() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         MvcResult result = mockMvc.perform(get("/score/student/999")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -74,13 +79,13 @@ class SecurityScopeIntegrationTest {
         JsonNode data = root.path("data");
         assertFalse(data.isEmpty());
         for (JsonNode node : data) {
-            assertEquals(1L, node.path("studentId").asLong());
+            assertEquals(TEST_STUDENT_USERNAME, node.path("studentId").asText());
         }
     }
 
     @Test
     void teacherCannotCreateArrangementForOtherTeacher() throws Exception {
-        String token = loginAndGetToken("teacher001", "123456");
+        String token = loginAndGetToken(TEST_TEACHER_USERNAME, "123456");
         String body = """
                 {
                   "collegeId": 1,
@@ -405,7 +410,7 @@ class SecurityScopeIntegrationTest {
                     prefix + String.format("%02d", index),
                     1L,
                     teacherId,
-                    classId,
+                    classCode,
                     semester,
                     "EX-" + shortSuffix + "-" + index,
                     "Z" + index,
@@ -440,7 +445,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentCanGetDashboardOverview() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         mockMvc.perform(get("/dashboard/overview")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -458,7 +463,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentTeacherListIsScopedToOwnArrangements() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         Set<Long> teacherIds = resolveStudentScopeIds(token, "teacherId");
 
         MvcResult result = mockMvc.perform(get("/teacher")
@@ -479,7 +484,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentCannotAccessTeacherOutsideOwnScope() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         Set<Long> teacherIds = resolveStudentScopeIds(token, "teacherId");
         Long outOfScopeId = teacherIds.stream().findFirst().orElse(1L) + 100000L;
 
@@ -491,7 +496,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentCourseListIsScopedToOwnArrangements() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         Set<Long> courseIds = resolveStudentScopeIds(token, "courseId");
 
         MvcResult result = mockMvc.perform(get("/course")
@@ -512,7 +517,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentCannotAccessCourseOutsideOwnScope() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         Set<Long> courseIds = resolveStudentScopeIds(token, "courseId");
         Long outOfScopeId = courseIds.stream().findFirst().orElse(1L) + 100000L;
 
@@ -524,8 +529,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentClassListIsScopedToOwnArrangements() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
-        Set<Long> classIds = resolveStudentScopeIds(token, "classId");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
 
         MvcResult result = mockMvc.perform(get("/class")
                         .param("page", "1")
@@ -539,7 +543,7 @@ class SecurityScopeIntegrationTest {
                 .path("data")
                 .path("records");
         for (JsonNode node : records) {
-            assertTrue(classIds.contains(node.path("id").asLong()));
+            assertEquals(TEST_CLASS_CODE, node.path("classCode").asText());
         }
     }
 
@@ -558,14 +562,11 @@ class SecurityScopeIntegrationTest {
         );
 
         try {
-            Long studentClassId = jdbcTemplate.queryForObject(
-                    "SELECT class_id FROM student WHERE id = 1",
-                    Long.class
-            );
+            String studentClassCode = TEST_CLASS_CODE;
             Long studentCollegeId = jdbcTemplate.queryForObject(
-                    "SELECT college_id FROM class WHERE id = ?",
+                    "SELECT college_id FROM class WHERE class_code = ?",
                     Long.class,
-                    studentClassId
+                    studentClassCode
             );
             jdbcTemplate.update(
                     """
@@ -575,21 +576,21 @@ class SecurityScopeIntegrationTest {
                     "Scope Class " + suffix,
                     "SC" + suffix.substring(Math.max(0, suffix.length() - 6)),
                     2026,
-                    jdbcTemplate.queryForObject("SELECT major_code FROM class WHERE id = ?", String.class, studentClassId),
+                    jdbcTemplate.queryForObject("SELECT major_code FROM class WHERE class_code = ?", String.class, studentClassCode),
                     studentCollegeId,
                     1L,
                     "S101",
                     0,
                     1
             );
-            Long otherClassId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM class", Long.class);
+            String otherClassCode = jdbcTemplate.queryForObject("SELECT class_code FROM class ORDER BY id DESC LIMIT 1", String.class);
 
             String adminToken = loginAndGetToken("admin", "123456");
-            createArrangementForClassAndSemester(adminToken, studentClassId, currentSemester, "Mon 08:00-" + suffix);
-            createArrangementForClassAndSemester(adminToken, studentClassId, otherSemester, "Tue 10:00-" + suffix);
-            createArrangementForClassAndSemester(adminToken, otherClassId, currentSemester, "Wed 14:00-" + suffix);
+            createArrangementForClassAndSemester(adminToken, studentClassCode, currentSemester, "Mon 08:00-" + suffix);
+            createArrangementForClassAndSemester(adminToken, studentClassCode, otherSemester, "Tue 10:00-" + suffix);
+            createArrangementForClassAndSemester(adminToken, otherClassCode, currentSemester, "Wed 14:00-" + suffix);
 
-            String studentToken = loginAndGetToken("student001", "123456");
+            String studentToken = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
             MvcResult result = mockMvc.perform(get("/course-arrangement")
                             .param("page", "1")
                             .param("size", "100")
@@ -605,7 +606,7 @@ class SecurityScopeIntegrationTest {
 
             boolean foundCurrentSemesterOwnClass = false;
             for (JsonNode node : records) {
-                assertEquals(studentClassId, node.path("classId").asLong());
+                assertEquals(studentClassCode, node.path("classId").asText());
                 assertEquals(currentSemester, node.path("semester").asText());
                 assertEquals(1, node.path("status").asInt());
                 if (("Mon 08:00-" + suffix).equals(node.path("schedule").asText())) {
@@ -623,7 +624,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentCannotAccessClassOutsideOwnScope() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         String outOfScopeClassCode = "OTHRSCPX20239999";
 
         mockMvc.perform(get("/class/" + outOfScopeClassCode)
@@ -634,24 +635,27 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentDashboardClassCountIsZeroWhenClassMissing() throws Exception {
-        jdbcTemplate.update("UPDATE student SET class_id = NULL WHERE id = 1");
+        jdbcTemplate.update("UPDATE student SET class_id = NULL WHERE student_no = ?", TEST_STUDENT_USERNAME);
         try {
-            String token = loginAndGetToken("student001", "123456");
+            String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
             mockMvc.perform(get("/dashboard/overview")
                             .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.code").value(200))
                     .andExpect(jsonPath("$.data.classCount").value(0));
         } finally {
-            jdbcTemplate.update("UPDATE student SET class_id = 1 WHERE id = 1");
+            jdbcTemplate.update("UPDATE student SET class_id = ? WHERE student_no = ?", TEST_CLASS_CODE, TEST_STUDENT_USERNAME);
         }
     }
 
     @Test
     void teacherDashboardOverviewUsesTeachingScope() throws Exception {
-        jdbcTemplate.update("INSERT INTO teacher (name, status) VALUES ('Scope Teacher', 1)");
+        jdbcTemplate.update(
+                "INSERT INTO teacher (teacher_no, name, status) VALUES (?, 'Scope Teacher', 1)",
+                "TSCP20260001"
+        );
 
-        String teacherToken = loginAndGetToken("teacher001", "123456");
+        String teacherToken = loginAndGetToken(TEST_TEACHER_USERNAME, "123456");
         String adminToken = loginAndGetToken("admin", "123456");
 
         MvcResult teacherResult = mockMvc.perform(get("/dashboard/overview")
@@ -675,7 +679,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentCanAccessAnalyticsEndpoints() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
 
         mockMvc.perform(get("/analytics/overview")
                         .header("Authorization", "Bearer " + token))
@@ -694,7 +698,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentAnalyticsIgnoresCrossScopeFilters() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
 
         MvcResult overviewResult = mockMvc.perform(get("/analytics/overview")
                         .param("classId", "999")
@@ -720,13 +724,13 @@ class SecurityScopeIntegrationTest {
                 .path("data")
                 .path("records");
         for (JsonNode node : records) {
-            assertEquals(1L, node.path("studentId").asLong());
+            assertEquals(TEST_STUDENT_USERNAME, node.path("studentId").asText());
         }
     }
 
     @Test
     void studentRiskLowScoreShowsOwnCourseDetails() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         String suffix = String.valueOf(System.nanoTime());
         String semester = "risk-low-score-" + suffix;
 
@@ -746,7 +750,7 @@ class SecurityScopeIntegrationTest {
                 (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                1L, 1L, 1L, semester, "Mon 08:00-09:40-" + suffix, "A401", 60, 2, 1
+                1L, 1L, TEST_CLASS_CODE, semester, "Mon 08:00-09:40-" + suffix, "A401", 60, 2, 1
         );
         Long firstArrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
         assertTrue(firstArrangementId != null && firstArrangementId > 0);
@@ -756,7 +760,7 @@ class SecurityScopeIntegrationTest {
                 (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                secondCourseId, 1L, 1L, semester, "Tue 10:00-11:40-" + suffix, "A402", 60, 2, 1
+                secondCourseId, 1L, TEST_CLASS_CODE, semester, "Tue 10:00-11:40-" + suffix, "A402", 60, 2, 1
         );
         Long secondArrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
         assertTrue(secondArrangementId != null && secondArrangementId > 0);
@@ -766,28 +770,28 @@ class SecurityScopeIntegrationTest {
                 (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 """,
-                1L, firstArrangementId, 55.0, 54.0, 53.0, 54.0, 0.0, "NORMAL"
+                TEST_STUDENT_USERNAME, firstArrangementId, 55.0, 54.0, 53.0, 54.0, 0.0, "NORMAL"
         );
         jdbcTemplate.update("""
                 INSERT INTO score
                 (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 """,
-                1L, firstArrangementId, 53.0, 52.0, 51.0, 52.0, 0.0, "NORMAL"
+                TEST_STUDENT_USERNAME, firstArrangementId, 53.0, 52.0, 51.0, 52.0, 0.0, "NORMAL"
         );
         jdbcTemplate.update("""
                 INSERT INTO score
                 (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 """,
-                1L, secondArrangementId, 58.0, 57.0, 56.0, 57.0, 0.0, "NORMAL"
+                TEST_STUDENT_USERNAME, secondArrangementId, 58.0, 57.0, 56.0, 57.0, 0.0, "NORMAL"
         );
         jdbcTemplate.update("""
                 INSERT INTO score
                 (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 """,
-                2L, secondArrangementId, 40.0, 39.0, 38.0, 39.0, 0.0, "NORMAL"
+                OTHER_STUDENT_USERNAME, secondArrangementId, 40.0, 39.0, 38.0, 39.0, 0.0, "NORMAL"
         );
 
         MvcResult result = mockMvc.perform(get("/analytics/risk-students")
@@ -803,7 +807,7 @@ class SecurityScopeIntegrationTest {
                 .path("records");
         assertEquals(2, records.size());
         for (JsonNode node : records) {
-            assertEquals(1L, node.path("studentId").asLong());
+            assertEquals(TEST_STUDENT_USERNAME, node.path("studentId").asText());
             assertTrue(node.path("courseName").asText().trim().length() > 0);
             assertTrue(node.path("score").asDouble() > 0);
             assertTrue(node.path("score").asDouble() < 60.0);
@@ -812,7 +816,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentRiskAbnormalAttendanceShowsOwnAttendanceDetails() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         String suffix = String.valueOf(System.nanoTime());
         String semester = "risk-attendance-" + suffix;
 
@@ -821,7 +825,7 @@ class SecurityScopeIntegrationTest {
                 (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                1L, 1L, 1L, semester, "Wed 08:00-09:40-" + suffix, "A501", 60, 2, 1
+                1L, 1L, TEST_CLASS_CODE, semester, "Wed 08:00-09:40-" + suffix, "A501", 60, 2, 1
         );
         Long arrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
         assertTrue(arrangementId != null && arrangementId > 0);
@@ -831,21 +835,21 @@ class SecurityScopeIntegrationTest {
                 (student_id, course_arrangement_id, attendance_date, status, check_in_time, remark)
                 VALUES (?, ?, CURRENT_DATE, ?, ?, ?)
                 """,
-                1L, arrangementId, "ABSENT", "08:00:00", "risk-absent-" + suffix
+                TEST_STUDENT_USERNAME, arrangementId, "ABSENT", "08:00:00", "risk-absent-" + suffix
         );
         jdbcTemplate.update("""
                 INSERT INTO attendance
                 (student_id, course_arrangement_id, attendance_date, status, check_in_time, remark)
                 VALUES (?, ?, CURRENT_DATE, ?, ?, ?)
                 """,
-                1L, arrangementId, "LATE", "08:30:00", "risk-late-" + suffix
+                TEST_STUDENT_USERNAME, arrangementId, "LATE", "08:30:00", "risk-late-" + suffix
         );
         jdbcTemplate.update("""
                 INSERT INTO attendance
                 (student_id, course_arrangement_id, attendance_date, status, check_in_time, remark)
                 VALUES (?, ?, CURRENT_DATE, ?, ?, ?)
                 """,
-                2L, arrangementId, "ABSENT", "08:00:00", "risk-other-" + suffix
+                OTHER_STUDENT_USERNAME, arrangementId, "ABSENT", "08:00:00", "risk-other-" + suffix
         );
 
         MvcResult result = mockMvc.perform(get("/analytics/risk-students")
@@ -861,7 +865,7 @@ class SecurityScopeIntegrationTest {
                 .path("records");
         assertEquals(2, records.size());
         for (JsonNode node : records) {
-            assertEquals(1L, node.path("studentId").asLong());
+            assertEquals(TEST_STUDENT_USERNAME, node.path("studentId").asText());
             assertTrue(node.path("attendanceDate").asText().trim().length() > 0);
             assertTrue(Set.of("ABSENT", "LATE").contains(node.path("attendanceStatus").asText()));
             assertTrue(node.path("courseName").asText().trim().length() > 0);
@@ -870,7 +874,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentRiskApprovalOverdueShowsOnlyOwnOverdueSubmissions() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         String suffix = String.valueOf(System.nanoTime());
         String semester = "risk-approval-" + suffix;
 
@@ -879,7 +883,7 @@ class SecurityScopeIntegrationTest {
                 (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                1L, 1L, 1L, semester, "Thu 08:00-09:40-" + suffix, "A601", 60, 2, 1
+                1L, 1L, TEST_CLASS_CODE, semester, "Thu 08:00-09:40-" + suffix, "A601", 60, 2, 1
         );
         Long arrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
         assertTrue(arrangementId != null && arrangementId > 0);
@@ -889,21 +893,21 @@ class SecurityScopeIntegrationTest {
                 (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id, create_time)
                 VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?, DATEADD('HOUR', -72, CURRENT_TIMESTAMP))
                 """,
-                1L, arrangementId, "SICK", "risk-overdue-self-" + suffix, "PENDING", 1L
+                TEST_STUDENT_USERNAME, arrangementId, "SICK", "risk-overdue-self-" + suffix, "PENDING", 1L
         );
         jdbcTemplate.update("""
                 INSERT INTO leave_request
                 (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id, create_time)
                 VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?, DATEADD('HOUR', -12, CURRENT_TIMESTAMP))
                 """,
-                1L, arrangementId, "SICK", "risk-not-overdue-self-" + suffix, "PENDING", 1L
+                TEST_STUDENT_USERNAME, arrangementId, "SICK", "risk-not-overdue-self-" + suffix, "PENDING", 1L
         );
         jdbcTemplate.update("""
                 INSERT INTO leave_request
                 (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id, create_time)
                 VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?, DATEADD('HOUR', -80, CURRENT_TIMESTAMP))
                 """,
-                2L, arrangementId, "SICK", "risk-overdue-other-" + suffix, "PENDING", 1L
+                OTHER_STUDENT_USERNAME, arrangementId, "SICK", "risk-overdue-other-" + suffix, "PENDING", 1L
         );
 
         MvcResult result = mockMvc.perform(get("/analytics/risk-students")
@@ -919,7 +923,7 @@ class SecurityScopeIntegrationTest {
                 .path("records");
         assertEquals(1, records.size());
         JsonNode node = records.get(0);
-        assertEquals(1L, node.path("studentId").asLong());
+        assertEquals(TEST_STUDENT_USERNAME, node.path("studentId").asText());
         assertTrue(node.path("leaveRequestId").asLong() > 0);
         assertTrue(node.path("submitTime").asText().trim().length() > 0);
         assertTrue(node.path("overdue").asBoolean());
@@ -928,7 +932,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentOverviewPendingIncludesRejectedExcludesApproved() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         String suffix = String.valueOf(System.nanoTime());
         String semester = "scope-pending-" + suffix;
         String schedule = "Wed 10:00-11:40-" + suffix;
@@ -938,7 +942,7 @@ class SecurityScopeIntegrationTest {
                 (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                1L, 1L, 1L, semester, schedule, "A211", 60, 1, 1
+                1L, 1L, TEST_CLASS_CODE, semester, schedule, "A211", 60, 1, 1
         );
         Long arrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
         assertTrue(arrangementId != null && arrangementId > 0);
@@ -949,21 +953,21 @@ class SecurityScopeIntegrationTest {
                 (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id)
                 VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?)
                 """,
-                1L, arrangementId, "SICK", baseReason + "-pending", "PENDING", 1L
+                TEST_STUDENT_USERNAME, arrangementId, "SICK", baseReason + "-pending", "PENDING", 1L
         );
         jdbcTemplate.update("""
                 INSERT INTO leave_request
                 (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id)
                 VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?)
                 """,
-                1L, arrangementId, "SICK", baseReason + "-rejected", "REJECTED", 1L
+                TEST_STUDENT_USERNAME, arrangementId, "SICK", baseReason + "-rejected", "REJECTED", 1L
         );
         jdbcTemplate.update("""
                 INSERT INTO leave_request
                 (student_id, course_arrangement_id, leave_type, start_time, end_time, reason, status, approver_id)
                 VALUES (?, ?, ?, CURRENT_TIMESTAMP, DATEADD('HOUR', 2, CURRENT_TIMESTAMP), ?, ?, ?)
                 """,
-                1L, arrangementId, "SICK", baseReason + "-approved", "APPROVED", 1L
+                TEST_STUDENT_USERNAME, arrangementId, "SICK", baseReason + "-approved", "APPROVED", 1L
         );
 
         MvcResult result = mockMvc.perform(get("/analytics/overview")
@@ -979,7 +983,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentOverviewLowScoreCountsDistinctCourses() throws Exception {
-        String token = loginAndGetToken("student001", "123456");
+        String token = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         String suffix = String.valueOf(System.nanoTime());
         String semester = "scope-lowscore-" + suffix;
 
@@ -999,7 +1003,7 @@ class SecurityScopeIntegrationTest {
                 (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                1L, 1L, 1L, semester, "Thu 08:00-09:40-" + suffix, "A301", 60, 1, 1
+                1L, 1L, TEST_CLASS_CODE, semester, "Thu 08:00-09:40-" + suffix, "A301", 60, 1, 1
         );
         Long firstArrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
         assertTrue(firstArrangementId != null && firstArrangementId > 0);
@@ -1009,7 +1013,7 @@ class SecurityScopeIntegrationTest {
                 (course_id, teacher_id, class_id, semester, schedule, room, capacity, enrolled_count, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                secondCourseId, 1L, 1L, semester, "Fri 14:00-15:40-" + suffix, "A302", 60, 1, 1
+                secondCourseId, 1L, TEST_CLASS_CODE, semester, "Fri 14:00-15:40-" + suffix, "A302", 60, 1, 1
         );
         Long secondArrangementId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM course_arrangement", Long.class);
         assertTrue(secondArrangementId != null && secondArrangementId > 0);
@@ -1019,21 +1023,21 @@ class SecurityScopeIntegrationTest {
                 (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 """,
-                1L, firstArrangementId, 55.0, 54.0, 53.0, 54.0, 0.0, "NORMAL"
+                TEST_STUDENT_USERNAME, firstArrangementId, 55.0, 54.0, 53.0, 54.0, 0.0, "NORMAL"
         );
         jdbcTemplate.update("""
                 INSERT INTO score
                 (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 """,
-                1L, firstArrangementId, 58.0, 57.0, 56.0, 57.0, 1.0, "NORMAL"
+                TEST_STUDENT_USERNAME, firstArrangementId, 58.0, 57.0, 56.0, 57.0, 1.0, "NORMAL"
         );
         jdbcTemplate.update("""
                 INSERT INTO score
                 (student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status, create_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 """,
-                1L, secondArrangementId, 50.0, 49.0, 48.0, 49.0, 0.0, "NORMAL"
+                TEST_STUDENT_USERNAME, secondArrangementId, 50.0, 49.0, 48.0, 49.0, 0.0, "NORMAL"
         );
 
         MvcResult result = mockMvc.perform(get("/analytics/overview")
@@ -1049,7 +1053,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void teacherAnalyticsClassFilterIsApplied() throws Exception {
-        String teacherToken = loginAndGetToken("teacher001", "123456");
+        String teacherToken = loginAndGetToken(TEST_TEACHER_USERNAME, "123456");
 
         MvcResult normalResult = mockMvc.perform(get("/analytics/overview")
                         .header("Authorization", "Bearer " + teacherToken))
@@ -1073,7 +1077,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void studentCannotAccessHiddenAnnouncementDetail() throws Exception {
-        String studentToken = loginAndGetToken("student001", "123456");
+        String studentToken = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         Long announcementId = createAdminOnlyAnnouncement();
 
         mockMvc.perform(get("/announcement/" + announcementId)
@@ -1122,20 +1126,20 @@ class SecurityScopeIntegrationTest {
     @Test
     void teacherCannotUpdateScoreOutsideTeachingScope() throws Exception {
         String adminToken = loginAndGetToken("admin", "123456");
-        String teacherToken = loginAndGetToken("teacher001", "123456");
+        String teacherToken = loginAndGetToken(TEST_TEACHER_USERNAME, "123456");
         Long arrangementId = createArrangement(adminToken, 2L);
         Long scoreId = createScore(adminToken, arrangementId);
 
         String updateBody = """
                 {
-                  "studentId": 1,
+                  "studentId": "%s",
                   "courseArrangementId": %d,
                   "usualScore": 86,
                   "midtermScore": 87,
                   "finalScore": 88,
                   "status": "NORMAL"
                 }
-                """.formatted(arrangementId);
+                """.formatted(TEST_STUDENT_USERNAME, arrangementId);
 
         mockMvc.perform(put("/score/" + scoreId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -1148,8 +1152,8 @@ class SecurityScopeIntegrationTest {
     @Test
     void homeroomTeacherCanApproveShortLeaveWhenCourseTeacherDiffers() throws Exception {
         String adminToken = loginAndGetToken("admin", "123456");
-        String studentToken = loginAndGetToken("student001", "123456");
-        String teacherToken = loginAndGetToken("teacher001", "123456");
+        String studentToken = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
+        String teacherToken = loginAndGetToken(TEST_TEACHER_USERNAME, "123456");
         Long arrangementId = createArrangement(adminToken, 2L);
         Long leaveId = submitLeaveRequestAndGetId(studentToken, arrangementId);
 
@@ -1207,16 +1211,12 @@ class SecurityScopeIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
 
-        Long boundAdminUserId = jdbcTemplate.queryForObject(
+        String boundAdminUserId = jdbcTemplate.queryForObject(
                 "SELECT admin_user_id FROM college WHERE id = ?",
-                Long.class,
+                String.class,
                 collegeId
         );
-        Long expectedUserId = jdbcTemplate.queryForObject(
-                "SELECT id FROM sys_user WHERE username = ?",
-                Long.class,
-                username
-        );
+        String expectedUserId = username;
         assertEquals(expectedUserId, boundAdminUserId);
 
         MvcResult adminListResult = mockMvc.perform(get("/college")
@@ -1332,17 +1332,11 @@ class SecurityScopeIntegrationTest {
                 "COURSE_TEACHER"
         );
 
-        Long userId = jdbcTemplate.queryForObject(
-                "SELECT id FROM sys_user WHERE username = ?",
-                Long.class,
-                account
-        );
-
         jdbcTemplate.update("""
                         INSERT INTO teacher (user_id, teacher_no, name, gender, phone, email, title, department, college_id, hire_date, status)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE, ?)
                         """,
-                userId,
+                account,
                 account,
                 "Generated Account " + suffix,
                 "MALE",
@@ -1380,7 +1374,7 @@ class SecurityScopeIntegrationTest {
 
     @Test
     void userInfoReturnsTeacherAndStudentSummaryFields() throws Exception {
-        String teacherToken = loginAndGetToken("teacher001", "123456");
+        String teacherToken = loginAndGetToken(TEST_TEACHER_USERNAME, "123456");
         mockMvc.perform(get("/user/info")
                         .header("Authorization", "Bearer " + teacherToken))
                 .andExpect(status().isOk())
@@ -1390,12 +1384,12 @@ class SecurityScopeIntegrationTest {
                 .andExpect(jsonPath("$.data.teacherDepartment").isNotEmpty())
                 .andExpect(jsonPath("$.data.collegeName").isNotEmpty());
 
-        String studentToken = loginAndGetToken("student001", "123456");
+        String studentToken = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         mockMvc.perform(get("/user/info")
                         .header("Authorization", "Bearer " + studentToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.classId").isNumber())
+                .andExpect(jsonPath("$.data.classId").value(TEST_CLASS_CODE))
                 .andExpect(jsonPath("$.data.className").isNotEmpty())
                 .andExpect(jsonPath("$.data.studentNo").isNotEmpty())
                 .andExpect(jsonPath("$.data.collegeName").isNotEmpty());
@@ -1404,7 +1398,7 @@ class SecurityScopeIntegrationTest {
     @Test
     void schoolAdminCanCreateSemesterAndStudentCanReadOptions() throws Exception {
         String adminToken = loginAndGetToken("admin", "123456");
-        String studentToken = loginAndGetToken("student001", "123456");
+        String studentToken = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         String suffix = String.valueOf(System.nanoTime());
         String semesterCode = "2026-2027-" + suffix.substring(Math.max(0, suffix.length() - 2));
         String body = """
@@ -1560,7 +1554,7 @@ class SecurityScopeIntegrationTest {
     @Test
     void schoolAdminCanUpdateCourseTimeSlotsAndStudentCanReadThem() throws Exception {
         String adminToken = loginAndGetToken("admin", "123456");
-        String studentToken = loginAndGetToken("student001", "123456");
+        String studentToken = loginAndGetToken(TEST_STUDENT_USERNAME, "123456");
         String body = """
                 {
                   "timeSlots": [
@@ -1699,13 +1693,13 @@ class SecurityScopeIntegrationTest {
         return records.get(0).path("id").asLong();
     }
 
-    private void createArrangementForClassAndSemester(String token, Long classId, String semester, String schedule) throws Exception {
+    private void createArrangementForClassAndSemester(String token, String classId, String semester, String schedule) throws Exception {
         String body = """
                 {
                   "collegeId": 1,
                   "courseId": 1,
                   "teacherId": 1,
-                  "classId": %d,
+                  "classId": "%s",
                   "semester": "%s",
                   "schedule": "%s",
                   "room": "A401",
@@ -1725,14 +1719,14 @@ class SecurityScopeIntegrationTest {
     private Long createScore(String token, Long arrangementId) throws Exception {
         String body = """
                 {
-                  "studentId": 1,
+                  "studentId": "%s",
                   "courseArrangementId": %d,
                   "usualScore": 80,
                   "midtermScore": 80,
                   "finalScore": 80,
                   "status": "NORMAL"
                 }
-                """.formatted(arrangementId);
+                """.formatted(TEST_STUDENT_USERNAME, arrangementId);
 
         mockMvc.perform(post("/score")
                         .contentType(MediaType.APPLICATION_JSON)

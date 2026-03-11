@@ -10,7 +10,7 @@ public class StudentCourseSelection {
     @TableId(type = IdType.AUTO)
     private Long id;
     
-    private Long studentId;
+    private String studentId;
     
     private Long courseArrangementId;
     

@@ -46,7 +46,7 @@ public class CollegeController {
             return ResultVO.error(403, "无权查看该学院");
         }
         if (college.getAdminUserId() != null) {
-            var adminUser = sysUserService.getById(college.getAdminUserId());
+            var adminUser = sysUserService.getByUsername(college.getAdminUserId());
             college.setAdminUsername(adminUser != null ? adminUser.getUsername() : null);
         }
         return ResultVO.success(college);

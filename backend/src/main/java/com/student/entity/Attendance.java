@@ -13,7 +13,7 @@ public class Attendance {
     @TableId(type = IdType.AUTO)
     private Long id;
     
-    private Long studentId;
+    private String studentId;
     
     @TableField(exist = false)
     private String studentNo;

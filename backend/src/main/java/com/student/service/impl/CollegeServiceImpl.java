@@ -128,17 +128,17 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
             throw new BusinessException(404, "管理员账号不存在");
         }
 
-        College occupied = collegeMapper.selectByAdminUserId(user.getId());
+        College occupied = collegeMapper.selectByAdminUserId(user.getUsername());
         if (occupied != null && !occupied.getId().equals(id)) {
             throw new BusinessException(400, "该账号已绑定其他学院");
         }
 
         College update = new College();
         update.setId(id);
-        update.setAdminUserId(user.getId());
+        update.setAdminUserId(user.getUsername());
         updateById(update);
 
-        sysUserService.grantRole(user.getId(), RoleCode.COLLEGE_ADMIN);
+        sysUserService.grantRole(user.getUsername(), RoleCode.COLLEGE_ADMIN);
     }
 
     private void assertScope(College college, Long scopedCollegeId) {
@@ -152,7 +152,7 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
             return;
         }
 
-        Set<Long> adminUserIds = colleges.stream()
+        Set<String> adminUserIds = colleges.stream()
                 .map(College::getAdminUserId)
                 .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -160,9 +160,11 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
             return;
         }
 
-        Map<Long, String> usernameById = sysUserMapper.selectBatchIds(adminUserIds).stream()
-                .filter(user -> user.getId() != null)
-                .collect(Collectors.toMap(SysUser::getId, SysUser::getUsername, (left, right) -> left));
+        Map<String, String> usernameById = sysUserMapper.selectList(
+                        new LambdaQueryWrapper<SysUser>().in(SysUser::getUsername, adminUserIds))
+                .stream()
+                .filter(user -> user.getUsername() != null)
+                .collect(Collectors.toMap(SysUser::getUsername, SysUser::getUsername, (left, right) -> left));
         for (College college : colleges) {
             college.setAdminUsername(usernameById.get(college.getAdminUserId()));
         }

@@ -154,7 +154,7 @@ public class UserController {
         Map<Long, College> collegeById = colleges.stream()
                 .filter(item -> item.getId() != null)
                 .collect(Collectors.toMap(College::getId, item -> item, (left, right) -> left));
-        Map<Long, College> collegeByAdminUserId = colleges.stream()
+        Map<String, College> collegeByAdminUserId = colleges.stream()
                 .filter(item -> item.getAdminUserId() != null)
                 .collect(Collectors.toMap(College::getAdminUserId, item -> item, (left, right) -> left));
 
@@ -176,7 +176,7 @@ public class UserController {
                 ? studentMapper.selectList(null)
                 : studentMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Student>()
                 .in(Student::getClassId, classIds)));
-        Map<Long, Student> studentByUserId = students.stream()
+        Map<String, Student> studentByUserId = students.stream()
                 .filter(item -> item.getUserId() != null)
                 .collect(Collectors.toMap(Student::getUserId, item -> item, (left, right) -> left));
 
@@ -184,7 +184,7 @@ public class UserController {
                 ? teacherMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Teacher>()
                 .eq(Teacher::getCollegeId, effectiveCollegeId))
                 : teacherMapper.selectList(null);
-        Map<Long, Teacher> teacherByUserId = teachers.stream()
+        Map<String, Teacher> teacherByUserId = teachers.stream()
                 .filter(item -> item.getUserId() != null)
                 .collect(Collectors.toMap(Teacher::getUserId, item -> item, (left, right) -> left));
 
@@ -201,7 +201,7 @@ public class UserController {
                         classesByTeacherId))
                 .filter(item -> effectiveRoleCode == null || item.getRoles().contains(effectiveRoleCode.name()))
                 .filter(item -> effectiveCollegeId == null || Objects.equals(effectiveCollegeId, item.getCollegeId()))
-                .filter(item -> classId == null || Objects.equals(classId, item.getClassId()) || matchesTeacherClass(classId, item.getId(), teacherByUserId, classesByTeacherId))
+                .filter(item -> classId == null || Objects.equals(classId, item.getClassId()) || matchesTeacherClass(classId, item.getUsername(), teacherByUserId, classesByTeacherId))
                 .toList();
 
         int from = Math.max((page - 1) * size, 0);
@@ -338,17 +338,17 @@ public class UserController {
     }
 
     private Set<Long> resolveScopedUserIds(Long scopedCollegeId) {
-        Set<Long> userIds = new HashSet<>();
+        Set<String> usernames = new HashSet<>();
         var college = collegeMapper.selectById(scopedCollegeId);
         if (college != null && college.getAdminUserId() != null) {
-            userIds.add(college.getAdminUserId());
+            usernames.add(college.getAdminUserId());
         }
         List<Teacher> teachers = teacherMapper.selectList(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Teacher>()
                         .eq(Teacher::getCollegeId, scopedCollegeId));
         for (Teacher teacher : teachers) {
             if (teacher.getUserId() != null) {
-                userIds.add(teacher.getUserId());
+                usernames.add(teacher.getUserId());
             }
         }
         List<Class> classes = classMapper.selectList(
@@ -366,11 +366,20 @@ public class UserController {
                             .in(Student::getClassId, classIds));
             for (Student student : students) {
                 if (student.getUserId() != null) {
-                    userIds.add(student.getUserId());
+                    usernames.add(student.getUserId());
                 }
             }
         }
-        return userIds;
+        if (usernames.isEmpty()) {
+            return Set.of();
+        }
+        return sysUserService.lambdaQuery()
+                .in(SysUser::getUsername, usernames)
+                .list()
+                .stream()
+                .map(SysUser::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     private Page<RbacUserListItemVO> emptyUserPage(Integer page, Integer size) {
@@ -380,13 +389,13 @@ public class UserController {
     }
 
     private boolean matchesTeacherClass(String classId,
-                                        Long userId,
-                                        Map<Long, Teacher> teacherByUserId,
+                                        String username,
+                                        Map<String, Teacher> teacherByUserId,
                                         Map<Long, List<Class>> classesByTeacherId) {
-        if (classId == null || userId == null) {
+        if (classId == null || username == null) {
             return false;
         }
-        Teacher teacher = teacherByUserId.get(userId);
+        Teacher teacher = teacherByUserId.get(username);
         if (teacher == null || teacher.getId() == null) {
             return false;
         }
@@ -396,10 +405,10 @@ public class UserController {
 
     private RbacUserListItemVO toRbacUserListItem(SysUser user,
                                                   LinkedHashSet<String> storedRoleNames,
-                                                  Map<Long, College> collegeByAdminUserId,
+                                                  Map<String, College> collegeByAdminUserId,
                                                   Map<Long, College> collegeById,
-                                                  Map<Long, Student> studentByUserId,
-                                                  Map<Long, Teacher> teacherByUserId,
+                                                  Map<String, Student> studentByUserId,
+                                                  Map<String, Teacher> teacherByUserId,
                                                   Map<String, Class> classById,
                                                   Map<Long, List<Class>> classesByTeacherId) {
         LinkedHashSet<RoleCode> parsedRoles = storedRoleNames.stream()
@@ -424,13 +433,13 @@ public class UserController {
         String classId = null;
         String classDisplayName = null;
 
-        College adminCollege = collegeByAdminUserId.get(user.getId());
+        College adminCollege = collegeByAdminUserId.get(user.getUsername());
         if (adminCollege != null) {
             collegeId = adminCollege.getId();
             collegeName = adminCollege.getCollegeName();
         }
 
-        Student student = studentByUserId.get(user.getId());
+        Student student = studentByUserId.get(user.getUsername());
         if (student != null && student.getClassId() != null) {
             Class clazz = classById.get(student.getClassId());
             classId = student.getClassId();
@@ -442,7 +451,7 @@ public class UserController {
             }
         }
 
-        Teacher teacher = teacherByUserId.get(user.getId());
+        Teacher teacher = teacherByUserId.get(user.getUsername());
         if (teacher != null) {
             if (collegeId == null && teacher.getCollegeId() != null) {
                 collegeId = teacher.getCollegeId();

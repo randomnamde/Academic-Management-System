@@ -1,17 +1,17 @@
 INSERT INTO sys_user (id, username, password, real_name, phone, email, role, status) VALUES
 (1, 'admin', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '管理员', '13800000001', 'admin@school.com', 'SCHOOL_ADMIN', 1),
-(2, 'teacher001', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '张老师', '13800000002', 'teacher001@school.com', 'COURSE_TEACHER', 1),
-(3, 'teacher002', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '李老师', '13800000003', 'teacher002@school.com', 'COURSE_TEACHER', 1),
-(4, 'student001', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '王同学', '13800000004', 'student001@school.com', 'STUDENT', 1),
-(5, 'student002', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '李同学', '13800000005', 'student002@school.com', 'STUDENT', 1),
+(2, 'T00CS20240001', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '张老师', '13800000002', 'teacher001@school.com', 'COURSE_TEACHER', 1),
+(3, 'T00CS20240002', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '李老师', '13800000003', 'teacher002@school.com', 'COURSE_TEACHER', 1),
+(4, '2023SO0001', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '王同学', '13800000004', 'student001@school.com', 'STUDENT', 1),
+(5, '2023SO0002', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '李同学', '13800000005', 'student002@school.com', 'STUDENT', 1),
 (6, 'college_admin_cs', '$2a$10$1ofEFy00WoJy6s65cvoJl..X8b8wS70ioX8CLNJqTTy2M.ctovW2O', '学院管理员', '13800000006', 'college-admin@school.com', 'COLLEGE_ADMIN', 1);
 
 INSERT INTO college (id, college_code, college_name, description, status, admin_user_id) VALUES
-(1, 'CS', '计算机学院', '默认初始化学院', 1, 6);
+(1, 'CS', '计算机学院', '默认初始化学院', 1, 'college_admin_cs');
 
 INSERT INTO teacher (id, user_id, teacher_no, name, gender, phone, email, title, department, college_id, hire_date, status) VALUES
-(1, 2, 'T2024001', '张老师', 'MALE', '13800000002', 'teacher001@school.com', 'PROFESSOR', '计算机学院', 1, DATE '2015-09-01', 1),
-(2, 3, 'T2024002', '李老师', 'FEMALE', '13800000003', 'teacher002@school.com', 'ASSOCIATE_PROFESSOR', '计算机学院', 1, DATE '2018-09-01', 1);
+(1, 'T00CS20240001', 'T00CS20240001', '张老师', 'MALE', '13800000002', 'teacher001@school.com', 'PROFESSOR', '计算机学院', 1, DATE '2015-09-01', 1),
+(2, 'T00CS20240002', 'T00CS20240002', '李老师', 'FEMALE', '13800000003', 'teacher002@school.com', 'ASSOCIATE_PROFESSOR', '计算机学院', 1, DATE '2018-09-01', 1);
 
 INSERT INTO major (major_code, major_name, major_abbreviation, college_id, description, status) VALUES
 ('SOFT2301', '软件工程', 'SOFT', 1, '默认初始化专业', 1),
@@ -22,8 +22,8 @@ INSERT INTO class (id, class_name, class_code, grade, major_code, college_id, te
 (2, '计算机科学2301班', 'CSXXCSCI20230002', 2023, 'CSCI2301', 1, 2, 'B102', 0, 1);
 
 INSERT INTO student (id, user_id, student_no, name, gender, phone, email, class_id, enrollment_date, status) VALUES
-(1, 4, '2023010001', '王同学', 'MALE', '13800000004', 'student001@school.com', 'CSXXSOFT20230001', DATE '2023-09-01', 'ENROLLED'),
-(2, 5, '2023010002', '李同学', 'FEMALE', '13800000005', 'student002@school.com', 'CSXXSOFT20230001', DATE '2023-09-01', 'ENROLLED');
+(1, '2023SO0001', '2023SO0001', '王同学', 'MALE', '13800000004', 'student001@school.com', 'CSXXSOFT20230001', DATE '2023-09-01', 'ENROLLED'),
+(2, '2023SO0002', '2023SO0002', '李同学', 'FEMALE', '13800000005', 'student002@school.com', 'CSXXSOFT20230001', DATE '2023-09-01', 'ENROLLED');
 
 INSERT INTO course (id, course_name, course_code, credit, hours, category, description, status) VALUES
 (1, '高等数学', 'MATH001', 4.0, 64, 'REQUIRED', '大学高等数学基础课程', 1),
@@ -39,29 +39,29 @@ INSERT INTO course_arrangement (id, arrangement_code, course_id, teacher_id, cla
 (4, 'C202400CS000103', 4, 2, 'CSXXSOFT20230001', '2024-2025-1', '周四 8:00-9:40', 'A104', 60, 2, 1);
 
 INSERT INTO score (id, student_id, course_arrangement_id, usual_score, midterm_score, final_score, total_score, gpa, status) VALUES
-(1, 1, 1, 85.00, 88.00, 90.00, 88.00, 3.70, 'NORMAL'),
-(2, 1, 2, 82.00, 85.00, 87.00, 85.00, 3.50, 'NORMAL'),
-(3, 2, 1, 90.00, 92.00, 95.00, 92.00, 4.00, 'NORMAL'),
-(4, 2, 2, 88.00, 90.00, 91.00, 90.00, 4.00, 'NORMAL');
+(1, '2023010001', 1, 85.00, 88.00, 90.00, 88.00, 3.70, 'NORMAL'),
+(2, '2023010001', 2, 82.00, 85.00, 87.00, 85.00, 3.50, 'NORMAL'),
+(3, '2023010002', 1, 90.00, 92.00, 95.00, 92.00, 4.00, 'NORMAL'),
+(4, '2023010002', 2, 88.00, 90.00, 91.00, 90.00, 4.00, 'NORMAL');
 
 INSERT INTO announcement (id, title, content, type, target_role, priority, author_id, view_count, is_top, status) VALUES
-(1, '欢迎使用学生管理系统', '学生管理系统正式上线，欢迎使用。', 'NOTICE', 'ALL', 1, 1, 0, 1, 1);
+(1, '欢迎使用学生管理系统', '学生管理系统正式上线，欢迎使用。', 'NOTICE', 'ALL', 1, 'admin', 0, 1, 1);
 
 INSERT INTO attendance (id, student_id, course_arrangement_id, attendance_date, status, check_in_time, remark) VALUES
-(1, 1, 1, DATE '2024-01-08', 'PRESENT', TIME '07:55:00', NULL),
-(2, 1, 2, DATE '2024-01-08', 'PRESENT', TIME '07:58:00', NULL),
-(3, 2, 1, DATE '2024-01-08', 'PRESENT', TIME '07:50:00', NULL),
-(4, 2, 2, DATE '2024-01-08', 'LATE', TIME '08:15:00', '交通拥堵');
+(1, '2023010001', 1, DATE '2024-01-08', 'PRESENT', TIME '07:55:00', NULL),
+(2, '2023010001', 2, DATE '2024-01-08', 'PRESENT', TIME '07:58:00', NULL),
+(3, '2023010002', 1, DATE '2024-01-08', 'PRESENT', TIME '07:50:00', NULL),
+(4, '2023010002', 2, DATE '2024-01-08', 'LATE', TIME '08:15:00', '交通拥堵');
 
 INSERT INTO sys_user_role (id, user_id, role_code) VALUES
-(1, 1, 'SCHOOL_ADMIN'),
-(2, 2, 'COURSE_TEACHER'),
-(3, 2, 'HOMEROOM_TEACHER'),
-(4, 3, 'COURSE_TEACHER'),
-(5, 3, 'HOMEROOM_TEACHER'),
-(6, 4, 'STUDENT'),
-(7, 5, 'STUDENT'),
-(8, 6, 'COLLEGE_ADMIN');
+(1, 'admin', 'SCHOOL_ADMIN'),
+(2, 'T00CS20240001', 'COURSE_TEACHER'),
+(3, 'T00CS20240001', 'HOMEROOM_TEACHER'),
+(4, 'T00CS20240002', 'COURSE_TEACHER'),
+(5, 'T00CS20240002', 'HOMEROOM_TEACHER'),
+(6, '2023SO0001', 'STUDENT'),
+(7, '2023SO0002', 'STUDENT'),
+(8, 'college_admin_cs', 'COLLEGE_ADMIN');
 
 INSERT INTO sys_config (config_key, config_value, description) VALUES
 ('currentSemester', '2024-2025-1', '当前生效学期'),

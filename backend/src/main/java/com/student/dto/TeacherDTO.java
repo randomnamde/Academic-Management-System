@@ -12,7 +12,6 @@ public class TeacherDTO {
 
     private Long id;
 
-    @NotBlank(message = "Teacher number is required")
     private String teacherNo;
 
     @NotBlank(message = "Name is required")

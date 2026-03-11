@@ -13,6 +13,5 @@ public interface CollegeMapper extends BaseMapper<College> {
     College selectByCollegeCode(@Param("collegeCode") String collegeCode);
 
     @Select("SELECT * FROM college WHERE admin_user_id = #{adminUserId}")
-    College selectByAdminUserId(@Param("adminUserId") Long adminUserId);
+    College selectByAdminUserId(@Param("adminUserId") String adminUserId);
 }
-

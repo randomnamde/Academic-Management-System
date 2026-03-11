@@ -43,5 +43,7 @@ public interface SysUserService extends IService<SysUser> {
 
     void grantRole(Long userId, RoleCode roleCode);
 
+    void grantRole(String username, RoleCode roleCode);
+
     void assignRoles(Long userId, Set<RoleCode> roleCodes);
 }

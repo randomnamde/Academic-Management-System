@@ -16,7 +16,7 @@ public interface ScoreMapper extends BaseMapper<Score> {
     Score selectByIdWithDetail(@Param("id") Long id);
     
     Page<Score> selectPageWithDetail(Page<Score> page,
-                                     @Param("studentId") Long studentId,
+                                     @Param("studentId") String studentId,
                                      @Param("teacherId") Long teacherId,
                                      @Param("courseArrangementId") Long courseArrangementId,
                                      @Param("semester") String semester,
@@ -24,21 +24,21 @@ public interface ScoreMapper extends BaseMapper<Score> {
                                      @Param("classId") String classId);
     
     @Select("SELECT * FROM score WHERE student_id = #{studentId} AND course_arrangement_id = #{courseArrangementId}")
-    Score selectByStudentAndCourse(@Param("studentId") Long studentId, 
+    Score selectByStudentAndCourse(@Param("studentId") String studentId, 
                                     @Param("courseArrangementId") Long courseArrangementId);
     
-    List<Score> selectByStudentId(@Param("studentId") Long studentId);
+    List<Score> selectByStudentId(@Param("studentId") String studentId);
     
     List<Score> selectByCourseArrangementId(@Param("courseArrangementId") Long courseArrangementId);
     
     @Select("SELECT AVG(total_score) FROM score WHERE student_id = #{studentId}")
-    Double selectAverageScoreByStudent(@Param("studentId") Long studentId);
+    Double selectAverageScoreByStudent(@Param("studentId") String studentId);
     
     @Select("SELECT COUNT(*) FROM score WHERE student_id = #{studentId} AND total_score >= 60")
-    Long countPassedByStudent(@Param("studentId") Long studentId);
+    Long countPassedByStudent(@Param("studentId") String studentId);
     
     @Select("SELECT COUNT(*) FROM score WHERE student_id = #{studentId}")
-    Long countTotalByStudent(@Param("studentId") Long studentId);
+    Long countTotalByStudent(@Param("studentId") String studentId);
     
     List<Map<String, Object>> selectScoreDistribution(@Param("courseArrangementId") Long courseArrangementId);
     

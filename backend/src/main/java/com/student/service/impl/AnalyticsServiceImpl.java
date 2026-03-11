@@ -351,7 +351,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         applyArrangementScope(query, arrangementScope, Score::getCourseArrangementId);
         List<Score> records = query.list();
 
-        Map<Long, Aggregate> aggregateMap = new HashMap<>();
+        Map<String, Aggregate> aggregateMap = new HashMap<>();
         for (Score score : records) {
             if (score.getStudentId() == null) {
                 continue;
@@ -373,7 +373,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         applyArrangementScope(query, arrangementScope, Attendance::getCourseArrangementId);
         List<Attendance> records = query.list();
 
-        Map<Long, Aggregate> aggregateMap = new HashMap<>();
+        Map<String, Aggregate> aggregateMap = new HashMap<>();
         for (Attendance attendance : records) {
             if (attendance.getStudentId() == null) {
                 continue;
@@ -395,7 +395,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         applyArrangementScope(query, arrangementScope, LeaveRequest::getCourseArrangementId);
         List<LeaveRequest> records = query.list();
 
-        Map<Long, Aggregate> aggregateMap = new HashMap<>();
+        Map<String, Aggregate> aggregateMap = new HashMap<>();
         LocalDateTime now = LocalDateTime.now();
         for (LeaveRequest leaveRequest : records) {
             if (leaveRequest.getStudentId() == null || leaveRequest.getCreateTime() == null) {
@@ -411,7 +411,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         if (arrangementScope.enabled() && arrangementScope.arrangementIds().isEmpty()) {
             return List.of();
         }
-        if (scope.studentId() == null) {
+        if (scope.studentNo() == null) {
             return List.of();
         }
 
@@ -432,7 +432,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
         }
         Map<Long, CourseRef> courseRefByArrangementId = resolveCourseRefByArrangementIds(arrangementIds);
-        Student student = studentMapper.selectByIdWithClass(scope.studentId());
+        Student student = studentMapper.selectByStudentNoWithClass(scope.studentNo());
 
         Map<String, LowScoreDetailAggregate> aggregateByCourse = new HashMap<>();
         for (Score score : records) {
@@ -466,7 +466,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         if (arrangementScope.enabled() && arrangementScope.arrangementIds().isEmpty()) {
             return List.of();
         }
-        if (scope.studentId() == null) {
+        if (scope.studentNo() == null) {
             return List.of();
         }
 
@@ -487,7 +487,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
         }
         Map<Long, CourseRef> courseRefByArrangementId = resolveCourseRefByArrangementIds(arrangementIds);
-        Student student = studentMapper.selectByIdWithClass(scope.studentId());
+        Student student = studentMapper.selectByStudentNoWithClass(scope.studentNo());
 
         List<RiskStudentDTO> details = new ArrayList<>();
         for (Attendance attendance : records) {
@@ -509,7 +509,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         if (arrangementScope.enabled() && arrangementScope.arrangementIds().isEmpty()) {
             return List.of();
         }
-        if (scope.studentId() == null) {
+        if (scope.studentNo() == null) {
             return List.of();
         }
 
@@ -532,7 +532,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
         }
         Map<Long, CourseRef> courseRefByArrangementId = resolveCourseRefByArrangementIds(arrangementIds);
-        Student student = studentMapper.selectByIdWithClass(scope.studentId());
+        Student student = studentMapper.selectByStudentNoWithClass(scope.studentNo());
 
         List<RiskStudentDTO> details = new ArrayList<>();
         for (LeaveRequest leaveRequest : records) {
@@ -556,28 +556,28 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return details;
     }
 
-    private List<RiskStudentDTO> toRiskStudentList(Map<Long, Aggregate> aggregateMap, String riskType, boolean averageValue) {
+    private List<RiskStudentDTO> toRiskStudentList(Map<String, Aggregate> aggregateMap, String riskType, boolean averageValue) {
         if (aggregateMap.isEmpty()) {
             return List.of();
         }
-        List<Long> studentIds = new ArrayList<>(aggregateMap.keySet());
-        List<Student> students = studentMapper.selectByIdsWithClass(studentIds);
-        Map<Long, Student> studentById = new HashMap<>();
+        List<String> studentIds = new ArrayList<>(aggregateMap.keySet());
+        List<Student> students = studentMapper.selectByStudentNosWithClass(studentIds);
+        Map<String, Student> studentById = new HashMap<>();
         for (Student student : students) {
-            if (student.getId() != null) {
-                studentById.put(student.getId(), student);
+            if (student.getStudentNo() != null) {
+                studentById.put(student.getStudentNo(), student);
             }
         }
 
         List<RiskStudentDTO> list = new ArrayList<>();
-        for (Map.Entry<Long, Aggregate> entry : aggregateMap.entrySet()) {
+        for (Map.Entry<String, Aggregate> entry : aggregateMap.entrySet()) {
             Student student = studentById.get(entry.getKey());
             if (student == null) {
                 continue;
             }
             Aggregate aggregate = entry.getValue();
             RiskStudentDTO dto = new RiskStudentDTO();
-            dto.setStudentId(student.getId());
+            dto.setStudentId(student.getStudentNo());
             dto.setStudentNo(student.getStudentNo());
             dto.setStudentName(student.getName());
             dto.setClassName(student.getClassName());
@@ -666,7 +666,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         if (student == null) {
             return;
         }
-        dto.setStudentId(student.getId());
+        dto.setStudentId(student.getStudentNo());
         dto.setStudentNo(student.getStudentNo());
         dto.setStudentName(student.getName());
         dto.setClassName(student.getClassName());
@@ -680,7 +680,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
         if (primaryRole.isStudent()) {
             Student student = currentUserService.getCurrentStudent(authentication);
-            return new UserScope(primaryRole, student.getId(), null, student.getClassId(), null);
+            return new UserScope(primaryRole, student.getStudentNo(), null, student.getClassId(), null);
         }
         if (primaryRole.isTeacherGroup()) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
@@ -836,20 +836,20 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     }
 
     private void applyScoreUserScope(com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper<Score> query, UserScope scope) {
-        if (scope.role().isStudent() && scope.studentId() != null) {
-            query.eq(Score::getStudentId, scope.studentId());
+        if (scope.role().isStudent() && scope.studentNo() != null) {
+            query.eq(Score::getStudentId, scope.studentNo());
         }
     }
 
     private void applyAttendanceUserScope(com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper<Attendance> query, UserScope scope) {
-        if (scope.role().isStudent() && scope.studentId() != null) {
-            query.eq(Attendance::getStudentId, scope.studentId());
+        if (scope.role().isStudent() && scope.studentNo() != null) {
+            query.eq(Attendance::getStudentId, scope.studentNo());
         }
     }
 
     private void applyLeaveUserScope(com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper<LeaveRequest> query, UserScope scope) {
-        if (scope.role().isStudent() && scope.studentId() != null) {
-            query.eq(LeaveRequest::getStudentId, scope.studentId());
+        if (scope.role().isStudent() && scope.studentNo() != null) {
+            query.eq(LeaveRequest::getStudentId, scope.studentNo());
         }
     }
 
@@ -864,7 +864,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
-    private record UserScope(SysUser.Role role, Long studentId, Long teacherId, String classId, Long collegeId) {
+    private record UserScope(SysUser.Role role, String studentNo, Long teacherId, String classId, Long collegeId) {
     }
 
     private record ArrangementScope(boolean enabled, Set<Long> arrangementIds) {

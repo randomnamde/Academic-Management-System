@@ -17,10 +17,10 @@ public interface StudentService extends IService<Student> {
     
     void updateStudent(StudentDTO studentDTO);
     
-    void deleteStudent(Long id);
+    void deleteStudent(String studentNo);
     
-    Student getStudentById(Long id);
-    
+    Student getStudentByNo(String studentNo);
+
     Page<Student> getStudentPage(Integer page,
                                  Integer size,
                                  String studentNo,
@@ -33,9 +33,9 @@ public interface StudentService extends IService<Student> {
     
     List<Student> getStudentsByClassId(String classId);
     
-    void updateStudentStatus(Long id, Student.Status status);
+    void updateStudentStatus(String studentNo, Student.Status status);
     
-    Student getStudentByUserId(Long userId);
+    Student getStudentByUserId(String userId);
 
     Map<String, Long> getGenderStatistics();
 }

@@ -42,43 +42,43 @@ public class StudentController {
         return ResultVO.success();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{studentNo}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
-    public ResultVO<Void> update(@PathVariable Long id, @RequestBody @Validated StudentDTO studentDTO, Authentication authentication) {
-        Student existing = studentService.getById(id);
+    public ResultVO<Void> update(@PathVariable String studentNo, @RequestBody @Validated StudentDTO studentDTO, Authentication authentication) {
+        Student existing = studentService.getStudentByNo(studentNo);
         if (existing == null) {
             return ResultVO.error(404, "Student not found");
         }
         studentDTO.setClassId(resolveClassCode(studentDTO.getClassId()));
         assertCollegeStudentAccess(authentication, existing);
         assertCollegeClassAccess(authentication, studentDTO.getClassId());
-        studentDTO.setId(id);
+        studentDTO.setStudentNo(existing.getStudentNo());
         studentService.updateStudent(studentDTO);
         return ResultVO.success();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{studentNo}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
-    public ResultVO<Void> delete(@PathVariable Long id, Authentication authentication) {
-        Student existing = studentService.getById(id);
+    public ResultVO<Void> delete(@PathVariable String studentNo, Authentication authentication) {
+        Student existing = studentService.getStudentByNo(studentNo);
         if (existing == null) {
             return ResultVO.error(404, "Student not found");
         }
         assertCollegeStudentAccess(authentication, existing);
-        studentService.deleteStudent(id);
+        studentService.deleteStudent(studentNo);
         return ResultVO.success();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{studentNo}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
-    public ResultVO<Student> getById(@PathVariable Long id, Authentication authentication) {
+    public ResultVO<Student> getById(@PathVariable String studentNo, Authentication authentication) {
         if (currentUserService.isStudent(authentication)) {
-            Long currentStudentId = currentUserService.getCurrentStudentId(authentication);
-            if (!currentStudentId.equals(id)) {
+            String currentStudentNo = currentUserService.getCurrentStudent(authentication).getStudentNo();
+            if (!currentStudentNo.equals(studentNo)) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
-        Student student = studentService.getStudentById(id);
+        Student student = studentService.getStudentByNo(studentNo);
         if (student == null) {
             return ResultVO.error(404, "Student not found");
         }
@@ -100,7 +100,7 @@ public class StudentController {
             Authentication authentication) {
         if (currentUserService.isStudent(authentication)) {
             Student currentStudent = currentUserService.getCurrentStudent(authentication);
-            Student detail = studentService.getStudentById(currentStudent.getId());
+            Student detail = studentService.getStudentByNo(currentStudent.getStudentNo());
             Page<Student> singlePage = new Page<>(page, size);
             if (page == 1) {
                 singlePage.setRecords(Collections.singletonList(detail));
@@ -158,15 +158,15 @@ public class StudentController {
         return ResultVO.success(students);
     }
 
-    @PutMapping("/{id}/status")
+    @PutMapping("/{studentNo}/status")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
-    public ResultVO<Void> updateStatus(@PathVariable Long id, @RequestParam Student.Status status, Authentication authentication) {
-        Student existing = studentService.getById(id);
+    public ResultVO<Void> updateStatus(@PathVariable String studentNo, @RequestParam Student.Status status, Authentication authentication) {
+        Student existing = studentService.getStudentByNo(studentNo);
         if (existing == null) {
             return ResultVO.error(404, "Student not found");
         }
         assertCollegeStudentAccess(authentication, existing);
-        studentService.updateStudentStatus(id, status);
+        studentService.updateStudentStatus(studentNo, status);
         return ResultVO.success();
     }
 

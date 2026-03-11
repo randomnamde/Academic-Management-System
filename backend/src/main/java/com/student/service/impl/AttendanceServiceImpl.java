@@ -68,7 +68,7 @@ public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attenda
     @Override
     public Page<Attendance> getAttendancePage(Integer page,
                                               Integer size,
-                                              Long studentId,
+                                              String studentId,
                                               Long teacherId,
                                               Long courseArrangementId,
                                               LocalDate attendanceDate,
@@ -78,13 +78,13 @@ public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attenda
     }
 
     @Override
-    public List<Attendance> getStudentAttendance(Long studentId, LocalDate startDate, LocalDate endDate) {
+    public List<Attendance> getStudentAttendance(String studentId, LocalDate startDate, LocalDate endDate) {
         LocalDate[] range = normalizeDateRange(startDate, endDate);
         return attendanceMapper.selectByStudentIdAndDateRange(studentId, range[0], range[1]);
     }
 
     @Override
-    public Map<String, Object> getAttendanceStatistics(Long studentId, LocalDate startDate, LocalDate endDate) {
+    public Map<String, Object> getAttendanceStatistics(String studentId, LocalDate startDate, LocalDate endDate) {
         LocalDate[] range = normalizeDateRange(startDate, endDate);
         Map<String, Object> statistics = new HashMap<>();
 
@@ -126,7 +126,7 @@ public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attenda
 
     @Override
     @Transactional
-    public void checkIn(Long studentId, Long courseArrangementId) {
+    public void checkIn(String studentId, Long courseArrangementId) {
         Attendance existing = lambdaQuery()
                 .eq(Attendance::getStudentId, studentId)
                 .eq(Attendance::getCourseArrangementId, courseArrangementId)
@@ -153,7 +153,7 @@ public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attenda
 
     @Override
     @Transactional
-    public void checkOut(Long studentId, Long courseArrangementId) {
+    public void checkOut(String studentId, Long courseArrangementId) {
         Attendance attendance = lambdaQuery()
                 .eq(Attendance::getStudentId, studentId)
                 .eq(Attendance::getCourseArrangementId, courseArrangementId)

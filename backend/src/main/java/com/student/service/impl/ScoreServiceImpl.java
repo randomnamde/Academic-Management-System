@@ -95,7 +95,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
     }
 
     @Override
-    public List<Score> getScoresByStudentId(Long studentId) {
+    public List<Score> getScoresByStudentId(String studentId) {
         return scoreMapper.selectByStudentId(studentId);
     }
 
@@ -105,10 +105,10 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
     }
 
     @Override
-    public ScoreStatisticsDTO getStudentStatistics(Long studentId) {
+    public ScoreStatisticsDTO getStudentStatistics(String studentId) {
         ScoreStatisticsDTO statistics = new ScoreStatisticsDTO();
 
-        var student = studentMapper.selectByIdWithClass(studentId);
+        var student = studentMapper.selectByStudentNoWithClass(studentId);
         if (student != null) {
             statistics.setStudentId(studentId);
             statistics.setStudentName(student.getName());

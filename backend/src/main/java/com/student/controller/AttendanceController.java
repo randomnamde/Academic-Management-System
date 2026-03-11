@@ -81,7 +81,7 @@ public class AttendanceController {
         }
         assertCollegeAdminArrangementScope(authentication, attendance.getCourseArrangementId());
         if (currentUserService.isStudent(authentication)) {
-            Long studentId = currentUserService.getCurrentStudentId(authentication);
+            String studentId = currentUserService.getCurrentStudentNo(authentication);
             if (!studentId.equals(attendance.getStudentId())) {
                 return ResultVO.error(403, "Forbidden");
             }
@@ -95,13 +95,13 @@ public class AttendanceController {
     public ResultVO<Page<Attendance>> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) Long studentId,
+            @RequestParam(required = false) String studentId,
             @RequestParam(required = false) Long courseArrangementId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate attendanceDate,
             @RequestParam(required = false) Attendance.Status status,
             Authentication authentication) {
         assertCollegeAdminArrangementScope(authentication, courseArrangementId);
-        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+        String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         Page<Attendance> result = attendanceService.getAttendancePage(
@@ -112,11 +112,11 @@ public class AttendanceController {
     @GetMapping("/student/{studentId}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<List<Attendance>> getByStudentId(
-            @PathVariable Long studentId,
+            @PathVariable String studentId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Authentication authentication) {
-        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+        String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         if (scopedTeacherId != null) {
             Page<Attendance> result = attendanceService.getAttendancePage(
@@ -131,11 +131,11 @@ public class AttendanceController {
     @GetMapping("/statistics/{studentId}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Map<String, Object>> getStatistics(
-            @PathVariable Long studentId,
+            @PathVariable String studentId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Authentication authentication) {
-        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+        String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         if (scopedTeacherId != null) {
             Page<Attendance> result = attendanceService.getAttendancePage(
@@ -179,7 +179,7 @@ public class AttendanceController {
     @PreAuthorize("hasRole('STUDENT')")
     public ResultVO<Void> checkIn(@RequestParam Long courseArrangementId, 
                                   Authentication authentication) {
-        Long studentId = currentUserService.getCurrentStudentId(authentication);
+        String studentId = currentUserService.getCurrentStudentNo(authentication);
         attendanceService.checkIn(studentId, courseArrangementId);
         return ResultVO.success();
     }
@@ -188,7 +188,7 @@ public class AttendanceController {
     @PreAuthorize("hasRole('STUDENT')")
     public ResultVO<Void> checkOut(@RequestParam Long courseArrangementId,
                                    Authentication authentication) {
-        Long studentId = currentUserService.getCurrentStudentId(authentication);
+        String studentId = currentUserService.getCurrentStudentNo(authentication);
         attendanceService.checkOut(studentId, courseArrangementId);
         return ResultVO.success();
     }

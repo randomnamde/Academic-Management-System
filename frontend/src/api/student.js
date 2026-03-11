@@ -8,9 +8,9 @@ export function getStudentList(params) {
   })
 }
 
-export function getStudentDetail(id) {
+export function getStudentDetail(studentNo) {
   return request({
-    url: `/student/${id}`,
+    url: `/student/${studentNo}`,
     method: 'get'
   })
 }
@@ -23,24 +23,24 @@ export function createStudent(data) {
   })
 }
 
-export function updateStudent(id, data) {
+export function updateStudent(studentNo, data) {
   return request({
-    url: `/student/${id}`,
+    url: `/student/${studentNo}`,
     method: 'put',
     data
   })
 }
 
-export function deleteStudent(id) {
+export function deleteStudent(studentNo) {
   return request({
-    url: `/student/${id}`,
+    url: `/student/${studentNo}`,
     method: 'delete'
   })
 }
 
-export function updateStudentStatus(id, status) {
+export function updateStudentStatus(studentNo, status) {
   return request({
-    url: `/student/${id}/status`,
+    url: `/student/${studentNo}/status`,
     method: 'put',
     params: { status }
   })

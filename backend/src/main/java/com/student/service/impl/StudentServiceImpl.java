@@ -74,11 +74,11 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         user.setRole(SysUser.Role.STUDENT);
         user.setStatus(1);
         userMapper.insert(user);
-        sysUserService.grantRole(user.getId(), RoleCode.STUDENT);
+        sysUserService.grantRole(user.getUsername(), RoleCode.STUDENT);
 
         Student student = new Student();
         BeanUtils.copyProperties(studentDTO, student);
-        student.setUserId(user.getId());
+        student.setUserId(user.getUsername());
         student.setStatus(Student.Status.ENROLLED);
         studentMapper.insert(student);
 
@@ -90,32 +90,24 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     @Override
     @Transactional
     public void updateStudent(StudentDTO studentDTO) {
-        if (studentDTO.getId() == null) {
-            throw new BusinessException("Student ID cannot be null");
-        }
         if (!StringUtils.hasText(studentDTO.getStudentNo())) {
             throw new BusinessException("Student number is required");
         }
 
-        Student existStudent = studentMapper.selectById(studentDTO.getId());
+        Student existStudent = studentMapper.selectByStudentNo(studentDTO.getStudentNo());
         if (existStudent == null) {
             throw new BusinessException("Student not found");
-        }
-
-        Student existByNo = studentMapper.selectByStudentNo(studentDTO.getStudentNo());
-        if (existByNo != null && !existByNo.getId().equals(studentDTO.getId())) {
-            throw new BusinessException("Student number already used");
         }
 
         String oldClassId = existStudent.getClassId();
 
         Student student = new Student();
         BeanUtils.copyProperties(studentDTO, student);
+        student.setUserId(existStudent.getUserId());
         studentMapper.updateById(student);
 
         SysUser user = new SysUser();
-        user.setId(existStudent.getUserId());
-        user.setUsername(studentDTO.getStudentNo());
+        user.setUsername(existStudent.getUserId());
         user.setRealName(studentDTO.getName());
         user.setPhone(studentDTO.getPhone());
         user.setEmail(studentDTO.getEmail());
@@ -156,13 +148,13 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional
-    public void deleteStudent(Long id) {
-        Student student = studentMapper.selectById(id);
+    public void deleteStudent(String studentNo) {
+        Student student = studentMapper.selectByStudentNo(studentNo);
         if (student == null) {
             throw new BusinessException("Student not found");
         }
 
-        studentMapper.deleteById(id);
+        studentMapper.deleteByStudentNo(studentNo);
         userMapper.deleteById(student.getUserId());
 
         if (student.getClassId() != null) {
@@ -171,8 +163,8 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
-    public Student getStudentById(Long id) {
-        return studentMapper.selectByIdWithClass(id);
+    public Student getStudentByNo(String studentNo) {
+        return studentMapper.selectByStudentNoWithClass(studentNo);
     }
 
     @Override
@@ -196,16 +188,16 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     @Transactional
-    public void updateStudentStatus(Long id, Student.Status status) {
-        Student student = studentMapper.selectById(id);
+    public void updateStudentStatus(String studentNo, Student.Status status) {
+        Student student = studentMapper.selectByStudentNo(studentNo);
         if (student == null) {
             throw new BusinessException("Student not found");
         }
-        studentMapper.updateStatus(id, status);
+        studentMapper.updateStatus(studentNo, status);
     }
 
     @Override
-    public Student getStudentByUserId(Long userId) {
+    public Student getStudentByUserId(String userId) {
         return lambdaQuery().eq(Student::getUserId, userId).one();
     }
 

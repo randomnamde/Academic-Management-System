@@ -87,7 +87,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SysUser.Role primaryUserRole = RoleCode.toUserRole(primaryRoleCode);
         if (primaryUserRole != null && primaryUserRole != user.getRole()) {
             SysUser rolePatch = new SysUser();
-            rolePatch.setId(user.getId());
+            rolePatch.setUsername(user.getUsername());
             rolePatch.setRole(primaryUserRole);
             userMapper.updateById(rolePatch);
             user.setRole(primaryUserRole);
@@ -117,7 +117,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void verifyPassword(Long userId, String password) {
-        SysUser user = userMapper.selectByIdWithPassword(userId);
+        SysUser user = userMapper.selectByInternalIdWithPassword(userId);
         if (user == null) {
             throw new BusinessException("User not found");
         }
@@ -129,7 +129,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional
     public void updatePassword(Long userId, String oldPassword, String newPassword) {
-        SysUser user = userMapper.selectByIdWithPassword(userId);
+        SysUser user = userMapper.selectByInternalIdWithPassword(userId);
         if (user == null) {
             throw new BusinessException("User not found");
         }
@@ -139,21 +139,21 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
-        updateById(user);
+        userMapper.updateById(user);
     }
 
     @Override
     @Transactional
     public void resetPasswordToInitialPassword(Long userId) {
-        SysUser user = getById(userId);
+        SysUser user = userMapper.selectByInternalId(userId);
         if (user == null) {
             throw new BusinessException("User not found");
         }
 
         SysUser patch = new SysUser();
-        patch.setId(userId);
+        patch.setUsername(user.getUsername());
         patch.setPassword(passwordEncoder.encode(INITIAL_PASSWORD));
-        updateById(patch);
+        userMapper.updateById(patch);
     }
 
     @Override
@@ -172,14 +172,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         int updatedCount = 0;
         for (Long userId : distinctIds) {
-            SysUser user = getById(userId);
+            SysUser user = userMapper.selectByInternalId(userId);
             if (user == null) {
                 continue;
             }
             SysUser patch = new SysUser();
-            patch.setId(userId);
+            patch.setUsername(user.getUsername());
             patch.setPassword(passwordEncoder.encode(INITIAL_PASSWORD));
-            updatedCount += updateById(patch) ? 1 : 0;
+            updatedCount += userMapper.updateById(patch);
         }
         return updatedCount;
     }
@@ -194,13 +194,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         int updatedCount = 0;
         for (SysUser user : users) {
-            if (user == null || user.getId() == null) {
+            if (user == null || user.getUsername() == null) {
                 continue;
             }
             SysUser patch = new SysUser();
-            patch.setId(user.getId());
+            patch.setUsername(user.getUsername());
             patch.setPassword(passwordEncoder.encode(INITIAL_PASSWORD));
-            updatedCount += updateById(patch) ? 1 : 0;
+            updatedCount += userMapper.updateById(patch);
         }
         return updatedCount;
     }
@@ -208,19 +208,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional
     public void updateStatus(Long userId, Integer status) {
-        SysUser user = getById(userId);
+        SysUser user = userMapper.selectByInternalId(userId);
         if (user == null) {
             throw new BusinessException("User not found");
         }
 
         user.setStatus(status);
-        updateById(user);
+        userMapper.updateById(user);
     }
 
     @Override
     @Transactional
     public void updateProfile(Long userId, UpdateProfileDTO dto) {
-        SysUser user = getById(userId);
+        SysUser user = userMapper.selectByInternalId(userId);
         if (user == null) {
             throw new BusinessException("User not found");
         }
@@ -229,13 +229,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setAvatar(dto.getAvatar());
         user.setPhone(dto.getPhone());
         user.setEmail(dto.getEmail());
-        updateById(user);
+        userMapper.updateById(user);
     }
 
     @Override
     @Transactional
     public String uploadAvatar(Long userId, MultipartFile file) {
-        SysUser user = getById(userId);
+        SysUser user = userMapper.selectByInternalId(userId);
         if (user == null) {
             throw new BusinessException("User not found");
         }
@@ -274,13 +274,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         String normalizedContextPath = (contextPath == null || contextPath.isBlank()) ? "" : contextPath;
         String avatarUrl = normalizedContextPath + "/public/avatars/" + fileName;
         user.setAvatar(avatarUrl);
-        updateById(user);
+        userMapper.updateById(user);
         return avatarUrl;
     }
 
     @Override
     public Set<RoleCode> getRoleCodes(Long userId) {
-        List<String> raw = sysUserRoleMapper.selectRoleCodesByUserId(userId);
+        SysUser user = userMapper.selectByInternalId(userId);
+        if (user == null) {
+            return new LinkedHashSet<>();
+        }
+        List<String> raw = sysUserRoleMapper.selectRoleCodesByUserId(user.getUsername());
         Set<RoleCode> result = new LinkedHashSet<>();
         for (String value : raw) {
             RoleCode code = RoleCode.from(value);
@@ -289,7 +293,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
         }
         if (result.isEmpty()) {
-            SysUser user = userMapper.selectById(userId);
             if (user != null) {
                 RoleCode fallback = RoleCode.fromUserRole(user.getRole());
                 if (fallback != null) {
@@ -306,9 +309,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             return Map.of();
         }
 
+        List<SysUser> users = userMapper.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUser>()
+                        .in(SysUser::getId, userIds));
+        Map<String, Long> idByUsername = new HashMap<>();
+        for (SysUser user : users) {
+            if (user != null && user.getId() != null && user.getUsername() != null) {
+                idByUsername.put(user.getUsername(), user.getId());
+            }
+        }
+
         List<SysUserRole> relations = sysUserRoleMapper.selectList(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUserRole>()
-                        .in(SysUserRole::getUserId, userIds)
+                        .in(SysUserRole::getUserId, idByUsername.keySet())
                         .orderByAsc(SysUserRole::getId));
 
         Map<Long, LinkedHashSet<String>> result = new HashMap<>();
@@ -317,12 +330,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             if (code == null) {
                 continue;
             }
-            result.computeIfAbsent(relation.getUserId(), key -> new LinkedHashSet<>()).add(code.name());
+            Long internalId = idByUsername.get(relation.getUserId());
+            if (internalId != null) {
+                result.computeIfAbsent(internalId, key -> new LinkedHashSet<>()).add(code.name());
+            }
         }
 
-        List<SysUser> users = userMapper.selectList(
-                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUser>()
-                        .in(SysUser::getId, userIds));
         for (SysUser user : users) {
             if (user == null || user.getId() == null || user.getRole() == null) {
                 continue;
@@ -336,22 +349,31 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional
     public void grantRole(Long userId, RoleCode roleCode) {
-        if (userId == null || roleCode == null) {
+        SysUser user = userId == null ? null : userMapper.selectByInternalId(userId);
+        if (user == null || roleCode == null) {
+            return;
+        }
+        grantRole(user.getUsername(), roleCode);
+    }
+
+    @Transactional
+    public void grantRole(String username, RoleCode roleCode) {
+        if (username == null || roleCode == null) {
             return;
         }
         Long count = sysUserRoleMapper.selectCount(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUserRole>()
-                        .eq(SysUserRole::getUserId, userId)
+                        .eq(SysUserRole::getUserId, username)
                         .eq(SysUserRole::getRoleCode, roleCode.name()));
         if (count != null && count > 0) {
-            syncPrimaryRole(userId);
+            syncPrimaryRole(username);
             return;
         }
         SysUserRole relation = new SysUserRole();
-        relation.setUserId(userId);
+        relation.setUserId(username);
         relation.setRoleCode(roleCode.name());
         sysUserRoleMapper.insert(relation);
-        syncPrimaryRole(userId);
+        syncPrimaryRole(username);
     }
 
     @Override
@@ -364,36 +386,48 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException("Role set cannot be empty");
         }
 
-        SysUser user = getById(userId);
+        SysUser user = userMapper.selectByInternalId(userId);
         if (user == null) {
             throw new BusinessException("User not found");
         }
 
         sysUserRoleMapper.delete(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysUserRole>()
-                        .eq(SysUserRole::getUserId, userId));
+                        .eq(SysUserRole::getUserId, user.getUsername()));
 
         for (RoleCode roleCode : roleCodes) {
             if (roleCode == null) {
                 continue;
             }
             SysUserRole relation = new SysUserRole();
-            relation.setUserId(userId);
+            relation.setUserId(user.getUsername());
             relation.setRoleCode(roleCode.name());
             sysUserRoleMapper.insert(relation);
         }
 
-        syncPrimaryRole(userId);
+        syncPrimaryRole(user.getUsername());
     }
 
-    private void syncPrimaryRole(Long userId) {
-        RoleCode primaryRole = RoleCode.selectPrimary(getRoleCodes(userId));
+    private void syncPrimaryRole(String username) {
+        SysUser user = userMapper.selectByUsername(username);
+        if (user == null) {
+            return;
+        }
+        List<String> rawRoles = sysUserRoleMapper.selectRoleCodesByUserId(username);
+        Set<RoleCode> roles = new LinkedHashSet<>();
+        for (String rawRole : rawRoles) {
+            RoleCode code = RoleCode.from(rawRole);
+            if (code != null) {
+                roles.add(code);
+            }
+        }
+        RoleCode primaryRole = RoleCode.selectPrimary(roles);
         SysUser.Role primaryUserRole = RoleCode.toUserRole(primaryRole);
         if (primaryUserRole == null) {
             return;
         }
         SysUser userPatch = new SysUser();
-        userPatch.setId(userId);
+        userPatch.setUsername(username);
         userPatch.setRole(primaryUserRole);
         userMapper.updateById(userPatch);
     }

@@ -12,7 +12,7 @@ public class ScoreDTO {
     private Long id;
     
     @NotNull(message = "学生ID不能为空")
-    private Long studentId;
+    private String studentId;
     
     @NotNull(message = "授课安排ID不能为空")
     private Long courseArrangementId;

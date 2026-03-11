@@ -15,17 +15,17 @@ public interface AttendanceMapper extends BaseMapper<Attendance> {
     Attendance selectByIdWithDetail(@Param("id") Long id);
 
     Page<Attendance> selectPageWithDetail(Page<Attendance> page,
-                                           @Param("studentId") Long studentId,
+                                           @Param("studentId") String studentId,
                                            @Param("teacherId") Long teacherId,
                                            @Param("courseArrangementId") Long courseArrangementId,
                                            @Param("attendanceDate") LocalDate attendanceDate,
                                            @Param("status") Attendance.Status status);
 
-    List<Attendance> selectByStudentIdAndDateRange(@Param("studentId") Long studentId,
+    List<Attendance> selectByStudentIdAndDateRange(@Param("studentId") String studentId,
                                                     @Param("startDate") LocalDate startDate,
                                                     @Param("endDate") LocalDate endDate);
 
-    Long countByStatus(@Param("studentId") Long studentId,
+    Long countByStatus(@Param("studentId") String studentId,
                        @Param("status") Attendance.Status status,
                        @Param("startDate") LocalDate startDate,
                        @Param("endDate") LocalDate endDate);

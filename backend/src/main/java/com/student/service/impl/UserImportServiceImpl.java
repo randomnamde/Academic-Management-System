@@ -17,6 +17,7 @@ import com.student.mapper.StudentMapper;
 import com.student.mapper.SysUserMapper;
 import com.student.mapper.TeacherMapper;
 import com.student.security.RoleCode;
+import com.student.service.StudentService;
 import com.student.service.SysUserService;
 import com.student.service.UserImportService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -82,6 +83,7 @@ public class UserImportServiceImpl implements UserImportService {
     private final CollegeMapper collegeMapper;
     private final ClassMapper classMapper;
     private final SysUserService sysUserService;
+    private final StudentService studentService;
     private final PasswordEncoder passwordEncoder;
     private final PlatformTransactionManager transactionManager;
 
@@ -168,11 +170,11 @@ public class UserImportServiceImpl implements UserImportService {
         String normalizedCollegeCode = normalizeCollegeCode(college.getCollegeCode());
         String username = generateUsername(roleType.accountPrefix(), normalizedCollegeCode, importYear);
         SysUser user = createSysUser(username, realName, phone, email, status, SysUser.Role.COLLEGE_ADMIN);
-        sysUserService.grantRole(user.getId(), RoleCode.COLLEGE_ADMIN);
+        sysUserService.grantRole(user.getUsername(), RoleCode.COLLEGE_ADMIN);
 
         College collegePatch = new College();
         collegePatch.setId(college.getId());
-        collegePatch.setAdminUserId(user.getId());
+        collegePatch.setAdminUserId(user.getUsername());
         collegeMapper.updateById(collegePatch);
 
         return successRow(row.rowNumber(), roleType, username, realName);
@@ -198,10 +200,10 @@ public class UserImportServiceImpl implements UserImportService {
 
         String username = generateUsername(roleType.accountPrefix(), normalizedCollegeCode, importYear);
         SysUser user = createSysUser(username, name, phone, email, status, SysUser.Role.HOMEROOM_TEACHER);
-        sysUserService.grantRole(user.getId(), RoleCode.HOMEROOM_TEACHER);
+        sysUserService.grantRole(user.getUsername(), RoleCode.HOMEROOM_TEACHER);
 
         Teacher teacher = new Teacher();
-        teacher.setUserId(user.getId());
+        teacher.setUserId(user.getUsername());
         teacher.setTeacherNo(username);
         teacher.setName(name);
         teacher.setGender(gender);
@@ -213,6 +215,7 @@ public class UserImportServiceImpl implements UserImportService {
         teacher.setHireDate(hireDate);
         teacher.setStatus(status);
         teacherMapper.insert(teacher);
+        Teacher persistedTeacher = teacherMapper.selectByTeacherNo(teacher.getTeacherNo());
 
         if (StringUtils.hasText(classCode)) {
             Class clazz = classMapper.selectByClassCode(classCode.trim());
@@ -222,12 +225,15 @@ public class UserImportServiceImpl implements UserImportService {
             if (clazz.getCollegeId() == null || !clazz.getCollegeId().equals(college.getId())) {
                 throw new BusinessException("Class does not belong to the selected college: " + classCode);
             }
-            if (clazz.getTeacherId() != null && !clazz.getTeacherId().equals(teacher.getId())) {
+            if (persistedTeacher == null || persistedTeacher.getId() == null) {
+                throw new BusinessException("Teacher internal id not found after import");
+            }
+            if (clazz.getTeacherId() != null && !clazz.getTeacherId().equals(persistedTeacher.getId())) {
                 throw new BusinessException("Class already has another homeroom teacher bound: " + classCode);
             }
             Class classPatch = new Class();
             classPatch.setId(clazz.getId());
-            classPatch.setTeacherId(teacher.getId());
+            classPatch.setTeacherId(persistedTeacher.getId());
             classMapper.updateById(classPatch);
         }
 
@@ -253,10 +259,10 @@ public class UserImportServiceImpl implements UserImportService {
 
         String username = generateUsername(roleType.accountPrefix(), normalizedCollegeCode, importYear);
         SysUser user = createSysUser(username, name, phone, email, status, SysUser.Role.COURSE_TEACHER);
-        sysUserService.grantRole(user.getId(), RoleCode.COURSE_TEACHER);
+        sysUserService.grantRole(user.getUsername(), RoleCode.COURSE_TEACHER);
 
         Teacher teacher = new Teacher();
-        teacher.setUserId(user.getId());
+        teacher.setUserId(user.getUsername());
         teacher.setTeacherNo(username);
         teacher.setName(name);
         teacher.setGender(gender);
@@ -300,14 +306,12 @@ public class UserImportServiceImpl implements UserImportService {
         if (college == null) {
             throw new BusinessException("College not found for class: " + classCode);
         }
-        String normalizedCollegeCode = normalizeCollegeCode(college.getCollegeCode());
-
-        String username = generateUsername(roleType.accountPrefix(), normalizedCollegeCode, importYear);
+        String username = studentService.generateStudentNo(clazz.getClassCode(), enrollmentDate);
         SysUser user = createSysUser(username, name, phone, email, userStatus, SysUser.Role.STUDENT);
-        sysUserService.grantRole(user.getId(), RoleCode.STUDENT);
+        sysUserService.grantRole(user.getUsername(), RoleCode.STUDENT);
 
         Student student = new Student();
-        student.setUserId(user.getId());
+        student.setUserId(user.getUsername());
         student.setStudentNo(username);
         student.setName(name);
         student.setGender(gender);
@@ -501,7 +505,7 @@ public class UserImportServiceImpl implements UserImportService {
             throw new BusinessException("College code cannot be empty");
         }
         if (normalized.length() > 4) {
-            normalized = normalized.substring(normalized.length() - 4);
+            normalized = normalized.substring(0, 4);
         }
         if (normalized.length() < 4) {
             normalized = "0".repeat(4 - normalized.length()) + normalized;

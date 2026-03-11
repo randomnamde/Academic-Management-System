@@ -20,7 +20,7 @@ public class LeaveRequestApproval {
 
     private String nodeCode;
 
-    private Long approverUserId;
+    private String approverUserId;
 
     private Long approverTeacherId;
 
@@ -31,4 +31,3 @@ public class LeaveRequestApproval {
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime operateTime;
 }
-

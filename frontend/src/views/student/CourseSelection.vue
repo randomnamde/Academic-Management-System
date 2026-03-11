@@ -174,7 +174,7 @@ async function confirmSelection() {
   try {
     const row = pendingSelectionRow.value
     const res = await selectCourse({
-      studentId: user.value.id,
+      studentId: user.value.studentNo,
       courseArrangementId: row.id
     })
 
@@ -193,7 +193,7 @@ async function pollResult(arrangementId) {
   const timer = setInterval(async () => {
     try {
       const res = await getSelectionResult({
-        studentId: user.value.id,
+        studentId: user.value.studentNo,
         arrangementId
       })
 

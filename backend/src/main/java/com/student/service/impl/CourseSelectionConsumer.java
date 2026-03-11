@@ -71,7 +71,7 @@ public class CourseSelectionConsumer {
 
     @Transactional
     public void processSelection(CourseSelectionRequestDTO request) {
-        Long studentId = request.getStudentId();
+        String studentId = request.getStudentId();
         Long arrangementId = request.getCourseArrangementId();
 
         try {

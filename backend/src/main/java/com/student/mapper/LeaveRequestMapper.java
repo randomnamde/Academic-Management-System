@@ -14,11 +14,11 @@ public interface LeaveRequestMapper extends BaseMapper<LeaveRequest> {
     LeaveRequest selectByIdWithDetail(@Param("id") Long id);
 
     Page<LeaveRequest> selectPageWithDetail(Page<LeaveRequest> page,
-                                              @Param("studentId") Long studentId,
+                                              @Param("studentId") String studentId,
                                               @Param("teacherId") Long teacherId,
                                               @Param("status") LeaveRequest.Status status);
 
-    List<LeaveRequest> selectByStudentId(@Param("studentId") Long studentId);
+    List<LeaveRequest> selectByStudentId(@Param("studentId") String studentId);
 
     List<LeaveRequest> selectPendingByTeacherId(@Param("teacherId") Long teacherId);
 }

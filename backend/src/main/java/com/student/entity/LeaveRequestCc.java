@@ -18,7 +18,7 @@ public class LeaveRequestCc {
 
     private Long leaveRequestId;
 
-    private Long receiverUserId;
+    private String receiverUserId;
 
     private Long receiverTeacherId;
 
@@ -31,4 +31,3 @@ public class LeaveRequestCc {
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 }
-

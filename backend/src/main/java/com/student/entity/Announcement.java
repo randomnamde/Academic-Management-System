@@ -26,7 +26,7 @@ public class Announcement {
     
     private Integer priority;
     
-    private Long authorId;
+    private String authorId;
     
     @TableField(exist = false)
     private String authorName;

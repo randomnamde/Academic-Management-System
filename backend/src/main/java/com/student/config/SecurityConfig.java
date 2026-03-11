@@ -1,32 +1,31 @@
 package com.student.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.student.security.JwtAuthenticationFilter;
 import com.student.vo.ResultVO;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.beans.factory.annotation.Value;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -57,9 +56,9 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) ->
-                        writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "未登录或登录已失效"))
+                    writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"))
                 .accessDeniedHandler((request, response, accessDeniedException) ->
-                        writeError(response, HttpServletResponse.SC_FORBIDDEN, "无权访问"))
+                    writeError(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden"))
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**", "/api/auth/**").permitAll()
@@ -97,9 +96,9 @@ public class SecurityConfig {
 
     private List<String> parseCsv(String raw) {
         return Arrays.stream(raw.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .collect(Collectors.toList());
     }
 
     private void writeError(HttpServletResponse response, int status, String message) {

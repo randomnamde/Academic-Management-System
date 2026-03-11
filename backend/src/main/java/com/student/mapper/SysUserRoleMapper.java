@@ -12,6 +12,5 @@ import java.util.List;
 public interface SysUserRoleMapper extends BaseMapper<SysUserRole> {
 
     @Select("SELECT role_code FROM sys_user_role WHERE user_id = #{userId} ORDER BY id ASC")
-    List<String> selectRoleCodesByUserId(@Param("userId") Long userId);
+    List<String> selectRoleCodesByUserId(@Param("userId") String userId);
 }
-

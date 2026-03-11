@@ -24,7 +24,7 @@ public class College {
 
     private Integer status;
 
-    private Long adminUserId;
+    private String adminUserId;
 
     @TableField(exist = false)
     private String adminUsername;

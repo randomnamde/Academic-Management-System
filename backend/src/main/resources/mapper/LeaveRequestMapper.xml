@@ -32,7 +32,7 @@
                s.student_no, s.name as student_name, c.class_name,
                co.course_name, t.name as approver_name
         FROM leave_request lr
-        LEFT JOIN student s ON lr.student_id = s.id
+        LEFT JOIN student s ON lr.student_id = s.student_no
         LEFT JOIN class c ON s.class_id = c.class_code
         LEFT JOIN course_arrangement ca ON lr.course_arrangement_id = ca.id
         LEFT JOIN course co ON ca.course_id = co.id
@@ -45,7 +45,7 @@
                s.student_no, s.name as student_name, c.class_name,
                co.course_name, t.name as approver_name
         FROM leave_request lr
-        LEFT JOIN student s ON lr.student_id = s.id
+        LEFT JOIN student s ON lr.student_id = s.student_no
         LEFT JOIN class c ON s.class_id = c.class_code
         LEFT JOIN course_arrangement ca ON lr.course_arrangement_id = ca.id
         LEFT JOIN course co ON ca.course_id = co.id
@@ -69,7 +69,7 @@
                s.student_no, s.name as student_name, c.class_name,
                co.course_name, t.name as approver_name
         FROM leave_request lr
-        LEFT JOIN student s ON lr.student_id = s.id
+        LEFT JOIN student s ON lr.student_id = s.student_no
         LEFT JOIN class c ON s.class_id = c.class_code
         LEFT JOIN course_arrangement ca ON lr.course_arrangement_id = ca.id
         LEFT JOIN course co ON ca.course_id = co.id
@@ -83,7 +83,7 @@
                s.student_no, s.name as student_name, c.class_name,
                co.course_name
         FROM leave_request lr
-        LEFT JOIN student s ON lr.student_id = s.id
+        LEFT JOIN student s ON lr.student_id = s.student_no
         LEFT JOIN class c ON s.class_id = c.class_code
         LEFT JOIN course_arrangement ca ON lr.course_arrangement_id = ca.id
         LEFT JOIN course co ON ca.course_id = co.id

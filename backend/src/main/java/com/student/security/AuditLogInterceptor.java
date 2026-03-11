@@ -46,7 +46,7 @@ public class AuditLogInterceptor implements HandlerInterceptor {
 
             SysLog sysLog = new SysLog();
             Object userIdAttr = request.getAttribute("userId");
-            if (userIdAttr instanceof Long userId) {
+            if (userIdAttr instanceof String userId) {
                 sysLog.setUserId(userId);
             }
 

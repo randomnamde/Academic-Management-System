@@ -58,7 +58,7 @@
                <include refid="DerivedStatusExpr"/> as derived_status,
                c.course_name, t.name as teacher_name, ca.semester
         FROM score s
-        LEFT JOIN student st ON s.student_id = st.id
+        LEFT JOIN student st ON s.student_id = st.student_no
         LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
         LEFT JOIN class ca_cl ON ca.class_id = ca_cl.class_code
         LEFT JOIN class st_cl ON st.class_id = st_cl.class_code
@@ -74,7 +74,7 @@
                <include refid="DerivedStatusExpr"/> as derived_status,
                c.course_name, t.name as teacher_name, ca.semester
         FROM score s
-        LEFT JOIN student st ON s.student_id = st.id
+        LEFT JOIN student st ON s.student_id = st.student_no
         LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
         LEFT JOIN class ca_cl ON ca.class_id = ca_cl.class_code
         LEFT JOIN class st_cl ON st.class_id = st_cl.class_code
@@ -110,7 +110,7 @@
                <include refid="DerivedStatusExpr"/> as derived_status,
                c.course_name, t.name as teacher_name, ca.semester
         FROM score s
-        LEFT JOIN student st ON s.student_id = st.id
+        LEFT JOIN student st ON s.student_id = st.student_no
         LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
         LEFT JOIN class ca_cl ON ca.class_id = ca_cl.class_code
         LEFT JOIN class st_cl ON st.class_id = st_cl.class_code
@@ -127,7 +127,7 @@
                <include refid="DerivedStatusExpr"/> as derived_status,
                c.course_name, t.name as teacher_name, ca.semester
         FROM score s
-        LEFT JOIN student st ON s.student_id = st.id
+        LEFT JOIN student st ON s.student_id = st.student_no
         LEFT JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
         LEFT JOIN class ca_cl ON ca.class_id = ca_cl.class_code
         LEFT JOIN class st_cl ON st.class_id = st_cl.class_code
@@ -155,19 +155,19 @@
 
     <select id="selectClassRank" resultType="java.util.HashMap">
         SELECT 
-            st.id as student_id,
+            st.student_no as student_id,
             st.student_no,
             st.name as student_name,
             AVG(s.total_score) as average_score,
             SUM(s.total_score * c.credit) / SUM(c.credit) as weighted_average,
             RANK() OVER (ORDER BY AVG(s.total_score) DESC) as rank
         FROM score s
-        JOIN student st ON s.student_id = st.id
+        JOIN student st ON s.student_id = st.student_no
         JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
         JOIN course c ON ca.course_id = c.id
         WHERE st.class_id = #{classId}
           AND ca.semester = #{semester}
-        GROUP BY st.id, st.student_no, st.name
+        GROUP BY st.student_no, st.name
         ORDER BY average_score DESC
     </select>
 

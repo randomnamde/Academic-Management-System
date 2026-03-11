@@ -16,11 +16,10 @@ public class SysUserRole {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long userId;
+    private String userId;
 
     private String roleCode;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 }
-

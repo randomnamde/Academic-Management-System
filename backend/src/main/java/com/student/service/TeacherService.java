@@ -11,11 +11,11 @@ public interface TeacherService extends IService<Teacher> {
 
     void updateTeacher(TeacherDTO teacherDTO);
 
-    void deleteTeacher(Long id);
+    void deleteTeacher(String teacherNo);
 
-    Teacher getTeacherById(Long id);
+    Teacher getTeacherByNo(String teacherNo);
 
     Page<Teacher> getTeacherPage(Integer page, Integer size, String teacherNo, String name, Long departmentId);
 
-    void updateTeacherStatus(Long id, Integer status);
+    void updateTeacherStatus(String teacherNo, Integer status);
 }

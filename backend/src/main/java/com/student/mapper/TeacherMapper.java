@@ -12,6 +12,9 @@ public interface TeacherMapper extends BaseMapper<Teacher> {
     
     @Select("SELECT * FROM teacher WHERE teacher_no = #{teacherNo}")
     Teacher selectByTeacherNo(@Param("teacherNo") String teacherNo);
+
+    @Select("SELECT * FROM teacher WHERE id = #{id}")
+    Teacher selectByInternalId(@Param("id") Long id);
     
     Page<Teacher> selectPageList(Page<Teacher> page,
                                 @Param("teacherNo") String teacherNo,
@@ -20,5 +23,5 @@ public interface TeacherMapper extends BaseMapper<Teacher> {
                                 @Param("title") Teacher.Title title);
     
     @Select("SELECT * FROM teacher WHERE user_id = #{userId}")
-    Teacher selectByUserId(@Param("userId") Long userId);
+    Teacher selectByUserId(@Param("userId") String userId);
 }

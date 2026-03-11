@@ -71,7 +71,7 @@ public class DashboardController {
             return ResultVO.error(403, "Forbidden");
         }
 
-        Long studentId = null;
+        String studentId = null;
         Long teacherId = null;
         Set<Long> arrangementIds = new HashSet<>();
         Set<String> classIds = new HashSet<>();
@@ -80,7 +80,7 @@ public class DashboardController {
 
         if (role.isStudent()) {
             Student currentStudent = currentUserService.getCurrentStudent(authentication);
-            studentId = currentStudent.getId();
+            studentId = currentStudent.getStudentNo();
             if (currentStudent.getClassId() != null) {
                 classIds.add(currentStudent.getClassId());
                 List<CourseArrangement> studentArrangements = courseArrangementMapper.selectList(
@@ -199,7 +199,7 @@ public class DashboardController {
 
     private void fillScopeStatistics(DashboardOverviewDTO overview,
                                      SysUser.Role role,
-                                     Long studentId,
+                                     String studentId,
                                      Set<String> classIds,
                                      Set<Long> courseIds,
                                      Set<Long> teacherIds) {
@@ -232,11 +232,11 @@ public class DashboardController {
 
             DashboardOverviewDTO.GenderStatistics genderStatistics = new DashboardOverviewDTO.GenderStatistics();
             genderStatistics.setMale(studentService.lambdaQuery()
-                    .eq(Student::getId, studentId)
+                    .eq(Student::getStudentNo, studentId)
                     .eq(Student::getGender, Student.Gender.MALE)
                     .count());
             genderStatistics.setFemale(studentService.lambdaQuery()
-                    .eq(Student::getId, studentId)
+                    .eq(Student::getStudentNo, studentId)
                     .eq(Student::getGender, Student.Gender.FEMALE)
                     .count());
             overview.setGenderStatistics(genderStatistics);
@@ -284,7 +284,7 @@ public class DashboardController {
         return courseCategoryStatistics;
     }
 
-    private Long countPending(SysUser.Role role, Long studentId, Long teacherId) {
+    private Long countPending(SysUser.Role role, String studentId, Long teacherId) {
         if (role.isStudent()) {
             return leaveRequestService.lambdaQuery()
                     .eq(LeaveRequest::getStudentId, studentId)
@@ -301,7 +301,7 @@ public class DashboardController {
 
     private Long countAbnormalByDate(LocalDate date,
                                      SysUser.Role role,
-                                     Long studentId,
+                                     String studentId,
                                      List<Long> teacherArrangementIds) {
         var query = attendanceService.lambdaQuery()
                 .eq(Attendance::getAttendanceDate, date)
@@ -317,7 +317,7 @@ public class DashboardController {
         return query.count();
     }
 
-    private Long countLowScore(SysUser.Role role, Long studentId, List<Long> teacherArrangementIds) {
+    private Long countLowScore(SysUser.Role role, String studentId, List<Long> teacherArrangementIds) {
         var query = scoreService.lambdaQuery().lt(Score::getTotalScore, LOW_SCORE_THRESHOLD);
         if (role.isStudent()) {
             query.eq(Score::getStudentId, studentId);
@@ -331,7 +331,7 @@ public class DashboardController {
     }
 
     private List<DashboardOverviewDTO.TrendPoint> buildTrend(SysUser.Role role,
-                                                             Long studentId,
+                                                             String studentId,
                                                              List<Long> teacherArrangementIds) {
         List<DashboardOverviewDTO.TrendPoint> trendPoints = new ArrayList<>();
         LocalDate today = LocalDate.now();

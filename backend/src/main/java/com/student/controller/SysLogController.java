@@ -22,7 +22,7 @@ public class SysLogController {
     @PreAuthorize("hasRole('SCHOOL_ADMIN')")
     public ResultVO<Page<SysLog>> list(@RequestParam(defaultValue = "1") Integer page,
                                        @RequestParam(defaultValue = "20") Integer size,
-                                       @RequestParam(required = false) Long userId,
+                                       @RequestParam(required = false) String userId,
                                        @RequestParam(required = false) Integer status,
                                        @RequestParam(required = false) String operation) {
         Page<SysLog> pageParam = new Page<>(page, size);

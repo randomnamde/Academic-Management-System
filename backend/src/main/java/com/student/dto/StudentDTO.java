@@ -10,8 +10,6 @@ import java.time.LocalDate;
 @Data
 public class StudentDTO {
 
-    private Long id;
-
     private String studentNo;
 
     @NotBlank(message = "Name is required")

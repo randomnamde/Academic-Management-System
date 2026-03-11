@@ -12,7 +12,7 @@ public class LeaveRequestDTO {
 
     private Long id;
 
-    private Long studentId;
+    private String studentId;
 
     private Long courseArrangementId;
 

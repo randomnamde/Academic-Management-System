@@ -59,7 +59,7 @@ public class CourseSelectionServiceImpl implements CourseSelectionService {
         }
 
         Long arrangementId = requestDTO.getCourseArrangementId();
-        Long studentId = requestDTO.getStudentId();
+        String studentId = requestDTO.getStudentId();
 
         // 2. Redis 原子预扣减库存
         String key = COURSE_INV_PREFIX + arrangementId;
@@ -86,7 +86,7 @@ public class CourseSelectionServiceImpl implements CourseSelectionService {
     }
 
     @Override
-    public Result<String> getSelectionResult(Long studentId, Long arrangementId) {
+    public Result<String> getSelectionResult(String studentId, Long arrangementId) {
         StudentCourseSelection selection = selectionMapper.selectOne(new LambdaQueryWrapper<StudentCourseSelection>()
                 .eq(StudentCourseSelection::getStudentId, studentId)
                 .eq(StudentCourseSelection::getCourseArrangementId, arrangementId));

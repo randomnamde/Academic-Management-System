@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.entity.Student;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
@@ -20,9 +21,9 @@ public interface StudentMapper extends BaseMapper<Student> {
             LEFT JOIN class c ON s.class_id = c.class_code
             LEFT JOIN college co ON c.college_id = co.id
             LEFT JOIN major m ON m.major_code = c.major_code
-            WHERE s.id = #{id}
+            WHERE s.student_no = #{studentNo}
             """)
-    Student selectByIdWithClass(@Param("id") Long id);
+    Student selectByStudentNoWithClass(@Param("studentNo") String studentNo);
 
     @Select({
             "<script>",
@@ -31,13 +32,13 @@ public interface StudentMapper extends BaseMapper<Student> {
             "LEFT JOIN class c ON s.class_id = c.class_code",
             "LEFT JOIN college co ON c.college_id = co.id",
             "LEFT JOIN major m ON m.major_code = c.major_code",
-            "WHERE s.id IN",
-            "<foreach item='id' collection='ids' open='(' separator=',' close=')'>",
-            "  #{id}",
+            "WHERE s.student_no IN",
+            "<foreach item='studentNo' collection='studentNos' open='(' separator=',' close=')'>",
+            "  #{studentNo}",
             "</foreach>",
             "</script>"
     })
-    List<Student> selectByIdsWithClass(@Param("ids") List<Long> ids);
+    List<Student> selectByStudentNosWithClass(@Param("studentNos") List<String> studentNos);
 
     @Select({
             "<script>",
@@ -100,8 +101,11 @@ public interface StudentMapper extends BaseMapper<Student> {
             """)
     List<Student> selectByClassId(@Param("classId") String classId);
     
-    @Update("UPDATE student SET status = #{status} WHERE id = #{id}")
-    int updateStatus(@Param("id") Long id, @Param("status") Student.Status status);
+    @Update("UPDATE student SET status = #{status} WHERE student_no = #{studentNo}")
+    int updateStatus(@Param("studentNo") String studentNo, @Param("status") Student.Status status);
+
+    @Delete("DELETE FROM student WHERE student_no = #{studentNo}")
+    int deleteByStudentNo(@Param("studentNo") String studentNo);
     
     @Select("SELECT COUNT(*) FROM student WHERE class_id = #{classId} AND status = 'ENROLLED'")
     Long countByClassId(@Param("classId") String classId);

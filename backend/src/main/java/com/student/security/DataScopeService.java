@@ -27,11 +27,11 @@ public class DataScopeService {
     private final StudentMapper studentMapper;
     private final ClassMapper classMapper;
 
-    public Long resolveScopedStudentId(Authentication authentication, Long requestedStudentId) {
+    public String resolveScopedStudentNo(Authentication authentication, String requestedStudentNo) {
         if (currentUserService.isStudent(authentication)) {
-            return currentUserService.getCurrentStudentId(authentication);
+            return currentUserService.getCurrentStudentNo(authentication);
         }
-        return requestedStudentId;
+        return requestedStudentNo;
     }
 
     public Long resolveScopedTeacherId(Authentication authentication, Long requestedTeacherId) {
@@ -102,20 +102,20 @@ public class DataScopeService {
         return ids;
     }
 
-    public Set<Long> resolveCollegeStudentIds(Authentication authentication) {
+    public Set<String> resolveCollegeStudentNos(Authentication authentication) {
         Set<String> classIds = resolveCollegeClassCodes(authentication);
         if (classIds.isEmpty()) {
             return Set.of();
         }
         List<Student> students = studentMapper.selectList(
                 new LambdaQueryWrapper<Student>().in(Student::getClassId, classIds));
-        Set<Long> ids = new HashSet<>();
+        Set<String> studentNos = new HashSet<>();
         for (Student student : students) {
-            if (student.getId() != null) {
-                ids.add(student.getId());
+            if (student.getStudentNo() != null) {
+                studentNos.add(student.getStudentNo());
             }
         }
-        return ids;
+        return studentNos;
     }
 
     public StudentArrangementScope resolveStudentArrangementScope(Authentication authentication) {
@@ -126,7 +126,7 @@ public class DataScopeService {
         Set<Long> courseIds = new HashSet<>();
 
         if (student.getClassId() == null) {
-            return new StudentArrangementScope(student.getId(), classIds, arrangementIds, teacherIds, courseIds);
+            return new StudentArrangementScope(student.getStudentNo(), classIds, arrangementIds, teacherIds, courseIds);
         }
 
         classIds.add(student.getClassId());
@@ -148,30 +148,30 @@ public class DataScopeService {
                 classIds.add(arrangement.getClassId());
             }
         }
-        return new StudentArrangementScope(student.getId(), classIds, arrangementIds, teacherIds, courseIds);
+        return new StudentArrangementScope(student.getStudentNo(), classIds, arrangementIds, teacherIds, courseIds);
     }
 
     public static final class StudentArrangementScope {
-        private final Long studentId;
+        private final String studentNo;
         private final Set<String> classIds;
         private final Set<Long> arrangementIds;
         private final Set<Long> teacherIds;
         private final Set<Long> courseIds;
 
-        public StudentArrangementScope(Long studentId,
+        public StudentArrangementScope(String studentNo,
                                        Set<String> classIds,
                                        Set<Long> arrangementIds,
                                        Set<Long> teacherIds,
                                        Set<Long> courseIds) {
-            this.studentId = studentId;
+            this.studentNo = studentNo;
             this.classIds = Collections.unmodifiableSet(new HashSet<>(classIds));
             this.arrangementIds = Collections.unmodifiableSet(new HashSet<>(arrangementIds));
             this.teacherIds = Collections.unmodifiableSet(new HashSet<>(teacherIds));
             this.courseIds = Collections.unmodifiableSet(new HashSet<>(courseIds));
         }
 
-        public Long getStudentId() {
-            return studentId;
+        public String getStudentNo() {
+            return studentNo;
         }
 
         public Set<String> getClassIds() {

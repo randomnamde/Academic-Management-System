@@ -95,7 +95,7 @@ public class ClassController {
         }
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
-            if (!scope.getClassIds().contains(existing.getId())) {
+            if (!scope.getClassIds().contains(existing.getClassCode())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
@@ -134,7 +134,7 @@ public class ClassController {
             }
 
             LambdaQueryWrapper<Class> wrapper = new LambdaQueryWrapper<Class>()
-                    .in(Class::getId, scope.getClassIds())
+                    .in(Class::getClassCode, scope.getClassIds())
                     .like(className != null && !className.isBlank(), Class::getClassName, className)
                     .eq(gradeYear != null, Class::getGrade, gradeYear)
                     .eq(majorCode != null && !majorCode.isBlank(), Class::getMajorCode, majorCode)
@@ -163,7 +163,7 @@ public class ClassController {
         if (teacherId == null) {
             return;
         }
-        Teacher teacher = teacherMapper.selectById(teacherId);
+        Teacher teacher = teacherMapper.selectByInternalId(teacherId);
         if (teacher == null || teacher.getUserId() == null) {
             return;
         }

@@ -81,7 +81,7 @@ public class ScoreController {
         }
         assertCollegeAdminArrangementScope(authentication, score.getCourseArrangementId());
         if (currentUserService.isStudent(authentication)) {
-            Long studentId = currentUserService.getCurrentStudentId(authentication);
+            String studentId = currentUserService.getCurrentStudentNo(authentication);
             if (!studentId.equals(score.getStudentId())) {
                 return ResultVO.error(403, "Forbidden");
             }
@@ -95,14 +95,14 @@ public class ScoreController {
     public ResultVO<Page<Score>> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) Long studentId,
+            @RequestParam(required = false) String studentId,
             @RequestParam(required = false) Long courseArrangementId,
             @RequestParam(required = false) Long collegeId,
             @RequestParam(required = false) String classId,
             @RequestParam(required = false) String semester,
             Authentication authentication) {
         assertCollegeAdminArrangementScope(authentication, courseArrangementId);
-        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+        String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
         Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         ScoreQueryDTO queryDTO = new ScoreQueryDTO();
@@ -118,8 +118,8 @@ public class ScoreController {
 
     @GetMapping("/student/{studentId}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
-    public ResultVO<List<Score>> getByStudentId(@PathVariable Long studentId, Authentication authentication) {
-        Long scopedStudentId = dataScopeService.resolveScopedStudentId(authentication, studentId);
+    public ResultVO<List<Score>> getByStudentId(@PathVariable String studentId, Authentication authentication) {
+        String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
         ScoreQueryDTO queryDTO = new ScoreQueryDTO();
         queryDTO.setStudentId(scopedStudentId);
         queryDTO.setTeacherId(dataScopeService.resolveScopedTeacherId(authentication, null));
@@ -138,9 +138,9 @@ public class ScoreController {
 
     @GetMapping("/statistics/{studentId}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
-    public ResultVO<ScoreStatisticsDTO> getStatistics(@PathVariable Long studentId, Authentication authentication) {
+    public ResultVO<ScoreStatisticsDTO> getStatistics(@PathVariable String studentId, Authentication authentication) {
         if (currentUserService.isStudent(authentication)) {
-            studentId = currentUserService.getCurrentStudentId(authentication);
+            studentId = currentUserService.getCurrentStudentNo(authentication);
         } else if (currentUserService.isTeacher(authentication)) {
             ScoreQueryDTO queryDTO = new ScoreQueryDTO();
             queryDTO.setStudentId(studentId);
@@ -202,7 +202,7 @@ public class ScoreController {
         }
     }
 
-    private ScoreStatisticsDTO buildScopedStatistics(Long studentId, List<Score> scopedScores) {
+    private ScoreStatisticsDTO buildScopedStatistics(String studentId, List<Score> scopedScores) {
         ScoreStatisticsDTO dto = new ScoreStatisticsDTO();
         dto.setStudentId(studentId);
         dto.setStudentName(scopedScores.get(0).getStudentName());

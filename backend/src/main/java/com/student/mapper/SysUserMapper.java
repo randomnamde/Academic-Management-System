@@ -16,5 +16,8 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     Long countByUsername(@Param("username") String username);
 
     @Select("SELECT * FROM sys_user WHERE id = #{id}")
-    SysUser selectByIdWithPassword(@Param("id") Long id);
+    SysUser selectByInternalId(@Param("id") Long id);
+
+    @Select("SELECT * FROM sys_user WHERE id = #{id}")
+    SysUser selectByInternalIdWithPassword(@Param("id") Long id);
 }

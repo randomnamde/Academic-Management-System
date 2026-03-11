@@ -364,13 +364,13 @@ async function handleEdit(row) {
 
 async function handleDelete(row) {
   await ElMessageBox.confirm(t('student.deleteConfirm'), t('common.tip'), { type: 'warning' })
-  await deleteStudent(row.id)
+  await deleteStudent(row.studentNo)
   ElMessage.success(t('student.deleteSuccess'))
   fetchList()
 }
 
 function handleViewScore(row) {
-  router.push({ path: '/score', query: { studentId: row.id } })
+  router.push({ path: '/score', query: { studentId: row.studentNo } })
 }
 
 async function handleSubmit() {
@@ -388,7 +388,7 @@ async function handleSubmit() {
   }
 
   if (isEdit.value) {
-    await updateStudent(form.id, payload)
+    await updateStudent(form.studentNo, payload)
     ElMessage.success(t('student.updateSuccess'))
   } else {
     await createStudent(payload)

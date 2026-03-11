@@ -18,23 +18,23 @@ public interface LeaveRequestService extends IService<LeaveRequest> {
 
     void cancelLeaveRequest(Long id);
 
-    void approveLeaveRequest(Long id, boolean approved, String remark, Long approverUserId, Long approverTeacherId, Set<RoleCode> approverRoles);
+    void approveLeaveRequest(Long id, boolean approved, String remark, String approverUserId, Long approverTeacherId, Set<RoleCode> approverRoles);
 
     LeaveRequest getLeaveRequestById(Long id);
 
-    Page<LeaveRequest> getLeaveRequestPage(Integer page, Integer size, Long studentId, Long teacherId,
+    Page<LeaveRequest> getLeaveRequestPage(Integer page, Integer size, String studentId, Long teacherId,
                                           LeaveRequest.Status status);
 
-    Page<LeaveRequest> getLeaveRequestPageByStudentIds(Integer page, Integer size, Set<Long> studentIds,
+    Page<LeaveRequest> getLeaveRequestPageByStudentIds(Integer page, Integer size, Set<String> studentIds,
                                                        LeaveRequest.Status status);
 
-    List<LeaveRequest> getStudentLeaveRequests(Long studentId);
+    List<LeaveRequest> getStudentLeaveRequests(String studentId);
 
     List<LeaveRequest> getPendingRequestsForTeacher(Long teacherId);
 
     List<LeaveRequest> getPendingRequestsForCollege(Long collegeId);
 
-    List<LeaveRequestCc> getCcList(Long receiverUserId);
+    List<LeaveRequestCc> getCcList(String receiverUserId);
 
-    void markCcRead(Long ccId, Long receiverUserId);
+    void markCcRead(Long ccId, String receiverUserId);
 }

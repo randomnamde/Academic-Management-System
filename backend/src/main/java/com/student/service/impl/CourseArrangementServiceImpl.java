@@ -155,7 +155,7 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
             throw new BusinessException(404, "课程不存在");
         }
 
-        Teacher teacher = teacherMapper.selectById(dto.getTeacherId());
+        Teacher teacher = teacherMapper.selectByInternalId(dto.getTeacherId());
         if (teacher == null) {
             throw new BusinessException(404, "教师不存在");
         }

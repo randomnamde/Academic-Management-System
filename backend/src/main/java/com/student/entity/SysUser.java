@@ -8,10 +8,10 @@ import java.time.LocalDateTime;
 @TableName("sys_user")
 public class SysUser {
     
-    @TableId(type = IdType.AUTO)
-    private Long id;
-    
+    @TableId(value = "username", type = IdType.INPUT)
     private String username;
+
+    private Long id;
     
     @TableField(select = false)
     private String password;

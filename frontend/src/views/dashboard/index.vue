@@ -639,8 +639,8 @@ async function refreshTodos() {
           })
         )
       }
-    } else if (userInfo.value.id) {
-      const myLeaveRes = await getLeaveRequestList({ page: 1, size: 1, studentId: userInfo.value.id, status: 'PENDING' })
+    } else if (userInfo.value.studentNo) {
+      const myLeaveRes = await getLeaveRequestList({ page: 1, size: 1, studentId: userInfo.value.studentNo, status: 'PENDING' })
       const myPendingTotal = Number(myLeaveRes.data?.total || 0)
       if (myPendingTotal > 0) {
         tasks.push(

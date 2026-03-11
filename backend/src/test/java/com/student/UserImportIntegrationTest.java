@@ -64,7 +64,7 @@ class UserImportIntegrationTest {
                 .andExpect(jsonPath("$.data.failedCount").value(0));
 
         String username = jdbcTemplate.queryForObject(
-                "SELECT u.username FROM sys_user u JOIN teacher t ON t.user_id = u.id WHERE t.name = ? ORDER BY u.id DESC LIMIT 1",
+                "SELECT t.user_id FROM teacher t WHERE t.name = ? ORDER BY t.id DESC LIMIT 1",
                 String.class,
                 teacherName
         );
@@ -75,7 +75,7 @@ class UserImportIntegrationTest {
 
     @Test
     void teacherCannotImportUsers() throws Exception {
-        String token = loginAndGetToken("teacher001", "123456");
+        String token = loginAndGetToken("T00CS20240001", "123456");
         String csv = """
                 collegeCode,name,gender
                 CS,BlockedTeacher,MALE

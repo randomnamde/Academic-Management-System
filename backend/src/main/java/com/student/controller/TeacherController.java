@@ -34,53 +34,53 @@ public class TeacherController {
         return ResultVO.success();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{teacherNo}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
-    public ResultVO<Void> update(@PathVariable Long id, @RequestBody @Validated TeacherDTO teacherDTO, Authentication authentication) {
+    public ResultVO<Void> update(@PathVariable String teacherNo, @RequestBody @Validated TeacherDTO teacherDTO, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId != null) {
-            Teacher existing = teacherService.getById(id);
+            Teacher existing = teacherService.getById(teacherNo);
             if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
                 return ResultVO.error(403, "Forbidden");
             }
             teacherDTO.setCollegeId(scopedCollegeId);
         }
-        teacherDTO.setId(id);
+        teacherDTO.setTeacherNo(teacherNo);
         teacherService.updateTeacher(teacherDTO);
         return ResultVO.success();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{teacherNo}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
-    public ResultVO<Void> delete(@PathVariable Long id, Authentication authentication) {
+    public ResultVO<Void> delete(@PathVariable String teacherNo, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId != null) {
-            Teacher existing = teacherService.getById(id);
+            Teacher existing = teacherService.getById(teacherNo);
             if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
-        teacherService.deleteTeacher(id);
+        teacherService.deleteTeacher(teacherNo);
         return ResultVO.success();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{teacherNo}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
-    public ResultVO<Teacher> getById(@PathVariable Long id, Authentication authentication) {
+    public ResultVO<Teacher> getById(@PathVariable String teacherNo, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId != null) {
-            Teacher existing = teacherService.getById(id);
+            Teacher existing = teacherService.getById(teacherNo);
             if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
+        Teacher teacher = teacherService.getById(teacherNo);
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
-            if (!scope.getTeacherIds().contains(id)) {
+            if (teacher == null || teacher.getId() == null || !scope.getTeacherIds().contains(teacher.getId())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
-        Teacher teacher = teacherService.getTeacherById(id);
         return ResultVO.success(teacher);
     }
 
@@ -136,17 +136,17 @@ public class TeacherController {
         return ResultVO.success(result);
     }
 
-    @PutMapping("/{id}/status")
+    @PutMapping("/{teacherNo}/status")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
-    public ResultVO<Void> updateStatus(@PathVariable Long id, @RequestParam Integer status, Authentication authentication) {
+    public ResultVO<Void> updateStatus(@PathVariable String teacherNo, @RequestParam Integer status, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId != null) {
-            Teacher existing = teacherService.getById(id);
+            Teacher existing = teacherService.getById(teacherNo);
             if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
-        teacherService.updateTeacherStatus(id, status);
+        teacherService.updateTeacherStatus(teacherNo, status);
         return ResultVO.success();
     }
 }

@@ -13,7 +13,7 @@ public class AttendanceDTO {
     private Long id;
 
     @NotNull(message = "Student id is required")
-    private Long studentId;
+    private String studentId;
 
     @NotNull(message = "Course arrangement id is required")
     private Long courseArrangementId;

@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 @TableName("student")
 public class Student {
     
-    @TableId(type = IdType.AUTO)
+    @TableId(value = "student_no", type = IdType.INPUT)
+    private String studentNo;
+
     private Long id;
     
-    private Long userId;
-    
-    private String studentNo;
+    private String userId;
     
     private String name;
     

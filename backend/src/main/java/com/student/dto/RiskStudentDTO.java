@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Data
 public class RiskStudentDTO {
 
-    private Long studentId;
+    private String studentId;
 
     private String studentNo;
 

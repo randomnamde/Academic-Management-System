@@ -44,7 +44,7 @@ public class CurrentUserService {
 
     public Set<RoleCode> getCurrentRoleCodes(Authentication authentication) {
         SysUser user = getCurrentUser(authentication);
-        List<String> roleCodes = sysUserRoleMapper.selectRoleCodesByUserId(user.getId());
+        List<String> roleCodes = sysUserRoleMapper.selectRoleCodesByUserId(user.getUsername());
         Set<RoleCode> result = new LinkedHashSet<>();
         for (String value : roleCodes) {
             RoleCode code = RoleCode.from(value);
@@ -79,18 +79,18 @@ public class CurrentUserService {
         return false;
     }
 
-    public Long getCurrentStudentId(Authentication authentication) {
+    public String getCurrentStudentNo(Authentication authentication) {
         SysUser user = getCurrentUser(authentication);
-        Student student = studentService.getStudentByUserId(user.getId());
+        Student student = studentService.getStudentByUserId(user.getUsername());
         if (student == null) {
             throw new BusinessException(404, "Student profile not found");
         }
-        return student.getId();
+        return student.getStudentNo();
     }
 
     public Student getCurrentStudent(Authentication authentication) {
         SysUser user = getCurrentUser(authentication);
-        Student student = studentService.getStudentByUserId(user.getId());
+        Student student = studentService.getStudentByUserId(user.getUsername());
         if (student == null) {
             throw new BusinessException(404, "Student profile not found");
         }
@@ -99,7 +99,7 @@ public class CurrentUserService {
 
     public Long getCurrentTeacherId(Authentication authentication) {
         SysUser user = getCurrentUser(authentication);
-        Teacher teacher = teacherMapper.selectByUserId(user.getId());
+        Teacher teacher = teacherMapper.selectByUserId(user.getUsername());
         if (teacher == null) {
             throw new BusinessException(404, "Teacher profile not found");
         }
@@ -108,7 +108,7 @@ public class CurrentUserService {
 
     public Teacher getCurrentTeacher(Authentication authentication) {
         SysUser user = getCurrentUser(authentication);
-        Teacher teacher = teacherMapper.selectByUserId(user.getId());
+        Teacher teacher = teacherMapper.selectByUserId(user.getUsername());
         if (teacher == null) {
             throw new BusinessException(404, "Teacher profile not found");
         }
@@ -137,7 +137,7 @@ public class CurrentUserService {
             return null;
         }
         SysUser user = getCurrentUser(authentication);
-        College college = collegeMapper.selectByAdminUserId(user.getId());
+        College college = collegeMapper.selectByAdminUserId(user.getUsername());
         if (college == null) {
             throw new BusinessException(403, "Current account is not bound to a college");
         }

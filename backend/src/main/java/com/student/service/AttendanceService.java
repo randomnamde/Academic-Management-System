@@ -19,17 +19,17 @@ public interface AttendanceService extends IService<Attendance> {
 
     Attendance getAttendanceById(Long id);
 
-    Page<Attendance> getAttendancePage(Integer page, Integer size, Long studentId, 
+    Page<Attendance> getAttendancePage(Integer page, Integer size, String studentId, 
                                         Long teacherId, Long courseArrangementId, LocalDate attendanceDate,
                                         Attendance.Status status);
 
-    List<Attendance> getStudentAttendance(Long studentId, LocalDate startDate, LocalDate endDate);
+    List<Attendance> getStudentAttendance(String studentId, LocalDate startDate, LocalDate endDate);
 
-    Map<String, Object> getAttendanceStatistics(Long studentId, LocalDate startDate, LocalDate endDate);
+    Map<String, Object> getAttendanceStatistics(String studentId, LocalDate startDate, LocalDate endDate);
 
     void batchRecordAttendance(List<AttendanceDTO> attendanceDTOList);
 
-    void checkIn(Long studentId, Long courseArrangementId);
+    void checkIn(String studentId, Long courseArrangementId);
 
-    void checkOut(Long studentId, Long courseArrangementId);
+    void checkOut(String studentId, Long courseArrangementId);
 }

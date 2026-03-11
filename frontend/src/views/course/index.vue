@@ -19,9 +19,11 @@
             <el-option :label="t('course.categoryPractical')" value="PRACTICAL" />
           </el-select>
         </el-form-item>
-        <el-form-item>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
+        <el-form-item class="search-form__actions">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </el-form-item>
       </el-form>
     </template>
@@ -48,8 +50,10 @@
         </el-table-column>
         <el-table-column v-if="!isStudent" :label="t('course.actions')" width="170" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">{{ t('course.edit') }}</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">{{ t('course.delete') }}</el-button>
+            <div class="app-table-inline-actions">
+              <el-button link type="primary" @click="openEdit(row)">{{ t('course.edit') }}</el-button>
+              <el-button link type="danger" @click="handleDelete(row)">{{ t('course.delete') }}</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -69,7 +73,7 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="isEdit ? t('course.dialogEditTitle') : t('course.dialogAddTitle')" width="600px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-form-item :label="t('course.courseCode')" prop="courseCode">
           <el-input v-model="form.courseCode" />
         </el-form-item>

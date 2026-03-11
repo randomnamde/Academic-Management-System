@@ -106,9 +106,59 @@ a {
   padding: 14px;
 }
 
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.search-form--single-line {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
 .el-form-item__label {
   color: var(--sms-text-secondary);
   font-weight: 500;
+}
+
+.el-checkbox {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.el-checkbox__input,
+.el-checkbox__label {
+  line-height: 1.2;
+}
+
+.search-form .el-form-item {
+  align-items: center;
+  margin-bottom: 0;
+  margin-right: 0;
+}
+
+.search-form--single-line .el-form-item {
+  flex: 0 0 auto;
+}
+
+.search-form .search-form__actions .el-form-item__content {
+  margin-left: 0 !important;
+}
+
+.search-form .el-form-item__content {
+  min-height: 36px;
+  align-items: center;
+}
+
+.search-form .el-input,
+.search-form .el-select,
+.search-form .el-input-number,
+.search-form .el-date-editor {
+  vertical-align: middle;
 }
 
 .el-input__wrapper,
@@ -139,71 +189,97 @@ a {
 }
 
 .el-button {
-  border-radius: var(--sms-radius-control);
-  transition: all var(--sms-motion);
+  border-radius: var(--button-radius);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease;
+  box-shadow: none;
+}
+
+.el-button:hover:not(.is-disabled) {
+  transform: translateY(-1px);
 }
 
 .el-button:not(.el-button--primary):not(.el-button--danger):not(.is-link):not(.is-text) {
   color: var(--button-secondary-text);
   border-color: var(--button-secondary-border);
-  background: var(--button-secondary-bg);
+  background: var(--button-secondary-surface);
+  box-shadow: var(--button-secondary-shadow);
 }
 
 .el-button:not(.el-button--primary):not(.el-button--danger):not(.is-link):not(.is-text):hover {
   color: var(--button-secondary-text);
   border-color: var(--button-secondary-border-hover);
-  background: var(--button-secondary-bg-hover);
+  background: var(--button-secondary-surface-hover);
 }
 
 .el-button:not(.el-button--primary):not(.el-button--danger):not(.is-link):not(.is-text):active,
 .el-button:not(.el-button--primary):not(.el-button--danger):not(.is-link):not(.is-text):focus-visible {
   color: var(--button-secondary-text);
   border-color: var(--button-secondary-border-hover);
-  background: var(--button-secondary-bg-hover);
+  background: var(--button-secondary-surface-hover);
+  box-shadow:
+    var(--button-secondary-shadow),
+    0 0 0 4px var(--button-ring);
 }
 
 .el-button--primary {
-  background: var(--button-primary-bg);
-  border-color: var(--button-primary-bg);
+  background: var(--button-primary-surface);
+  border-color: var(--button-primary-border);
   color: var(--button-primary-text);
+  box-shadow: var(--button-primary-shadow);
 }
 
 .el-button--primary:hover {
-  background: var(--button-primary-bg-hover);
-  border-color: var(--button-primary-bg-hover);
+  background: var(--button-primary-surface-hover);
+  border-color: var(--button-primary-border);
   color: var(--button-primary-text);
 }
 
 .el-button--primary:focus-visible,
 .el-button--primary:active {
-  background: var(--button-primary-bg-hover);
-  border-color: var(--button-primary-bg-hover);
+  background: var(--button-primary-surface-hover);
+  border-color: var(--button-primary-border);
   color: var(--button-primary-text);
+  box-shadow:
+    var(--button-primary-shadow),
+    0 0 0 4px var(--button-ring);
 }
 
 .el-button--danger {
-  background: var(--button-danger-bg);
-  border-color: var(--button-danger-bg);
+  background: var(--button-danger-surface);
+  border-color: var(--button-danger-border);
   color: var(--button-danger-text);
+  box-shadow: var(--button-danger-shadow);
 }
 
 .el-button--danger:hover,
 .el-button--danger:focus-visible,
 .el-button--danger:active {
-  background: var(--button-danger-bg-hover);
-  border-color: var(--button-danger-bg-hover);
+  background: var(--button-danger-surface-hover);
+  border-color: var(--button-danger-border);
   color: var(--button-danger-text);
+  box-shadow:
+    var(--button-danger-shadow),
+    0 0 0 4px color-mix(in srgb, var(--danger) 18%, transparent);
 }
 
 .el-button.is-link,
 .el-button--text {
   color: var(--accent-500);
   font-weight: 600;
+  box-shadow: none;
 }
 
 .el-button.is-link:hover,
 .el-button--text:hover {
   color: var(--accent-600);
+  background: var(--button-text-hover);
 }
 
 .el-button.is-link.is-disabled,
@@ -215,6 +291,7 @@ a {
   border-radius: var(--sms-radius-control);
   border: 1px solid color-mix(in srgb, var(--sms-border) 92%, transparent);
   background: var(--el-table-bg-color);
+  overflow: hidden;
 }
 
 .el-table th.el-table__cell {
@@ -228,6 +305,18 @@ a {
 .el-table td.el-table__cell {
   padding-top: 9px;
   padding-bottom: 9px;
+}
+
+.el-table th.el-table__cell,
+.el-table td.el-table__cell,
+.el-table .el-table__cell.is-center,
+.el-table .el-table__cell.is-right {
+  text-align: left;
+}
+
+.el-table th.el-table__cell .cell,
+.el-table td.el-table__cell .cell {
+  text-align: left;
 }
 
 .el-table .el-table__row:hover > td.el-table__cell {
@@ -417,6 +506,70 @@ a {
   --el-descriptions-table-border: color-mix(in srgb, var(--panel-border) 78%, transparent);
 }
 
+.app-modal-body .el-form {
+  display: grid;
+  gap: 18px;
+}
+
+.app-modal-body .el-form-item {
+  margin-bottom: 0;
+}
+
+.app-modal-body .el-form-item__label {
+  padding-bottom: 7px;
+  line-height: 1.35;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--text-secondary) 92%, transparent);
+}
+
+.app-modal-body .el-form-item__content {
+  line-height: 1.5;
+}
+
+.app-modal-body .el-row {
+  row-gap: 2px;
+}
+
+.app-modal-body .el-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+.app-modal-body .el-upload {
+  width: 100%;
+}
+
+.app-modal-body .el-upload__tip {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.app-modal-body .el-alert {
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 72%, transparent);
+  background: color-mix(in srgb, var(--surface-elevated) 84%, transparent);
+}
+
+.app-modal-body .el-descriptions {
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.app-modal-body .el-descriptions__label.el-descriptions__cell.is-bordered-label {
+  background: color-mix(in srgb, var(--surface-elevated) 84%, transparent);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.app-modal-body .el-descriptions__content.el-descriptions__cell.is-bordered-content {
+  background: color-mix(in srgb, var(--surface-base) 88%, transparent);
+}
+
 .el-tag {
   border-radius: 999px;
   font-weight: 500;
@@ -444,36 +597,141 @@ a {
 }
 
 .el-dialog {
-  border-radius: var(--radius-pop);
-  box-shadow: var(--popup-shadow);
-  border: 1px solid var(--popup-border);
-  background: var(--surface-popup);
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--radius-pop) + 4px);
+  box-shadow: var(--dialog-shadow);
+  border: 1px solid var(--dialog-border);
+  background: var(--dialog-surface);
   backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
 }
 
+.el-dialog::before,
+.el-message-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-white) 0.06%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-white) 0.06%, transparent) 1px, transparent 1px);
+  background-size: 20px 20px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.18));
+}
+
 .el-dialog__header {
+  position: relative;
   margin-right: 0;
-  padding: 14px 16px 10px;
+  padding: 18px 20px 14px;
   border-bottom: 1px solid color-mix(in srgb, var(--sms-border) 80%, transparent);
+  background: var(--dialog-header-bg);
+}
+
+.el-dialog__title,
+.el-message-box__title {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .el-dialog__body {
-  padding: 14px 16px;
+  position: relative;
+  padding: 18px 20px 20px;
 }
 
 .el-dialog__footer {
-  padding: 10px 16px 14px;
+  position: relative;
+  padding: 14px 20px 18px;
   border-top: 1px solid color-mix(in srgb, var(--sms-border) 80%, transparent);
+  background: var(--dialog-footer-bg);
 }
 
-:root[data-theme='light'] .el-dialog__header {
-  border-bottom-color: color-mix(in srgb, var(--accent-500) 10%, transparent);
-  background: color-mix(in srgb, var(--surface-base) 18%, transparent);
+.el-dialog__headerbtn,
+.el-message-box__headerbtn {
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 74%, transparent);
+  background: color-mix(in srgb, var(--surface-base) 48%, transparent);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--accent-500) 8%, transparent);
 }
 
-:root[data-theme='light'] .el-dialog__footer {
-  border-top-color: color-mix(in srgb, var(--accent-500) 10%, transparent);
-  background: color-mix(in srgb, var(--surface-base) 16%, transparent);
+.el-dialog__headerbtn .el-dialog__close,
+.el-message-box__headerbtn .el-message-box__close {
+  color: var(--text-secondary);
+  transition: color 180ms ease;
+}
+
+.el-dialog__headerbtn:hover .el-dialog__close,
+.el-dialog__headerbtn:focus-visible .el-dialog__close,
+.el-message-box__headerbtn:hover .el-message-box__close,
+.el-message-box__headerbtn:focus-visible .el-message-box__close {
+  color: var(--text-primary);
+}
+
+.v-modal {
+  background: var(--dialog-overlay);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
+.el-message-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--radius-pop) + 4px);
+  border: 1px solid var(--dialog-border);
+  background: var(--dialog-surface);
+  box-shadow: var(--dialog-shadow);
+  padding: 0;
+}
+
+.el-message-box__header {
+  position: relative;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--sms-border) 80%, transparent);
+  background: var(--dialog-header-bg);
+}
+
+.el-message-box__content {
+  position: relative;
+  padding: 18px 20px 20px;
+}
+
+.el-message-box__container {
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.el-message-box__status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-top: 2px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-elevated) 86%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-white) 12%, transparent);
+}
+
+.el-message-box__message p {
+  line-height: 1.75;
+}
+
+.el-message-box__input {
+  padding-top: 16px;
+}
+
+.el-message-box__btns {
+  position: relative;
+  gap: 10px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid color-mix(in srgb, var(--sms-border) 80%, transparent);
+  background: var(--dialog-footer-bg);
 }
 
 .el-pagination {

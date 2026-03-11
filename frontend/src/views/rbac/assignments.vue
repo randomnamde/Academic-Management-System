@@ -5,7 +5,7 @@
     </template>
 
     <template #filters>
-      <div class="grid grid-cols-12 gap-2">
+      <div class="app-filter-grid">
         <el-input
           v-model="searchForm.account"
           clearable
@@ -36,9 +36,11 @@
         >
           <el-option v-for="option in classOptions" :key="option.value" :label="option.label" :value="option.value" />
         </el-select>
-        <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-2">
-          <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+        <div class="app-filter-action-wrap col-span-12 md:col-span-2">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </div>
       </div>
     </template>
@@ -64,15 +66,15 @@
           </AppBadge>
         </template>
         <template #cell-actions="{ row }">
-          <div class="flex justify-end gap-2">
+          <div class="app-table-actions">
             <button
               v-if="row.id !== currentUserId"
-              class="text-[12px] text-primary-700 hover:text-primary-800"
+              class="app-table-action"
               @click="openEditRoles(row)"
             >
               {{ t('rbac.users.editRoles') }}
             </button>
-            <span v-else class="text-[12px] text-slatex-500">{{ t('rbac.users.currentUserLocked') }}</span>
+            <span v-else class="app-table-action-note">{{ t('rbac.users.currentUserLocked') }}</span>
           </div>
         </template>
       </AppTable>
@@ -92,7 +94,7 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="t('rbac.users.roleDialogTitle')" width="680px">
-        <el-form label-width="110px">
+        <el-form label-position="top">
           <el-form-item :label="t('rbac.users.colUsername')">
           <span>{{ currentRow?.account || '-' }}</span>
         </el-form-item>
@@ -168,8 +170,8 @@ const columns = computed(() => [
   { key: 'roles', title: t('rbac.users.colAssignedRoles'), width: 220 },
   { key: 'collegeName', title: t('rbac.users.colCollege'), width: 160 },
   { key: 'classDisplayName', title: t('rbac.users.colClass'), width: 180 },
-  { key: 'status', title: t('rbac.users.colStatus'), width: 100, align: 'center' },
-  { key: 'actions', title: t('rbac.users.colActions'), width: 120, align: 'right' }
+  { key: 'status', title: t('rbac.users.colStatus'), width: 100, align: 'left' },
+  { key: 'actions', title: t('rbac.users.colActions'), width: 120, align: 'left' }
 ])
 
 const dialogVisible = ref(false)

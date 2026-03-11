@@ -2,13 +2,12 @@
   <Transition name="app-fade">
     <div
       v-if="modelValue"
-      ref="overlayRef"
-      class="fixed inset-0 z-40 overflow-y-auto"
+      class="app-modal-root fixed inset-0 z-40 overflow-y-auto"
       tabindex="-1"
       @keydown="onKeydown"
     >
       <div class="app-modal-backdrop" @click="onBackdropClick"></div>
-      <div class="relative z-50 flex min-h-full items-center justify-center p-4">
+      <div class="app-modal-viewport">
         <div
           ref="panelRef"
           class="app-modal-panel"
@@ -18,22 +17,32 @@
           :aria-labelledby="titleId"
           tabindex="-1"
         >
-          <header class="app-modal-header mb-3">
-            <h3 :id="titleId" class="text-[15px] font-semibold tracking-tight text-primary-900">{{ title }}</h3>
-            <button
-              class="app-modal-close touch-target"
-              :aria-label="t('components.appModal.close')"
-              @click="close"
-            >
-              ×
-            </button>
-          </header>
-          <div>
-            <slot />
+          <div class="app-modal-orb app-modal-orb-a" aria-hidden="true"></div>
+          <div class="app-modal-orb app-modal-orb-b" aria-hidden="true"></div>
+          <div class="app-modal-noise" aria-hidden="true"></div>
+          <div class="app-modal-inner">
+            <header class="app-modal-header">
+              <div class="app-modal-heading">
+                <span class="app-modal-heading-mark" aria-hidden="true"></span>
+                <div class="app-modal-title-wrap">
+                  <h3 :id="titleId" class="app-modal-title">{{ title }}</h3>
+                </div>
+              </div>
+              <button
+                class="app-modal-close touch-target"
+                :aria-label="t('components.appModal.close')"
+                @click="close"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </header>
+            <div class="app-modal-body">
+              <slot />
+            </div>
+            <footer v-if="$slots.footer" class="app-modal-footer">
+              <slot name="footer" />
+            </footer>
           </div>
-          <footer v-if="$slots.footer" class="app-modal-footer mt-4">
-            <slot name="footer" />
-          </footer>
         </div>
       </div>
     </div>

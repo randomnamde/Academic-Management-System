@@ -74,9 +74,9 @@ const actionCodes = [
 
 const columns = computed(() => [
   { key: 'route', title: t('rbac.permissions.colRoute') },
-  { key: 'admin', title: t('rbac.permissions.colAdmin'), width: 120, align: 'center' },
-  { key: 'teacher', title: t('rbac.permissions.colTeacher'), width: 120, align: 'center' },
-  { key: 'student', title: t('rbac.permissions.colStudent'), width: 120, align: 'center' }
+  { key: 'admin', title: t('rbac.permissions.colAdmin'), width: 120, align: 'left' },
+  { key: 'teacher', title: t('rbac.permissions.colTeacher'), width: 120, align: 'left' },
+  { key: 'student', title: t('rbac.permissions.colStudent'), width: 120, align: 'left' }
 ])
 
 const filteredRows = computed(() => {

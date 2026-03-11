@@ -236,18 +236,30 @@
     </Transition>
 
     <AppModal v-model="noticeDetailVisible" :title="t('layout.noticeDialog.title')" width="720px">
-      <div class="grid gap-2 text-[13px] text-slatex-700 md:grid-cols-2">
-        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5 md:col-span-2"><strong>{{ t('layout.noticeDialog.fieldTitle') }}</strong>{{ noticeDetail.title || '-' }}</div>
-        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5"><strong>{{ t('layout.noticeDialog.fieldType') }}</strong>{{ noticeDetail.type || '-' }}</div>
-        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5"><strong>{{ t('layout.noticeDialog.fieldTargetRole') }}</strong>{{ noticeDetail.targetRole || '-' }}</div>
-        <div class="rounded-md border border-neutralx-200 bg-neutralx-100 px-2 py-1.5 md:col-span-2"><strong>{{ t('layout.noticeDialog.fieldCreateTime') }}</strong>{{ noticeDetail.createTime || '-' }}</div>
+      <div class="notice-detail-grid">
+        <div class="notice-detail-card notice-detail-card--wide">
+          <strong>{{ t('layout.noticeDialog.fieldTitle') }}</strong>
+          <span>{{ noticeDetail.title || '-' }}</span>
+        </div>
+        <div class="notice-detail-card">
+          <strong>{{ t('layout.noticeDialog.fieldType') }}</strong>
+          <span>{{ noticeDetail.type || '-' }}</span>
+        </div>
+        <div class="notice-detail-card">
+          <strong>{{ t('layout.noticeDialog.fieldTargetRole') }}</strong>
+          <span>{{ noticeDetail.targetRole || '-' }}</span>
+        </div>
+        <div class="notice-detail-card notice-detail-card--wide">
+          <strong>{{ t('layout.noticeDialog.fieldCreateTime') }}</strong>
+          <span>{{ noticeDetail.createTime || '-' }}</span>
+        </div>
       </div>
-      <div class="mt-3 rounded-md border border-neutralx-200 p-3 text-[13px] leading-6 text-slatex-700">
+      <div class="notice-detail-content">
         {{ noticeDetail.content || t('layout.noticeDialog.noContent') }}
       </div>
       <template #footer>
-        <button class="app-btn-secondary" @click="noticeDetailVisible = false">{{ t('common.close') }}</button>
-        <button class="app-btn-primary" @click="openAnnouncementPage">{{ t('layout.goAnnouncementList') }}</button>
+        <AppButton variant="secondary" @click="noticeDetailVisible = false">{{ t('common.close') }}</AppButton>
+        <AppButton @click="openAnnouncementPage">{{ t('layout.goAnnouncementList') }}</AppButton>
       </template>
     </AppModal>
 
@@ -287,8 +299,8 @@
         </div>
       </div>
       <template #footer>
-        <button class="app-btn-secondary" @click="logoutDialogVisible = false">{{ t('common.cancel') }}</button>
-        <button class="app-btn-danger" @click="confirmLogout">{{ t('layout.logoutDialog.confirmAction') }}</button>
+        <AppButton variant="secondary" @click="logoutDialogVisible = false">{{ t('common.cancel') }}</AppButton>
+        <AppButton variant="danger" @click="confirmLogout">{{ t('layout.logoutDialog.confirmAction') }}</AppButton>
       </template>
     </AppModal>
   </div>
@@ -1018,6 +1030,48 @@ onUnmounted(() => {
   position: relative;
 }
 
+.notice-detail-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.notice-detail-card {
+  display: grid;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 78%, transparent);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 88%, transparent), color-mix(in srgb, var(--surface-base) 90%, transparent));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-white) 12%, transparent);
+}
+
+.notice-detail-card strong {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.notice-detail-card span {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.notice-detail-content {
+  margin-top: 14px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 76%, transparent);
+  border-radius: 18px;
+  padding: 16px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-primary);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 90%, transparent), color-mix(in srgb, var(--surface-elevated) 82%, transparent));
+}
+
 .logout-dialog__surface {
   position: relative;
   display: grid;
@@ -1196,6 +1250,16 @@ onUnmounted(() => {
     radial-gradient(circle at top left, color-mix(in srgb, var(--accent-500) 14%, transparent), transparent 38%),
     radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--danger) 12%, transparent), transparent 34%),
     linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 92%, transparent), color-mix(in srgb, var(--surface-base) 96%, transparent));
+}
+
+@media (min-width: 768px) {
+  .notice-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .notice-detail-card--wide {
+    grid-column: span 2;
+  }
 }
 
 @media (max-width: 1279px) {

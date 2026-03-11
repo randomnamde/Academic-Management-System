@@ -1,25 +1,27 @@
 <template>
   <CrudPageShell :title="t('courseArrangement.pageTitle')">
     <template #header-actions>
-      <div class="view-switch" role="tablist" :aria-label="t('courseArrangement.pageTitle')">
-        <button
-          type="button"
-          class="view-switch-option"
-          :class="{ 'is-active': viewMode === 'list' }"
-          @click="setViewMode('list')"
-        >
-          {{ t('courseArrangement.listView') }}
-        </button>
-        <button
-          type="button"
-          class="view-switch-option"
-          :class="{ 'is-active': viewMode === 'timetable' }"
-          @click="setViewMode('timetable')"
-        >
-          {{ t('courseArrangement.timetableView') }}
-        </button>
+      <div class="arrangement-header-actions">
+        <div class="view-switch" role="tablist" :aria-label="t('courseArrangement.pageTitle')">
+          <button
+            type="button"
+            class="view-switch-option"
+            :class="{ 'is-active': viewMode === 'list' }"
+            @click="setViewMode('list')"
+          >
+            {{ t('courseArrangement.listView') }}
+          </button>
+          <button
+            type="button"
+            class="view-switch-option"
+            :class="{ 'is-active': viewMode === 'timetable' }"
+            @click="setViewMode('timetable')"
+          >
+            {{ t('courseArrangement.timetableView') }}
+          </button>
+        </div>
+        <AppButton v-if="!isStudent" @click="openCreate">{{ t('courseArrangement.addArrangement') }}</AppButton>
       </div>
-      <AppButton v-if="!isStudent" @click="openCreate">{{ t('courseArrangement.addArrangement') }}</AppButton>
     </template>
 
     <template #filters>
@@ -75,8 +77,10 @@
           <el-input v-model="searchForm.semester" clearable :placeholder="t('courseArrangement.semesterPlaceholder')" />
         </label>
         <div class="filter-actions">
-          <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </div>
       </div>
     </template>
@@ -113,9 +117,9 @@
                   <AppBadge :type="statusBadgeType(row.status)">{{ statusLabel(row.status) }}</AppBadge>
                 </template>
                 <template #cell-actions="{ row }">
-                  <div class="table-actions">
-                    <button class="table-action-link" @click="openEdit(row)">{{ t('courseArrangement.edit') }}</button>
-                    <button class="table-action-link danger" @click="handleDelete(row)">{{ t('courseArrangement.delete') }}</button>
+                  <div class="app-table-actions arrangement-row-actions">
+                    <button class="app-table-action" @click="openEdit(row)">{{ t('courseArrangement.edit') }}</button>
+                    <button class="app-table-action app-table-action--danger" @click="handleDelete(row)">{{ t('courseArrangement.delete') }}</button>
                   </div>
                 </template>
               </AppTable>
@@ -175,7 +179,7 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="isEdit ? t('courseArrangement.dialogEditTitle') : t('courseArrangement.dialogAddTitle')" width="760px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('courseArrangement.college')" prop="collegeId">
@@ -415,7 +419,7 @@ const listRows = computed(() =>
 
 const tableColumns = computed(() => {
   const columns = [
-    { key: 'rowNumber', title: t('courseArrangement.index'), width: 72, align: 'center' },
+    { key: 'rowNumber', title: t('courseArrangement.index'), width: 72, align: 'left' },
     { key: 'arrangementCode', title: t('courseArrangement.arrangementCode'), width: 168 },
     { key: 'courseName', title: t('courseArrangement.course'), width: 168 },
     { key: 'teacherName', title: t('courseArrangement.teacher'), width: 132 },
@@ -423,12 +427,12 @@ const tableColumns = computed(() => {
     { key: 'semester', title: t('courseArrangement.semester'), width: 132 },
     { key: 'schedule', title: t('courseArrangement.schedule'), width: 170 },
     { key: 'room', title: t('courseArrangement.room'), width: 110 },
-    { key: 'people', title: t('courseArrangement.people'), width: 110, align: 'center' },
-    { key: 'status', title: t('courseArrangement.status'), width: 96, align: 'center' }
+    { key: 'people', title: t('courseArrangement.people'), width: 110, align: 'left' },
+    { key: 'status', title: t('courseArrangement.status'), width: 96, align: 'left' }
   ]
 
   if (!isStudent.value) {
-    columns.push({ key: 'actions', title: t('courseArrangement.actions'), width: 132, align: 'right' })
+    columns.push({ key: 'actions', title: t('courseArrangement.actions'), width: 172, align: 'left' })
   }
 
   return columns
@@ -879,6 +883,14 @@ onActivated(async () => {
 </script>
 
 <style scoped>
+.arrangement-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .view-switch {
   display: inline-flex;
   align-items: center;
@@ -941,6 +953,15 @@ onActivated(async () => {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.arrangement-row-actions {
+  gap: 6px;
+}
+
+.arrangement-row-actions .app-table-action {
+  min-width: 52px;
+  justify-content: center;
 }
 
 .arrangement-workspace {
@@ -1032,34 +1053,6 @@ onActivated(async () => {
 .list-view-shell,
 .timetable-shell {
   min-height: 320px;
-}
-
-.table-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.table-action-link {
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: var(--accent-500);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.table-action-link:hover {
-  color: var(--accent-600);
-}
-
-.table-action-link.danger {
-  color: var(--danger);
-}
-
-.table-action-link.danger:hover {
-  opacity: 0.86;
 }
 
 .schedule-pill,
@@ -1204,11 +1197,12 @@ onActivated(async () => {
 
 @media (min-width: 768px) {
   .filter-field {
-    grid-column: span 3;
+    grid-column: span 2;
   }
 
   .filter-actions {
-    grid-column: span 3;
+    grid-column: span 2;
+    justify-content: flex-start;
   }
 }
 
@@ -1229,6 +1223,15 @@ onActivated(async () => {
 }
 
 @media (max-width: 640px) {
+  .arrangement-header-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .arrangement-header-actions :deep(.app-button) {
+    flex: 1;
+  }
+
   .view-switch {
     width: 100%;
   }
@@ -1242,12 +1245,7 @@ onActivated(async () => {
   }
 
   .filter-actions {
-    justify-content: stretch;
-  }
-
-  .filter-actions :deep(.app-button),
-  .filter-actions :deep(button) {
-    flex: 1;
+    justify-content: flex-start;
   }
 
   .arrangement-panel-body {

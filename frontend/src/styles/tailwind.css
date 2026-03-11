@@ -104,6 +104,64 @@
     @apply p-3;
   }
 
+  .app-filter-grid {
+    @apply grid grid-cols-12 gap-2;
+    align-items: center;
+  }
+
+  .app-filter-grid > * {
+    min-width: 0;
+  }
+
+  .app-filter-grid > .el-input,
+  .app-filter-grid > .el-select,
+  .app-filter-grid > .el-input-number,
+  .app-filter-grid > .el-date-editor,
+  .app-filter-grid > .app-filter-action-wrap {
+    align-self: center;
+  }
+
+  .app-filter-grid .el-input__wrapper,
+  .app-filter-grid .el-select__wrapper,
+  .app-filter-grid .el-input-number,
+  .app-filter-grid .el-date-editor.el-input__wrapper {
+    min-height: 38px;
+  }
+
+  .app-filter-action-wrap {
+    @apply flex items-end justify-end;
+    min-width: 0;
+  }
+
+  .app-filter-action-bar {
+    @apply inline-flex items-center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    width: max-content;
+    min-width: max-content;
+    gap: 6px;
+    padding: 3px;
+    border: 1px solid color-mix(in srgb, var(--accent-500) 18%, var(--panel-border));
+    border-radius: 999px;
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--accent-500) 8%, transparent),
+        transparent 62%
+      ),
+      color-mix(in srgb, var(--surface-elevated) 78%, transparent);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--color-white) 14%, transparent),
+      0 10px 24px color-mix(in srgb, var(--accent-500) 10%, transparent);
+  }
+
+  .app-filter-action-bar .app-button {
+    min-width: 72px;
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
   .app-input,
   .app-select {
     @apply h-9 w-full rounded-md px-3 text-[13px] outline-none transition-all duration-180 ease-in-out;
@@ -123,100 +181,270 @@
   }
 
   .app-btn {
-    @apply inline-flex h-9 items-center justify-center rounded-md px-3 text-[13px] font-medium transition-all duration-180 ease-in-out disabled:cursor-not-allowed disabled:opacity-55;
+    @apply inline-flex items-center justify-center text-[13px] font-semibold transition-all duration-180 ease-in-out disabled:cursor-not-allowed disabled:opacity-55;
+    min-height: 36px;
+    padding: 0 16px;
+    border-radius: var(--button-radius);
+    letter-spacing: 0.01em;
+    line-height: 1;
   }
 
   .app-btn-primary {
     @apply app-btn;
     color: var(--button-primary-text);
-    border: 1px solid var(--button-primary-bg);
-    background: var(--button-primary-bg);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--button-primary-bg) 30%, transparent);
+    border: 1px solid var(--button-primary-border);
+    background: var(--button-primary-surface);
+    box-shadow: var(--button-primary-shadow);
   }
 
   .app-btn-primary:hover {
-    border-color: var(--button-primary-bg-hover);
-    background: var(--button-primary-bg-hover);
+    transform: translateY(-1px);
+    background: var(--button-primary-surface-hover);
   }
 
   .app-btn-primary:active,
   .app-btn-primary:focus-visible {
-    border-color: var(--button-primary-bg-hover);
-    background: var(--button-primary-bg-hover);
+    background: var(--button-primary-surface-hover);
+    box-shadow:
+      var(--button-primary-shadow),
+      0 0 0 4px var(--button-ring);
   }
 
   .app-btn-secondary {
     @apply app-btn;
     border: 1px solid var(--button-secondary-border);
-    background: var(--button-secondary-bg);
+    background: var(--button-secondary-surface);
     color: var(--button-secondary-text);
+    box-shadow: var(--button-secondary-shadow);
   }
 
   .app-btn-secondary:hover {
+    transform: translateY(-1px);
     border-color: var(--button-secondary-border-hover);
-    background: var(--button-secondary-bg-hover);
+    background: var(--button-secondary-surface-hover);
     color: var(--button-secondary-text);
   }
 
   .app-btn-secondary:active,
   .app-btn-secondary:focus-visible {
     border-color: var(--button-secondary-border-hover);
-    background: var(--button-secondary-bg-hover);
+    background: var(--button-secondary-surface-hover);
     color: var(--button-secondary-text);
+    box-shadow:
+      var(--button-secondary-shadow),
+      0 0 0 4px var(--button-ring);
   }
 
   .app-btn-danger {
     @apply app-btn;
     color: var(--button-danger-text);
-    border: 1px solid var(--button-danger-bg);
-    background: var(--button-danger-bg);
+    border: 1px solid var(--button-danger-border);
+    background: var(--button-danger-surface);
+    box-shadow: var(--button-danger-shadow);
   }
 
   .app-btn-danger:hover {
-    border-color: var(--button-danger-bg-hover);
-    background: var(--button-danger-bg-hover);
+    transform: translateY(-1px);
+    background: var(--button-danger-surface-hover);
     color: var(--button-danger-text);
   }
 
   .app-btn-danger:active,
   .app-btn-danger:focus-visible {
-    border-color: var(--button-danger-bg-hover);
-    background: var(--button-danger-bg-hover);
+    background: var(--button-danger-surface-hover);
     color: var(--button-danger-text);
+    box-shadow:
+      var(--button-danger-shadow),
+      0 0 0 4px color-mix(in srgb, var(--danger) 18%, transparent);
   }
 
   .app-table-wrap {
     overflow-x: auto;
     border-radius: var(--radius-control);
     border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
-    background: color-mix(in srgb, var(--surface-base) 86%, transparent);
+    background: var(--el-table-bg-color);
   }
 
   .app-table {
     @apply min-w-full text-[13px];
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   .app-table thead {
-    background: color-mix(in srgb, var(--surface-elevated) 78%, transparent);
+    background: var(--el-table-header-bg-color);
     color: var(--text-secondary);
   }
 
   .app-table th {
-    @apply h-10 px-3 text-left text-[12px] font-semibold;
+    @apply h-11 px-4 text-left text-[12px] font-semibold;
+    letter-spacing: 0.01em;
   }
 
   .app-table td {
-    @apply h-10 border-t px-3;
+    @apply h-11 border-t px-4 align-middle;
     border-color: color-mix(in srgb, var(--panel-border) 54%, transparent);
-    color: var(--text-secondary);
+    background: var(--el-table-tr-bg-color);
+    color: var(--text-primary);
   }
 
   .app-table tbody tr {
     @apply transition-colors duration-180 ease-in-out;
   }
 
-  .app-table tbody tr:hover {
-    background: color-mix(in srgb, var(--surface-elevated) 74%, transparent);
+  .app-table tbody tr:hover td {
+    background: var(--el-table-row-hover-bg-color);
+  }
+
+  .app-table-actions {
+    @apply flex items-center justify-start gap-2;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    width: max-content;
+    min-width: max-content;
+  }
+
+  .app-table-actions--start {
+    justify-content: flex-start;
+  }
+
+  .app-table-action {
+    @apply inline-flex items-center justify-center whitespace-nowrap transition-all duration-180 ease-in-out;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--accent-500) 18%, var(--panel-border));
+    background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
+    color: var(--accent-700);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-white) 10%, transparent);
+  }
+
+  .app-table-action:hover,
+  .app-table-action:focus-visible {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--accent-500) 28%, var(--panel-border));
+    background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+    color: var(--text-primary);
+    outline: none;
+  }
+
+  .app-table-action--muted {
+    border-color: color-mix(in srgb, var(--panel-border) 78%, transparent);
+    color: var(--text-secondary);
+  }
+
+  .app-table-action--danger {
+    border-color: color-mix(in srgb, var(--danger) 18%, var(--panel-border));
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+    color: var(--danger);
+  }
+
+  .app-table-action--danger:hover,
+  .app-table-action--danger:focus-visible {
+    border-color: color-mix(in srgb, var(--danger) 28%, var(--panel-border));
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    color: color-mix(in srgb, var(--danger) 92%, var(--text-primary));
+  }
+
+  .app-table-action--success {
+    border-color: color-mix(in srgb, var(--success) 20%, var(--panel-border));
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    color: color-mix(in srgb, var(--success) 90%, var(--text-primary));
+  }
+
+  .app-table-action--success:hover,
+  .app-table-action--success:focus-visible {
+    border-color: color-mix(in srgb, var(--success) 28%, var(--panel-border));
+    background: color-mix(in srgb, var(--success) 14%, transparent);
+    color: color-mix(in srgb, var(--success) 96%, var(--text-primary));
+  }
+
+  .app-table-action-note {
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .app-table-inline-actions {
+    @apply flex items-center justify-start gap-2;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    width: max-content;
+    min-width: max-content;
+  }
+
+  .app-table-inline-actions .el-dropdown {
+    display: inline-flex;
+  }
+
+  .app-table-inline-actions .el-button.is-link {
+    min-height: 28px;
+    margin: 0;
+    padding: 0 10px;
+    border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--accent-500) 18%, var(--panel-border));
+    background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
+    color: var(--accent-700);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-white) 10%, transparent);
+  }
+
+  .app-table-inline-actions .el-button.is-link:hover,
+  .app-table-inline-actions .el-button.is-link:focus-visible {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--accent-500) 28%, var(--panel-border));
+    background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+    color: var(--text-primary);
+    outline: none;
+  }
+
+  .app-table-inline-actions .el-button + .el-button {
+    margin-left: 0;
+  }
+
+  .app-table-inline-actions .el-button--danger.is-link {
+    border-color: color-mix(in srgb, var(--danger) 18%, var(--panel-border));
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+    color: var(--danger);
+  }
+
+  .app-table-inline-actions .el-button--danger.is-link:hover,
+  .app-table-inline-actions .el-button--danger.is-link:focus-visible {
+    border-color: color-mix(in srgb, var(--danger) 28%, var(--panel-border));
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    color: color-mix(in srgb, var(--danger) 92%, var(--text-primary));
+  }
+
+  .app-table-inline-actions .el-button--success.is-link {
+    border-color: color-mix(in srgb, var(--success) 20%, var(--panel-border));
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    color: color-mix(in srgb, var(--success) 90%, var(--text-primary));
+  }
+
+  .app-table-inline-actions .el-button--success.is-link:hover,
+  .app-table-inline-actions .el-button--success.is-link:focus-visible {
+    border-color: color-mix(in srgb, var(--success) 28%, var(--panel-border));
+    background: color-mix(in srgb, var(--success) 14%, transparent);
+    color: color-mix(in srgb, var(--success) 96%, var(--text-primary));
+  }
+
+  .app-table-inline-actions .el-button .el-icon {
+    margin-left: 4px;
+    font-size: 12px;
+  }
+
+  .app-table-actions .app-button--sm {
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    box-shadow: none;
   }
 
   .app-tag {
@@ -251,57 +479,156 @@
     color: var(--text-secondary);
   }
 
+  .app-modal-root {
+    isolation: isolate;
+  }
+
   .app-modal-backdrop {
     @apply fixed inset-0 z-40;
-    background: var(--popup-backdrop);
+    background: var(--dialog-overlay);
+    backdrop-filter: blur(10px) saturate(120%);
+  }
+
+  .app-modal-viewport {
+    @apply relative z-50 flex min-h-full items-center justify-center p-4 md:p-6;
   }
 
   .app-modal-panel {
-    @apply relative z-50 mx-auto w-[min(94vw,760px)] p-4;
-    border-radius: var(--radius-pop);
-    border: 1px solid var(--popup-border);
-    background: var(--surface-popup);
-    box-shadow: var(--popup-shadow);
+    @apply relative z-50 mx-auto w-[min(94vw,760px)] overflow-hidden;
+    border-radius: calc(var(--radius-pop) + 4px);
+    border: 1px solid var(--dialog-border);
+    background: var(--dialog-surface);
+    box-shadow: var(--dialog-shadow);
     backdrop-filter: blur(var(--popup-blur)) saturate(var(--popup-saturate));
   }
 
+  .app-modal-inner {
+    @apply relative z-[1];
+  }
+
+  .app-modal-noise {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.18;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--color-white) 0.06%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-white) 0.06%, transparent) 1px, transparent 1px);
+    background-size: 20px 20px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.2));
+  }
+
+  .app-modal-orb {
+    position: absolute;
+    border-radius: 999px;
+    pointer-events: none;
+    filter: blur(8px);
+    opacity: 0.9;
+  }
+
+  .app-modal-orb-a {
+    top: -88px;
+    right: -60px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, var(--dialog-glow-a), transparent 68%);
+  }
+
+  .app-modal-orb-b {
+    bottom: -96px;
+    left: -64px;
+    width: 196px;
+    height: 196px;
+    background: radial-gradient(circle, var(--dialog-glow-b), transparent 68%);
+  }
+
   .app-modal-header {
-    @apply flex items-center justify-between pb-2;
-    border-bottom: 1px solid color-mix(in srgb, var(--panel-border) 54%, transparent);
+    @apply flex items-start justify-between gap-4;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid color-mix(in srgb, var(--panel-border) 64%, transparent);
+    background: var(--dialog-header-bg);
+  }
+
+  .app-modal-heading {
+    @apply flex min-w-0 items-start gap-3;
+  }
+
+  .app-modal-heading-mark {
+    @apply mt-1.5 shrink-0 rounded-full;
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(180deg, var(--accent-500), color-mix(in srgb, var(--success) 80%, var(--accent-500)));
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-500) 10%, transparent);
+  }
+
+  .app-modal-title-wrap {
+    @apply min-w-0;
+  }
+
+  .app-modal-title {
+    margin: 0;
+    color: var(--text-primary);
+    font-family: var(--font-display);
+    font-size: 19px;
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .app-modal-body {
+    padding: 18px 20px 20px;
   }
 
   .app-modal-footer {
-    @apply flex justify-end gap-2 pt-3;
-    border-top: 1px solid color-mix(in srgb, var(--panel-border) 54%, transparent);
+    @apply flex flex-wrap justify-end gap-2;
+    padding: 14px 20px 18px;
+    border-top: 1px solid color-mix(in srgb, var(--panel-border) 64%, transparent);
+    background: var(--dialog-footer-bg);
   }
 
   .app-modal-close {
-    @apply rounded-md border px-1.5 py-0.5 text-slatex-500 transition-all duration-180 touch-target;
-    border-color: transparent;
-    background: transparent;
+    @apply inline-flex items-center justify-center text-slatex-500 transition-all duration-180 touch-target;
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--panel-border) 74%, transparent);
+    background: color-mix(in srgb, var(--surface-base) 48%, transparent);
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--accent-500) 8%, transparent);
   }
 
-  .app-modal-close:hover {
+  .app-modal-close > span {
+    font-size: 20px;
+    line-height: 1;
     transform: translateY(-1px);
   }
 
-  :root[data-theme='light'] .app-modal-header,
-  :root[data-theme='light'] .app-modal-footer {
-    border-color: color-mix(in srgb, var(--accent-500) 10%, transparent);
-    background: color-mix(in srgb, var(--surface-base) 18%, transparent);
-  }
-
-  :root[data-theme='light'] .app-modal-close {
-    border-color: color-mix(in srgb, var(--accent-500) 12%, transparent);
-    background: color-mix(in srgb, var(--surface-base) 28%, transparent);
-    box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-500) 8%, transparent);
-  }
-
-  :root[data-theme='light'] .app-modal-close:hover,
-  :root[data-theme='light'] .app-modal-close:focus-visible {
-    border-color: color-mix(in srgb, var(--accent-500) 24%, transparent);
-    background: color-mix(in srgb, var(--surface-base) 46%, transparent);
+  .app-modal-close:hover {
+    transform: translateY(-2px);
     color: var(--text-primary);
+  }
+
+  .app-modal-close:focus-visible {
+    transform: translateY(-2px);
+    color: var(--text-primary);
+    outline: none;
+    box-shadow:
+      0 12px 24px color-mix(in srgb, var(--accent-500) 12%, transparent),
+      0 0 0 4px color-mix(in srgb, var(--accent-500) 14%, transparent);
+  }
+
+  .app-fade-enter-active .app-modal-panel,
+  .app-fade-leave-active .app-modal-panel {
+    transition:
+      transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 240ms ease,
+      filter 240ms ease;
+  }
+
+  .app-fade-enter-from .app-modal-panel,
+  .app-fade-leave-to .app-modal-panel {
+    transform: translateY(22px) scale(0.96);
+    opacity: 0;
+    filter: blur(6px);
   }
 
   .skip-link {

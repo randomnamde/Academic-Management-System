@@ -38,8 +38,10 @@
             <p class="semester-panel-desc">{{ t('semester.filterDesc') }}</p>
           </div>
           <div class="semester-panel-actions">
-            <AppButton variant="secondary" @click="page = 1; loadData()">{{ t('common.search') }}</AppButton>
-            <AppButton variant="secondary" @click="resetFilters">{{ t('common.reset') }}</AppButton>
+            <div class="app-filter-action-bar">
+              <AppButton variant="secondary" @click="resetFilters">{{ t('common.reset') }}</AppButton>
+              <AppButton @click="page = 1; loadData()">{{ t('common.search') }}</AppButton>
+            </div>
             <AppButton @click="openCreateDialog">{{ t('semester.createAction') }}</AppButton>
           </div>
         </div>
@@ -90,9 +92,9 @@
           <el-table-column :label="t('semester.updatedAt')" width="180">
             <template #default="{ row }">{{ formatDateTime(row.updateTime || row.createTime) }}</template>
           </el-table-column>
-          <el-table-column :label="t('common.actions')" min-width="300" fixed="right">
+          <el-table-column :label="t('common.actions')" min-width="420" fixed="right">
             <template #default="{ row }">
-              <div class="semester-row-actions">
+              <div class="app-table-actions semester-row-actions">
                 <AppButton size="sm" variant="secondary" @click="openEditDialog(row)">{{ t('common.edit') }}</AppButton>
                 <AppButton v-if="row.status !== 'ACTIVE'" size="sm" @click="changeStatus(row, 'ACTIVE')">{{ t('semester.actions.activate') }}</AppButton>
                 <AppButton v-if="row.status !== 'ENDED'" size="sm" variant="secondary" @click="changeStatus(row, 'ENDED')">{{ t('semester.actions.end') }}</AppButton>
@@ -115,11 +117,10 @@
       </section>
     </AppCard>
 
-    <el-dialog
+    <AppModal
       v-model="dialogVisible"
       :title="isEditing ? t('semester.editTitle') : t('semester.createTitle')"
       width="560px"
-      destroy-on-close
     >
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-form-item :label="t('semester.semesterCode')" prop="semesterCode">
@@ -147,7 +148,7 @@
           <AppButton :loading="saving" @click="submitForm">{{ t('common.save') }}</AppButton>
         </div>
       </template>
-    </el-dialog>
+    </AppModal>
   </div>
 </template>
 
@@ -157,6 +158,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
+import AppModal from '@/components/ui/AppModal.vue'
 import { createSemester, getSemesterList, updateSemester, updateSemesterStatus } from '@/api/semester'
 
 const { t } = useI18n()
@@ -511,12 +513,6 @@ onMounted(loadData)
 
 .semester-table {
   width: 100%;
-}
-
-.semester-row-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 .dialog-footer {

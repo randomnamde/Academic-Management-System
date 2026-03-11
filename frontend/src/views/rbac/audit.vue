@@ -14,9 +14,11 @@
         <el-form-item :label="t('rbac.audit.filterOperation')">
           <el-input v-model="searchForm.operation" clearable :placeholder="t('rbac.audit.filterOperationPlaceholder')" />
         </el-form-item>
-        <el-form-item>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
+        <el-form-item class="search-form__actions">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </el-form-item>
       </el-form>
     </template>
@@ -77,8 +79,8 @@ const columns = computed(() => [
   { key: 'operation', title: t('rbac.audit.colOperation'), width: 220 },
   { key: 'method', title: t('rbac.audit.colMethod'), width: 220 },
   { key: 'ip', title: t('rbac.audit.colIp'), width: 140 },
-  { key: 'duration', title: t('rbac.audit.colDuration'), width: 120, align: 'right' },
-  { key: 'status', title: t('rbac.audit.colStatus'), width: 110, align: 'center' },
+  { key: 'duration', title: t('rbac.audit.colDuration'), width: 120, align: 'left' },
+  { key: 'status', title: t('rbac.audit.colStatus'), width: 110, align: 'left' },
   { key: 'errorMsg', title: t('rbac.audit.colErrorMsg') },
   { key: 'createTime', title: t('rbac.audit.colCreateTime'), width: 170 }
 ])

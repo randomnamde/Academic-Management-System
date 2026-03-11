@@ -90,6 +90,12 @@
             <if test="courseArrangementId != null">
                 AND s.course_arrangement_id = #{courseArrangementId}
             </if>
+            <if test="collegeId != null">
+                AND (ca_cl.college_id = #{collegeId} OR st_cl.college_id = #{collegeId})
+            </if>
+            <if test="classId != null">
+                AND (ca.class_id = #{classId} OR st.class_id = #{classId})
+            </if>
             <if test="semester != null and semester != ''">
                 AND ca.semester = #{semester}
             </if>

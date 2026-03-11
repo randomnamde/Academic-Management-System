@@ -71,7 +71,7 @@
 
             <div class="login-footline">
               <span class="footline-pulse" aria-hidden="true"></span>
-              <span>{{ t('login.subtitle') }}</span>
+              <span class="login-footline-quote">{{ loginDialogQuote }}</span>
             </div>
           </div>
         </section>
@@ -94,6 +94,9 @@ const router = useRouter()
 const { t, locale } = useI18n()
 
 const fullTitle = computed(() => t('login.title'))
+const loginDialogQuote = computed(() =>
+  locale.value === 'zh-CN' ? '书山寻宝；学海泛舟' : 'Seek treasures in books; sail the sea of learning.'
+)
 const typingInterval = 110
 const deletingInterval = 80
 const completePause = 1500
@@ -704,6 +707,12 @@ onBeforeUnmount(() => {
   color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.6;
+}
+
+.login-footline-quote {
+  font-family: "KaiTi", "STKaiti", "Kaiti SC", "KaiTi_GB2312", serif;
+  font-size: 16px;
+  line-height: 1.7;
 }
 
 .footline-pulse {

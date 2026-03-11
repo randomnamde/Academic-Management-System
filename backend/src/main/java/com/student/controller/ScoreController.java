@@ -97,6 +97,8 @@ public class ScoreController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) Long studentId,
             @RequestParam(required = false) Long courseArrangementId,
+            @RequestParam(required = false) Long collegeId,
+            @RequestParam(required = false) Long classId,
             @RequestParam(required = false) String semester,
             Authentication authentication) {
         assertCollegeAdminArrangementScope(authentication, courseArrangementId);
@@ -107,6 +109,8 @@ public class ScoreController {
         queryDTO.setStudentId(scopedStudentId);
         queryDTO.setTeacherId(scopedTeacherId);
         queryDTO.setCourseArrangementId(courseArrangementId);
+        queryDTO.setCollegeId(collegeId);
+        queryDTO.setClassId(classId);
         queryDTO.setSemester(semester);
         Page<Score> result = scoreService.getScorePage(page, size, queryDTO);
         return ResultVO.success(result);

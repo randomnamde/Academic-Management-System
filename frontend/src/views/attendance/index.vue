@@ -14,62 +14,68 @@
     </template>
 
     <template #filters>
-      <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item v-if="canFilterStudent" :label="t('attendance.studentId')">
-          <el-input-number v-model="searchForm.studentId" :min="1" style="width: 140px" />
-        </el-form-item>
-        <el-form-item :label="t('attendance.arrangementId')">
-          <el-select
-            v-model="searchForm.courseArrangementId"
-            clearable
-            filterable
-            style="width: 260px"
-            :placeholder="t('attendance.selectArrangement')"
-          >
-            <el-option
-              v-for="item in arrangementOptions"
-              :key="item.id"
-              :label="formatArrangementLabel(item)"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('attendance.date')">
-          <el-date-picker v-model="searchForm.attendanceDate" type="date" value-format="YYYY-MM-DD" />
-        </el-form-item>
-        <el-form-item :label="t('attendance.status')">
-          <el-select v-model="searchForm.status" clearable style="width: 120px">
-            <el-option :label="t('attendance.statusPresent')" value="PRESENT" />
-            <el-option :label="t('attendance.statusAbsent')" value="ABSENT" />
-            <el-option :label="t('attendance.statusLate')" value="LATE" />
-            <el-option :label="t('attendance.statusLeave')" value="LEAVE" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
-        </el-form-item>
-      </el-form>
+      <div class="app-filter-grid attendance-filter-grid">
+        <el-input
+          v-if="canFilterStudent"
+          v-model="searchForm.studentId"
+          clearable
+          inputmode="numeric"
+          class="col-span-12 md:col-span-2 attendance-filter-grid__student"
+          :placeholder="t('attendance.studentId')"
+        />
+        <el-select
+          v-model="searchForm.courseArrangementId"
+          clearable
+          filterable
+          class="col-span-12 md:col-span-3 attendance-filter-grid__course"
+          :placeholder="t('attendance.course')"
+        >
+          <el-option
+            v-for="item in arrangementOptions"
+            :key="item.id"
+            :label="formatArrangementLabel(item)"
+            :value="item.id"
+          />
+        </el-select>
+        <el-date-picker
+          v-model="searchForm.attendanceDate"
+          type="date"
+          value-format="YYYY-MM-DD"
+          class="col-span-12 md:col-span-2 attendance-filter-grid__date"
+          :placeholder="t('attendance.date')"
+        />
+        <el-select
+          v-model="searchForm.status"
+          clearable
+          class="col-span-12 md:col-span-2 attendance-filter-grid__status"
+          :placeholder="t('attendance.status')"
+        >
+          <el-option :label="t('attendance.statusPresent')" value="PRESENT" />
+          <el-option :label="t('attendance.statusAbsent')" value="ABSENT" />
+          <el-option :label="t('attendance.statusLate')" value="LATE" />
+          <el-option :label="t('attendance.statusLeave')" value="LEAVE" />
+        </el-select>
+        <div class="app-filter-action-wrap col-span-12 md:col-span-3 attendance-filter-grid__actions">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
+        </div>
+      </div>
     </template>
 
     <template #table>
-      <el-table :data="tableData" v-loading="loading" stripe>
-        <el-table-column type="index" :label="t('attendance.index')" width="60" />
-        <el-table-column prop="studentId" :label="t('attendance.studentId')" width="90" />
-        <el-table-column prop="studentName" :label="t('attendance.student')" width="120" />
-        <el-table-column prop="courseArrangementId" :label="t('attendance.arrangementId')" width="90" />
-        <el-table-column prop="courseName" :label="t('attendance.course')" width="140" />
-        <el-table-column prop="attendanceDate" :label="t('attendance.date')" width="120" />
-        <el-table-column prop="checkInTime" :label="t('attendance.checkIn')" width="100" />
-        <el-table-column prop="checkOutTime" :label="t('attendance.checkOut')" width="100" />
-        <el-table-column prop="status" :label="t('attendance.status')" width="100" />
-        <el-table-column v-if="canEditAttendance" :label="t('attendance.actions')" width="170" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">{{ t('attendance.edit') }}</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">{{ t('attendance.delete') }}</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <AppTable :columns="columns" :rows="tableData" :loading="loading" :density="tableDensity">
+        <template #cell-status="{ row }">
+          <AppBadge :type="statusBadgeType(row.status)">{{ statusLabel(row.status) }}</AppBadge>
+        </template>
+        <template #cell-actions="{ row }">
+          <div v-if="canEditAttendance" class="app-table-actions app-table-actions--start w-full">
+            <button class="app-table-action" @click="openEdit(row)">{{ t('attendance.edit') }}</button>
+            <button class="app-table-action app-table-action--danger" @click="handleDelete(row)">{{ t('attendance.delete') }}</button>
+          </div>
+        </template>
+      </AppTable>
     </template>
 
     <template #pagination>
@@ -86,11 +92,11 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="isEdit ? t('attendance.dialogEditTitle') : t('attendance.dialogAddTitle')" width="640px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('attendance.studentId')" prop="studentId">
-              <el-input-number v-model="form.studentId" :min="1" style="width: 100%" />
+              <el-input v-model="form.studentId" clearable inputmode="numeric" :placeholder="t('attendance.studentId')" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -162,6 +168,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import AppBadge from '@/components/ui/AppBadge.vue'
+import AppTable from '@/components/ui/AppTable.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import {
   deleteAttendance,
@@ -177,6 +185,7 @@ const store = useStore()
 const { t } = useI18n()
 const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const permissions = computed(() => store.state.userInfo?.permissions || [])
+const tableDensity = computed(() => store.getters.tableDensity)
 const canEditAttendance = computed(() =>
   canAction(role.value, 'attendance:create', permissions.value)
 )
@@ -189,8 +198,23 @@ const total = ref(0)
 const tableData = ref([])
 const arrangementOptions = ref([])
 
+const columns = computed(() => {
+  const base = [
+    { key: 'studentId', title: t('attendance.studentId'), width: 96, align: 'left' },
+    { key: 'studentName', title: t('attendance.student'), width: 120, align: 'left' },
+    { key: 'courseArrangementId', title: t('attendance.arrangementId'), width: 104, align: 'left' },
+    { key: 'courseName', title: t('attendance.course'), width: 150, align: 'left' },
+    { key: 'attendanceDate', title: t('attendance.date'), width: 124, align: 'left' },
+    { key: 'checkInTime', title: t('attendance.checkIn'), width: 108, align: 'left' },
+    { key: 'checkOutTime', title: t('attendance.checkOut'), width: 108, align: 'left' },
+    { key: 'status', title: t('attendance.status'), width: 110, align: 'left' }
+  ]
+  if (canEditAttendance.value) base.push({ key: 'actions', title: t('attendance.actions'), width: 148, align: 'left' })
+  return base
+})
+
 const searchForm = reactive({
-  studentId: null,
+  studentId: '',
   courseArrangementId: null,
   attendanceDate: '',
   status: ''
@@ -201,7 +225,7 @@ const isEdit = ref(false)
 const formRef = ref()
 const form = reactive({
   id: null,
-  studentId: null,
+  studentId: '',
   courseArrangementId: null,
   attendanceDate: '',
   status: 'PRESENT',
@@ -220,7 +244,7 @@ const rules = computed(() => ({
 function resetForm() {
   Object.assign(form, {
     id: null,
-    studentId: null,
+    studentId: '',
     courseArrangementId: null,
     attendanceDate: '',
     status: 'PRESENT',
@@ -249,8 +273,9 @@ async function fetchList() {
 }
 
 function formatArrangementLabel(item) {
-  const parts = [item.semester, item.courseName, item.className].filter(Boolean)
-  return parts.length ? `${parts.join(' | ')} (${t('attendance.idLabel')}:${item.id})` : `${t('attendance.arrangementId')}:${item.id}`
+  const title = item.courseName || `${t('attendance.course')} #${item.id}`
+  const parts = [item.className, item.semester, item.teacherName].filter(Boolean)
+  return parts.length ? `${title} | ${parts.join(' | ')}` : title
 }
 
 async function fetchArrangementOptions() {
@@ -276,12 +301,27 @@ function handleSearch() {
 
 function handleReset() {
   if (canFilterStudent.value) {
-    searchForm.studentId = null
+    searchForm.studentId = ''
   }
   searchForm.courseArrangementId = null
   searchForm.attendanceDate = ''
   searchForm.status = ''
   handleSearch()
+}
+
+function statusBadgeType(status) {
+  if (status === 'PRESENT') return 'success'
+  if (status === 'LATE') return 'warning'
+  if (status === 'ABSENT') return 'danger'
+  return 'info'
+}
+
+function statusLabel(status) {
+  if (status === 'PRESENT') return t('attendance.statusPresent')
+  if (status === 'ABSENT') return t('attendance.statusAbsent')
+  if (status === 'LATE') return t('attendance.statusLate')
+  if (status === 'LEAVE') return t('attendance.statusLeave')
+  return '-'
 }
 
 function openCreate() {
@@ -324,4 +364,77 @@ onMounted(async () => {
   await fetchList()
 })
 </script>
+
+<style scoped>
+.attendance-filter-grid :deep(.el-date-editor) {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  margin-top: 0;
+}
+
+.attendance-filter-grid__date :deep(.el-input__prefix) {
+  color: var(--text-secondary);
+}
+
+.attendance-filter-grid__date :deep(.el-input__wrapper) {
+  min-height: 38px;
+}
+
+@media (min-width: 1024px) {
+  .attendance-filter-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .attendance-filter-grid__student,
+  .attendance-filter-grid__course,
+  .attendance-filter-grid__date,
+  .attendance-filter-grid__status,
+  .attendance-filter-grid__actions {
+    grid-column: auto / auto !important;
+    flex: 0 0 auto;
+  }
+
+  .attendance-filter-grid__student {
+    width: 148px;
+  }
+
+  .attendance-filter-grid__course {
+    flex: 1 1 360px;
+    min-width: 320px;
+  }
+
+  .attendance-filter-grid__date {
+    width: 156px;
+    align-self: center;
+  }
+
+  .attendance-filter-grid__status {
+    width: 132px;
+  }
+
+  .attendance-filter-grid__actions {
+    width: 176px;
+    justify-self: end;
+    justify-content: flex-end;
+  }
+
+  .attendance-filter-grid__actions :deep(.app-filter-action-bar) {
+    width: 100%;
+    min-width: 100%;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .attendance-filter-grid__actions :deep(.app-button) {
+    min-width: 78px;
+    min-height: 34px;
+    padding: 0 10px;
+  }
+}
+</style>
 

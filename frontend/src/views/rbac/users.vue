@@ -6,7 +6,7 @@
     </template>
 
     <template #filters>
-      <div class="grid grid-cols-12 gap-2">
+      <div class="app-filter-grid">
         <el-input
           v-model="searchForm.account"
           clearable
@@ -38,9 +38,11 @@
         >
           <el-option v-for="option in classOptions" :key="option.value" :label="option.label" :value="option.value" />
         </el-select>
-        <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-2">
-          <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+        <div class="app-filter-action-wrap col-span-12 md:col-span-2">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </div>
       </div>
     </template>
@@ -83,7 +85,7 @@
     </template>
 
     <AppModal v-model="importDialogVisible" :title="t('rbac.users.importDialogTitle')" width="760px">
-      <el-form :model="importForm" label-width="120px">
+      <el-form :model="importForm" label-position="top">
         <el-form-item :label="t('rbac.users.importRole')">
           <el-select v-model="importForm.roleType" style="width: 100%">
             <el-option
@@ -413,16 +415,23 @@ onMounted(async () => {
 }
 
 .import-action-row {
-  margin-top: 8px;
+  margin-top: 14px;
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 72%, transparent);
 }
 
 .import-result-box {
-  margin-top: 12px;
+  margin-top: 16px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 72%, transparent);
+  border-radius: 18px;
+  padding: 14px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-base) 88%, transparent), color-mix(in srgb, var(--surface-elevated) 82%, transparent));
 }
 
 .result-summary {
@@ -431,17 +440,31 @@ onMounted(async () => {
 
 .fail-block {
   display: grid;
-  gap: 8px;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 68%, transparent);
+  border-radius: 16px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--surface-elevated) 74%, transparent);
 }
 
 .fail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
+}
+
+.fail-header span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
 }
 
 .row-data-text {
-  color: var(--sms-slatex-600);
+  color: var(--text-secondary);
   font-size: 12px;
+  line-height: 1.7;
 }
 </style>

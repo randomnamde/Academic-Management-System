@@ -15,9 +15,11 @@
             <el-option :label="t('college.statusDisabled')" :value="0" />
           </el-select>
         </el-form-item>
-        <el-form-item>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
+        <el-form-item class="search-form__actions">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </el-form-item>
       </el-form>
     </template>
@@ -28,10 +30,10 @@
           <AppBadge :type="Number(row.status) === 1 ? 'success' : 'info'">{{ Number(row.status) === 1 ? t('college.statusEnabled') : t('college.statusDisabled') }}</AppBadge>
         </template>
         <template #cell-actions="{ row }">
-          <div class="flex justify-end gap-2">
-            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="openEdit(row)">{{ t('college.edit') }}</button>
-            <button class="text-[12px] text-slatex-600 hover:text-slatex-900" @click="openBindAdmin(row)">{{ t('college.bindAdmin') }}</button>
-            <button class="text-[12px] text-state-danger hover:opacity-80" @click="toggleStatus(row)">
+          <div class="app-table-actions">
+            <button class="app-table-action" @click="openEdit(row)">{{ t('college.edit') }}</button>
+            <button class="app-table-action app-table-action--muted" @click="openBindAdmin(row)">{{ t('college.bindAdmin') }}</button>
+            <button class="app-table-action app-table-action--danger" @click="toggleStatus(row)">
               {{ Number(row.status) === 1 ? t('college.disable') : t('college.enable') }}
             </button>
           </div>
@@ -53,7 +55,7 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="isEdit ? t('college.dialogEditTitle') : t('college.dialogAddTitle')" width="640px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-form-item :label="t('college.collegeCode')" prop="collegeCode">
           <el-input v-model="form.collegeCode" />
         </el-form-item>
@@ -71,7 +73,7 @@
     </AppModal>
 
     <AppModal v-model="bindVisible" :title="t('college.bindAdminTitle')" width="520px">
-      <el-form label-width="130px">
+      <el-form label-position="top">
         <el-form-item :label="t('college.adminUsername')">
           <el-input v-model="bindAdminUsername" :placeholder="t('college.adminUsernamePlaceholder')" />
         </el-form-item>
@@ -118,7 +120,7 @@ const columns = computed(() => [
   { key: 'adminUsername', title: t('college.adminUsername'), width: 180 },
   { key: 'description', title: t('college.description') },
   { key: 'status', title: t('college.status'), width: 100 },
-  { key: 'actions', title: t('college.actions'), width: 250, align: 'right' }
+  { key: 'actions', title: t('college.actions'), width: 250, align: 'left' }
 ])
 
 const dialogVisible = ref(false)

@@ -5,12 +5,14 @@
     </template>
 
     <template #filters>
-      <div class="grid grid-cols-12 gap-2">
+      <div class="app-filter-grid">
         <el-input v-model="searchForm.className" clearable :placeholder="t('class.className')" class="col-span-12 md:col-span-3" />
-        <el-input v-model="searchForm.grade" clearable :placeholder="t('class.gradePlaceholder')" class="col-span-12 md:col-span-2" />
-        <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-7">
-          <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+        <el-input v-model="searchForm.grade" clearable :placeholder="t('class.gradePlaceholder')" class="col-span-12 md:col-span-3" />
+        <div class="app-filter-action-wrap col-span-12 md:col-span-6">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </div>
       </div>
     </template>
@@ -21,9 +23,9 @@
           <AppBadge :type="Number(row.status) === 1 ? 'success' : 'info'">{{ Number(row.status) === 1 ? t('class.statusActive') : t('class.statusDisabled') }}</AppBadge>
         </template>
         <template #cell-actions="{ row }">
-          <div v-if="!isStudent" class="flex justify-end gap-2">
-            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="openEdit(row)">{{ t('class.edit') }}</button>
-            <button class="text-[12px] text-state-danger hover:opacity-80" @click="handleDelete(row)">{{ t('class.delete') }}</button>
+          <div v-if="!isStudent" class="app-table-actions">
+            <button class="app-table-action" @click="openEdit(row)">{{ t('class.edit') }}</button>
+            <button class="app-table-action app-table-action--danger" @click="handleDelete(row)">{{ t('class.delete') }}</button>
           </div>
         </template>
       </AppTable>
@@ -43,7 +45,7 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="isEdit ? t('class.dialogEditTitle') : t('class.dialogAddTitle')" width="640px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="96px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('class.className')" prop="className">
@@ -120,10 +122,10 @@ const columns = computed(() => {
     { key: 'grade', title: t('class.grade'), width: 90 },
     { key: 'major', title: t('class.major'), width: 170 },
     { key: 'teacherId', title: t('class.homeroomTeacherId'), width: 110 },
-    { key: 'studentCount', title: t('class.studentCount'), width: 90, align: 'right' },
-    { key: 'status', title: t('class.status'), width: 100, align: 'center' }
+    { key: 'studentCount', title: t('class.studentCount'), width: 90, align: 'left' },
+    { key: 'status', title: t('class.status'), width: 100, align: 'left' }
   ]
-  if (!isStudent.value) base.push({ key: 'actions', title: t('class.actions'), width: 140, align: 'right' })
+  if (!isStudent.value) base.push({ key: 'actions', title: t('class.actions'), width: 148, align: 'left' })
   return base
 })
 

@@ -89,7 +89,9 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
                 queryDTO.getStudentId(),
                 queryDTO.getTeacherId(),
                 queryDTO.getCourseArrangementId(),
-                queryDTO.getSemester());
+                queryDTO.getSemester(),
+                queryDTO.getCollegeId(),
+                queryDTO.getClassId());
     }
 
     @Override

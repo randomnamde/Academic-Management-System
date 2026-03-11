@@ -5,7 +5,7 @@
     </template>
 
     <template #filters>
-      <div class="grid grid-cols-12 gap-2">
+      <div class="app-filter-grid">
         <el-input v-model="searchForm.studentNo" clearable :placeholder="t('student.studentNo')" class="col-span-12 md:col-span-2" />
         <el-input v-model="searchForm.name" clearable :placeholder="t('student.name')" class="col-span-12 md:col-span-2" />
         <el-select v-model="searchForm.collegeId" clearable :placeholder="t('student.college')" class="col-span-12 md:col-span-2">
@@ -20,9 +20,11 @@
           <el-option :label="t('student.statusGraduated')" value="GRADUATED" />
           <el-option :label="t('student.statusDropped')" value="DROPPED" />
         </el-select>
-        <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-2">
-          <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+        <div class="app-filter-action-wrap col-span-12 md:col-span-2">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </div>
       </div>
     </template>
@@ -36,10 +38,10 @@
           <AppBadge :type="statusBadgeType(row.status)">{{ getStatusText(row.status) }}</AppBadge>
         </template>
         <template #cell-actions="{ row }">
-          <div class="flex justify-end gap-2">
-            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="handleEdit(row)">{{ t('student.edit') }}</button>
-            <button class="text-[12px] text-slatex-600 hover:text-slatex-900" @click="handleViewScore(row)">{{ t('student.viewScore') }}</button>
-            <button class="text-[12px] text-state-danger hover:opacity-80" @click="handleDelete(row)">{{ t('student.delete') }}</button>
+          <div class="app-table-actions">
+            <button class="app-table-action" @click="handleEdit(row)">{{ t('student.edit') }}</button>
+            <button class="app-table-action app-table-action--muted" @click="handleViewScore(row)">{{ t('student.viewScore') }}</button>
+            <button class="app-table-action app-table-action--danger" @click="handleDelete(row)">{{ t('student.delete') }}</button>
           </div>
         </template>
       </AppTable>
@@ -58,7 +60,7 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="dialogTitle" width="760px">
-      <el-form :model="form" :rules="rules" ref="formRef" label-width="96px">
+      <el-form :model="form" :rules="rules" ref="formRef" label-position="top">
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('student.studentNo')" prop="studentNo">
@@ -183,7 +185,7 @@ const columns = computed(() => [
   { key: 'phone', title: t('student.phone'), width: 150 },
   { key: 'email', title: t('student.email') },
   { key: 'status', title: t('student.status'), width: 110 },
-  { key: 'actions', title: t('student.actions'), width: 180, align: 'right' }
+  { key: 'actions', title: t('student.actions'), width: 180, align: 'left' }
 ])
 
 const searchForm = reactive({

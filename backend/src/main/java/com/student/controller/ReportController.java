@@ -53,6 +53,8 @@ public class ReportController {
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public void exportScore(@RequestParam(required = false) Long studentId,
                             @RequestParam(required = false) Long courseArrangementId,
+                            @RequestParam(required = false) Long collegeId,
+                            @RequestParam(required = false) Long classId,
                             @RequestParam(required = false) String semester,
                             @RequestParam(required = false) String format,
                             Authentication authentication,
@@ -66,6 +68,8 @@ public class ReportController {
         queryDTO.setStudentId(scopedStudentId);
         queryDTO.setTeacherId(scopedTeacherId);
         queryDTO.setCourseArrangementId(courseArrangementId);
+        queryDTO.setCollegeId(collegeId);
+        queryDTO.setClassId(classId);
         queryDTO.setSemester(semester);
 
         Page<Score> result = scoreService.getScorePage(1, EXPORT_LIMIT, queryDTO);

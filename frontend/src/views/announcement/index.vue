@@ -23,9 +23,11 @@
             <el-option :label="t('announcement.statusOffline')" :value="0" />
           </el-select>
         </el-form-item>
-        <el-form-item>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
+        <el-form-item class="search-form__actions">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </el-form-item>
       </el-form>
     </template>
@@ -53,8 +55,10 @@
         </el-table-column>
         <el-table-column v-if="canManageAnnouncement" :label="t('announcement.actions')" width="170" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">{{ t('announcement.edit') }}</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">{{ t('announcement.delete') }}</el-button>
+            <div class="app-table-inline-actions">
+              <el-button link type="primary" @click="openEdit(row)">{{ t('announcement.edit') }}</el-button>
+              <el-button link type="danger" @click="handleDelete(row)">{{ t('announcement.delete') }}</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -74,7 +78,7 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="isEdit ? t('announcement.dialogEditTitle') : t('announcement.dialogPublishTitle')" width="720px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-form-item :label="t('announcement.title')" prop="title">
           <el-input v-model="form.title" />
         </el-form-item>

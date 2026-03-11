@@ -19,7 +19,9 @@ public interface ScoreMapper extends BaseMapper<Score> {
                                      @Param("studentId") Long studentId,
                                      @Param("teacherId") Long teacherId,
                                      @Param("courseArrangementId") Long courseArrangementId,
-                                     @Param("semester") String semester);
+                                     @Param("semester") String semester,
+                                     @Param("collegeId") Long collegeId,
+                                     @Param("classId") Long classId);
     
     @Select("SELECT * FROM score WHERE student_id = #{studentId} AND course_arrangement_id = #{courseArrangementId}")
     Score selectByStudentAndCourse(@Param("studentId") Long studentId, 

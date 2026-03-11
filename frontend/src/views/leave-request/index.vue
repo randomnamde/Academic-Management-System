@@ -22,9 +22,11 @@
             <el-option :label="t('leaveRequest.statusRejected')" value="REJECTED" />
           </el-select>
         </el-form-item>
-        <el-form-item>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
-          <AppButton variant="secondary" class="ml-2" @click="handleReset">{{ t('common.reset') }}</AppButton>
+        <el-form-item class="search-form__actions">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </el-form-item>
       </el-form>
 
@@ -63,12 +65,12 @@
         <el-table-column prop="createTime" :label="t('leaveRequest.submitTime')" width="170">
           <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
         </el-table-column>
-        <el-table-column :label="t('leaveRequest.actions')" width="320" fixed="right" class-name="op-cell" label-class-name="op-header-cell">
+        <el-table-column :label="t('leaveRequest.actions')" width="380" fixed="right" class-name="op-cell" label-class-name="op-header-cell">
           <template #header>
             <span class="op-header-badge">{{ t('leaveRequest.actions') }}</span>
           </template>
           <template #default="{ row }">
-            <div class="op-actions">
+            <div class="app-table-inline-actions op-actions">
               <el-button link type="primary" @click="openDetail(row)">{{ t('leaveRequest.detail') }}</el-button>
               <el-dropdown v-if="hasMoreAction(row)" @command="(cmd) => handleRowCommand(cmd, row)">
                 <el-button link type="primary">
@@ -117,10 +119,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="t('leaveRequest.actions')" width="180" fixed="right">
+        <el-table-column :label="t('leaveRequest.actions')" width="260" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openDetailById(row.leaveRequestId)">{{ t('leaveRequest.viewLeaveDetail') }}</el-button>
-            <el-button v-if="Number(row.readFlag) !== 1" link type="success" @click="markCcReadRow(row)">{{ t('leaveRequest.markRead') }}</el-button>
+            <div class="app-table-inline-actions">
+              <el-button link type="primary" @click="openDetailById(row.leaveRequestId)">{{ t('leaveRequest.viewLeaveDetail') }}</el-button>
+              <el-button v-if="Number(row.readFlag) !== 1" link type="success" @click="markCcReadRow(row)">{{ t('leaveRequest.markRead') }}</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -141,7 +145,7 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="isEdit ? t('leaveRequest.dialogEditTitle') : t('leaveRequest.dialogCreateTitle')" width="720px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('leaveRequest.arrangementOptional')" prop="courseArrangementId">
@@ -555,10 +559,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .op-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: nowrap;
+  max-width: 100%;
 }
 
 :deep(.op-cell .cell) {
@@ -588,10 +589,6 @@ onMounted(() => {
 
 :deep(.el-table__fixed-right-patch) {
   background-color: var(--el-table-header-bg-color, color-mix(in srgb, var(--surface-elevated) 78%, transparent)) !important;
-}
-
-:deep(.op-actions .el-button + .el-button) {
-  margin-left: 0;
 }
 
 .op-header-badge {

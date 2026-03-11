@@ -21,6 +21,52 @@
   --button-danger-bg: #b93543;
   --button-danger-bg-hover: #9f2a36;
   --button-danger-text: #fff6f7;
+  --button-radius: 14px;
+  --button-ring: color-mix(in srgb, var(--accent-500) 24%, transparent);
+  --button-primary-surface: linear-gradient(
+    180deg,
+    color-mix(in srgb, #4cc2eb 22%, var(--button-primary-bg)),
+    var(--button-primary-bg)
+  );
+  --button-primary-surface-hover: linear-gradient(
+    180deg,
+    color-mix(in srgb, #42badf 18%, var(--button-primary-bg-hover)),
+    var(--button-primary-bg-hover)
+  );
+  --button-primary-border: color-mix(in srgb, var(--button-primary-bg) 84%, #9be3ff);
+  --button-primary-shadow:
+    0 14px 28px color-mix(in srgb, var(--button-primary-bg) 30%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 28%, transparent);
+  --button-secondary-surface: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-base) 96%, transparent),
+    color-mix(in srgb, var(--surface-elevated) 92%, transparent)
+  );
+  --button-secondary-surface-hover: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-base) 98%, transparent),
+    color-mix(in srgb, var(--surface-elevated) 98%, transparent)
+  );
+  --button-secondary-shadow:
+    0 10px 22px color-mix(in srgb, var(--accent-500) 10%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 14%, transparent);
+  --button-danger-surface: linear-gradient(
+    180deg,
+    color-mix(in srgb, #e06072 20%, var(--button-danger-bg)),
+    var(--button-danger-bg)
+  );
+  --button-danger-surface-hover: linear-gradient(
+    180deg,
+    color-mix(in srgb, #da596b 16%, var(--button-danger-bg-hover)),
+    var(--button-danger-bg-hover)
+  );
+  --button-danger-border: color-mix(in srgb, var(--button-danger-bg) 86%, #ffc1c8);
+  --button-danger-shadow:
+    0 14px 28px color-mix(in srgb, var(--button-danger-bg) 26%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 20%, transparent);
+  --button-ghost-surface: color-mix(in srgb, var(--surface-elevated) 66%, transparent);
+  --button-ghost-surface-hover: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  --button-text-hover: color-mix(in srgb, var(--accent-500) 10%, transparent);
   --success: #18a06f;
   --warn: #c9831e;
   --danger: #c43d4b;
@@ -34,6 +80,29 @@
   --popup-blur: 16px;
   --popup-saturate: 132%;
   --popup-backdrop: color-mix(in srgb, var(--accent-700) 4%, transparent);
+  --dialog-surface: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--surface-base) 97%, transparent),
+    color-mix(in srgb, var(--surface-elevated) 92%, transparent)
+  );
+  --dialog-border: color-mix(in srgb, var(--accent-500) 18%, rgba(255, 255, 255, 0.82));
+  --dialog-shadow:
+    0 32px 72px rgba(9, 34, 53, 0.22),
+    0 10px 28px color-mix(in srgb, var(--accent-500) 10%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-white) 22%, transparent);
+  --dialog-overlay: color-mix(in srgb, rgba(6, 22, 34, 0.66) 84%, rgba(29, 155, 199, 0.16));
+  --dialog-header-bg: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-500) 11%, var(--surface-base)),
+    color-mix(in srgb, var(--surface-base) 88%, transparent)
+  );
+  --dialog-footer-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-base) 18%, transparent),
+    color-mix(in srgb, var(--surface-elevated) 74%, transparent)
+  );
+  --dialog-glow-a: color-mix(in srgb, var(--accent-500) 26%, transparent);
+  --dialog-glow-b: color-mix(in srgb, var(--success) 18%, transparent);
   --surface-grid-line: rgba(43, 96, 129, 0.06);
 
   --shadow-soft: 0 8px 24px rgba(26, 66, 92, 0.07);
@@ -108,6 +177,52 @@
   --button-danger-bg: #e56a76;
   --button-danger-bg-hover: #d85966;
   --button-danger-text: #062232;
+  --button-radius: 14px;
+  --button-ring: color-mix(in srgb, var(--accent-500) 28%, transparent);
+  --button-primary-surface: linear-gradient(
+    180deg,
+    color-mix(in srgb, #8de3ff 20%, var(--button-primary-bg)),
+    var(--button-primary-bg)
+  );
+  --button-primary-surface-hover: linear-gradient(
+    180deg,
+    color-mix(in srgb, #71daf9 18%, var(--button-primary-bg-hover)),
+    var(--button-primary-bg-hover)
+  );
+  --button-primary-border: color-mix(in srgb, var(--button-primary-bg) 78%, #c1f2ff);
+  --button-primary-shadow:
+    0 16px 30px color-mix(in srgb, var(--button-primary-bg) 24%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 18%, transparent);
+  --button-secondary-surface: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-base) 96%, transparent),
+    color-mix(in srgb, var(--surface-elevated) 90%, transparent)
+  );
+  --button-secondary-surface-hover: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-base) 98%, transparent),
+    color-mix(in srgb, var(--surface-elevated) 98%, transparent)
+  );
+  --button-secondary-shadow:
+    0 12px 26px rgba(3, 10, 15, 0.22),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 8%, transparent);
+  --button-danger-surface: linear-gradient(
+    180deg,
+    color-mix(in srgb, #ff9eaa 16%, var(--button-danger-bg)),
+    var(--button-danger-bg)
+  );
+  --button-danger-surface-hover: linear-gradient(
+    180deg,
+    color-mix(in srgb, #ff8d9a 14%, var(--button-danger-bg-hover)),
+    var(--button-danger-bg-hover)
+  );
+  --button-danger-border: color-mix(in srgb, var(--button-danger-bg) 78%, #ffc6cf);
+  --button-danger-shadow:
+    0 16px 30px color-mix(in srgb, var(--button-danger-bg) 22%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 14%, transparent);
+  --button-ghost-surface: color-mix(in srgb, var(--surface-elevated) 74%, transparent);
+  --button-ghost-surface-hover: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  --button-text-hover: color-mix(in srgb, var(--accent-500) 16%, transparent);
   --success: #2bc98a;
   --warn: #e5a23a;
   --danger: #e56a76;
@@ -121,6 +236,29 @@
   --popup-blur: 10px;
   --popup-saturate: 120%;
   --popup-backdrop: color-mix(in srgb, var(--color-black) 48%, transparent);
+  --dialog-surface: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--surface-base) 95%, transparent),
+    color-mix(in srgb, var(--surface-elevated) 84%, transparent)
+  );
+  --dialog-border: color-mix(in srgb, var(--panel-border) 90%, transparent);
+  --dialog-shadow:
+    0 34px 78px rgba(2, 8, 12, 0.62),
+    0 10px 28px color-mix(in srgb, var(--accent-500) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-white) 10%, transparent);
+  --dialog-overlay: color-mix(in srgb, rgba(2, 8, 13, 0.88) 88%, rgba(54, 182, 226, 0.12));
+  --dialog-header-bg: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-500) 12%, var(--surface-base)),
+    color-mix(in srgb, var(--surface-base) 78%, transparent)
+  );
+  --dialog-footer-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-base) 22%, transparent),
+    color-mix(in srgb, var(--surface-elevated) 72%, transparent)
+  );
+  --dialog-glow-a: color-mix(in srgb, var(--accent-500) 20%, transparent);
+  --dialog-glow-b: color-mix(in srgb, var(--success) 16%, transparent);
   --surface-grid-line: rgba(114, 164, 196, 0.11);
 
   --shadow-soft: 0 10px 28px rgba(4, 10, 15, 0.32);

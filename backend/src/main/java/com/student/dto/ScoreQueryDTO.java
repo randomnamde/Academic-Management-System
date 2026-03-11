@@ -8,5 +8,6 @@ public class ScoreQueryDTO {
     private Long teacherId;
     private Long courseArrangementId;
     private String semester;
+    private Long collegeId;
     private Long classId;
 }

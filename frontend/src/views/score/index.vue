@@ -14,21 +14,29 @@
     </template>
 
     <template #filters>
-      <div class="grid grid-cols-12 gap-2">
-        <el-input-number v-if="canFilterStudent" v-model="searchForm.studentId" :min="1" class="col-span-12 md:col-span-2" :placeholder="t('score.studentId')" />
+      <div class="app-filter-grid">
+        <el-input v-if="canFilterStudent" v-model="searchForm.studentId" clearable inputmode="numeric" class="col-span-12 md:col-span-2" :placeholder="t('score.studentId')" />
+        <el-select v-if="canFilterStudent" v-model="searchForm.collegeId" clearable :placeholder="t('student.college')" class="col-span-12 md:col-span-2">
+          <el-option v-for="item in collegeList" :key="item.id" :label="item.collegeName" :value="item.id" />
+        </el-select>
+        <el-select v-if="canFilterStudent" v-model="searchForm.classId" clearable :placeholder="t('student.class')" class="col-span-12 md:col-span-2">
+          <el-option v-for="item in searchClassList" :key="item.id" :label="item.className" :value="item.id" />
+        </el-select>
         <el-select
           v-model="searchForm.courseArrangementId"
           clearable
           filterable
-          :placeholder="t('score.arrangement')"
-          class="col-span-12 md:col-span-4"
+          :placeholder="t('score.courseName')"
+          class="col-span-12 md:col-span-2"
         >
-          <el-option v-for="item in arrangementOptions" :key="item.id" :label="formatArrangementLabel(item)" :value="item.id" />
+          <el-option v-for="item in filteredArrangementOptions" :key="item.id" :label="formatArrangementLabel(item)" :value="item.id" />
         </el-select>
         <el-input v-model="searchForm.semester" clearable :placeholder="t('score.semesterPlaceholder')" class="col-span-12 md:col-span-2" />
-        <div class="col-span-12 flex items-center justify-end gap-2 md:col-span-4">
-          <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
-          <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+        <div class="app-filter-action-wrap col-span-12 md:col-span-2">
+          <div class="app-filter-action-bar">
+            <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
+            <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
+          </div>
         </div>
       </div>
     </template>
@@ -42,9 +50,9 @@
           <AppBadge :type="statusBadgeType(row.status)">{{ statusLabel(row.status) }}</AppBadge>
         </template>
         <template #cell-actions="{ row }">
-          <div v-if="canEditScore" class="flex w-full justify-start gap-2">
-            <button class="text-[12px] text-primary-700 hover:text-primary-800" @click="openEdit(row)">{{ t('score.edit') }}</button>
-            <button class="text-[12px] text-state-danger hover:opacity-80" @click="handleDelete(row)">{{ t('score.delete') }}</button>
+          <div v-if="canEditScore" class="app-table-actions app-table-actions--start w-full">
+            <button class="app-table-action" @click="openEdit(row)">{{ t('score.edit') }}</button>
+            <button class="app-table-action app-table-action--danger" @click="handleDelete(row)">{{ t('score.delete') }}</button>
           </div>
         </template>
       </AppTable>
@@ -64,11 +72,11 @@
     </template>
 
     <AppModal v-model="dialogVisible" :title="isEdit ? t('score.dialogEditTitle') : t('score.dialogAddTitle')" width="640px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="96px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('score.studentId')" prop="studentId">
-              <el-input-number v-model="form.studentId" :min="1" style="width: 100%" />
+              <el-input v-model="form.studentId" clearable inputmode="numeric" :placeholder="t('score.studentId')" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -120,7 +128,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -131,6 +139,8 @@ import AppTable from '@/components/ui/AppTable.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { createScore, deleteScore, exportScoreReport, getScoreList, updateScore } from '@/api/score'
 import { getCourseArrangementOptions } from '@/api/courseArrangement'
+import { getCollegeList } from '@/api/college'
+import { getClassList } from '@/api/clazz'
 import { canAction } from '@/permission/ability'
 
 const store = useStore()
@@ -140,12 +150,15 @@ const permissions = computed(() => store.state.userInfo?.permissions || [])
 const tableDensity = computed(() => store.getters.tableDensity)
 const canEditScore = computed(() => canAction(role.value, 'score:create', permissions.value))
 const canFilterStudent = computed(() => role.value !== 'STUDENT')
+const userInfo = computed(() => store.state.userInfo || {})
 
 const loading = ref(false)
 const page = ref(1)
 const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
+const collegeList = ref([])
+const searchClassList = ref([])
 const arrangementOptions = ref([])
 const arrangementClassMap = computed(() => {
   const map = new Map()
@@ -156,6 +169,13 @@ const arrangementClassMap = computed(() => {
   })
   return map
 })
+const filteredArrangementOptions = computed(() =>
+  arrangementOptions.value.filter((item) => {
+    if (searchForm.collegeId && item.collegeId !== searchForm.collegeId) return false
+    if (searchForm.classId && item.classId !== searchForm.classId) return false
+    return true
+  })
+)
 
 const columns = computed(() => {
   const base = [
@@ -176,7 +196,9 @@ const columns = computed(() => {
 })
 
 const searchForm = reactive({
-  studentId: null,
+  studentId: '',
+  collegeId: null,
+  classId: null,
   courseArrangementId: null,
   semester: ''
 })
@@ -186,7 +208,7 @@ const isEdit = ref(false)
 const formRef = ref()
 const form = reactive({
   id: null,
-  studentId: null,
+  studentId: '',
   courseArrangementId: null,
   usualScore: null,
   midtermScore: null,
@@ -203,7 +225,7 @@ const rules = computed(() => ({
 function resetForm() {
   Object.assign(form, {
     id: null,
-    studentId: null,
+    studentId: '',
     courseArrangementId: null,
     usualScore: null,
     midtermScore: null,
@@ -213,6 +235,46 @@ function resetForm() {
   })
 }
 
+function getDefaultCollegeId() {
+  if (role.value === 'SCHOOL_ADMIN') return null
+  if (collegeList.value.length === 1) return collegeList.value[0].id
+  return userInfo.value?.collegeId || null
+}
+
+async function fetchCollegeList() {
+  if (role.value === 'SCHOOL_ADMIN' || role.value === 'COLLEGE_ADMIN') {
+    const res = await getCollegeList({ page: 1, size: 500 })
+    collegeList.value = res.data?.records || []
+  } else if (userInfo.value?.collegeId) {
+    collegeList.value = [
+      {
+        id: userInfo.value.collegeId,
+        collegeName: userInfo.value.collegeName || `${t('student.college')} #${userInfo.value.collegeId}`
+      }
+    ]
+  } else {
+    collegeList.value = []
+  }
+
+  if (!searchForm.collegeId && canFilterStudent.value && role.value !== 'SCHOOL_ADMIN') {
+    searchForm.collegeId = getDefaultCollegeId()
+  }
+}
+
+async function fetchClassList(collegeId, allowAll = false) {
+  if (!collegeId && !allowAll) {
+    searchClassList.value = []
+    return
+  }
+
+  const res = await getClassList({
+    page: 1,
+    size: 500,
+    collegeId: collegeId || undefined
+  })
+  searchClassList.value = res.data?.records || []
+}
+
 async function fetchList() {
   loading.value = true
   try {
@@ -220,6 +282,8 @@ async function fetchList() {
       page: page.value,
       size: size.value,
       studentId: searchForm.studentId || undefined,
+      collegeId: searchForm.collegeId || undefined,
+      classId: searchForm.classId || undefined,
       courseArrangementId: searchForm.courseArrangementId || undefined,
       semester: searchForm.semester || undefined
     })
@@ -231,8 +295,9 @@ async function fetchList() {
 }
 
 function formatArrangementLabel(item) {
-  const parts = [item.semester, item.courseName, item.className].filter(Boolean)
-  return parts.length ? `${t('score.idLabel')}:${item.id} | ${parts.join(' | ')}` : `${t('score.idLabel')}:${item.id}`
+  const title = item.courseName || `${t('score.courseName')} #${item.id}`
+  const parts = [item.className, item.semester, item.teacherName].filter(Boolean)
+  return parts.length ? `${title} | ${parts.join(' | ')}` : title
 }
 
 async function fetchArrangementOptions() {
@@ -250,6 +315,8 @@ function resolveClassName(row) {
 async function handleExport(format) {
   await exportScoreReport({
     studentId: searchForm.studentId || undefined,
+    collegeId: searchForm.collegeId || undefined,
+    classId: searchForm.classId || undefined,
     courseArrangementId: searchForm.courseArrangementId || undefined,
     semester: searchForm.semester || undefined,
     format
@@ -263,7 +330,9 @@ function handleSearch() {
 }
 
 function handleReset() {
-  if (canFilterStudent.value) searchForm.studentId = null
+  if (canFilterStudent.value) searchForm.studentId = ''
+  searchForm.collegeId = canFilterStudent.value ? getDefaultCollegeId() : null
+  searchForm.classId = null
   searchForm.courseArrangementId = null
   searchForm.semester = ''
   handleSearch()
@@ -329,7 +398,25 @@ async function handleDelete(row) {
   fetchList()
 }
 
+watch(
+  () => searchForm.collegeId,
+  async (collegeId) => {
+    searchForm.classId = null
+    searchForm.courseArrangementId = null
+    await fetchClassList(collegeId, true)
+  }
+)
+
+watch(
+  () => searchForm.classId,
+  () => {
+    searchForm.courseArrangementId = null
+  }
+)
+
 onMounted(async () => {
+  await fetchCollegeList()
+  await fetchClassList(searchForm.collegeId, true)
   await fetchArrangementOptions()
   await fetchList()
 })

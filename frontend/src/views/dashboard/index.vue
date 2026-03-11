@@ -894,8 +894,14 @@ onActivated(() => {
   display: flex;
   flex: 1;
   min-width: 0;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
+}
+
+.dashboard-todo-main :deep(.el-checkbox) {
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0;
 }
 
 .dashboard-todo-copy {

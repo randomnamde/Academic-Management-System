@@ -92,7 +92,8 @@ const routes = [
           roles: MANAGE_ROLES,
           menuGroup: 'teaching',
           hideInMenu: true,
-          activeMenu: '/course-center'
+          activeMenu: '/course-center',
+          breadcrumbParent: '/course-center'
         }
       },
       {
@@ -107,6 +108,17 @@ const routes = [
         }
       },
       {
+        path: 'major',
+        name: 'Major',
+        component: () => import('@/views/major/index.vue'),
+        meta: {
+          titleKey: 'route.major',
+          icon: 'Collection',
+          roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'],
+          menuGroup: 'teaching'
+        }
+      },
+      {
         path: 'course-arrangement',
         name: 'CourseArrangement',
         component: () => import('@/views/course-arrangement/index.vue'),
@@ -116,7 +128,8 @@ const routes = [
           roles: ALL_ROLES,
           menuGroup: 'teaching',
           hideInMenu: true,
-          activeMenu: '/course-center'
+          activeMenu: '/course-center',
+          breadcrumbParent: '/course-center'
         }
       },
       {
@@ -153,37 +166,37 @@ const routes = [
         path: 'rbac/users',
         name: 'RBACUsers',
         component: () => import('@/views/rbac/hub.vue'),
-        meta: { titleKey: 'route.rbacUsers', icon: 'UserFilled', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
+        meta: { titleKey: 'route.rbacUsers', icon: 'UserFilled', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac', breadcrumbParent: '/rbac' }
       },
       {
         path: 'rbac/users/assignments',
         name: 'RBACUserAssignments',
         component: () => import('@/views/rbac/assignments.vue'),
-        meta: { titleKey: 'route.rbacUserAssignments', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
+        meta: { titleKey: 'route.rbacUserAssignments', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac', breadcrumbParent: '/rbac/users' }
       },
       {
         path: 'rbac/users/list',
         name: 'RBACUserList',
         component: () => import('@/views/rbac/users.vue'),
-        meta: { titleKey: 'route.rbacUserList', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
+        meta: { titleKey: 'route.rbacUserList', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac', breadcrumbParent: '/rbac/users' }
       },
       {
         path: 'rbac/roles',
         name: 'RBACRoles',
         component: () => import('@/views/rbac/roles.vue'),
-        meta: { titleKey: 'route.rbacRoles', icon: 'Postcard', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
+        meta: { titleKey: 'route.rbacRoles', icon: 'Postcard', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac', breadcrumbParent: '/rbac' }
       },
       {
         path: 'rbac/permissions',
         name: 'RBACPermissions',
         component: () => import('@/views/rbac/permissions.vue'),
-        meta: { titleKey: 'route.rbacPermissions', icon: 'Operation', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
+        meta: { titleKey: 'route.rbacPermissions', icon: 'Operation', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac', breadcrumbParent: '/rbac' }
       },
       {
         path: 'rbac/audit',
         name: 'RBACAudit',
         component: () => import('@/views/rbac/audit.vue'),
-        meta: { titleKey: 'route.rbacAudit', icon: 'Document', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac' }
+        meta: { titleKey: 'route.rbacAudit', icon: 'Document', roles: ['SCHOOL_ADMIN'], menuGroup: 'access', hideInMenu: true, activeMenu: '/rbac', breadcrumbParent: '/rbac' }
       },
       {
         path: 'profile',
@@ -201,7 +214,7 @@ const routes = [
         path: 'semester',
         name: 'Semester',
         component: () => import('@/views/semester/index.vue'),
-        meta: { titleKey: 'route.semester', roles: ['SCHOOL_ADMIN'], hideInMenu: true, activeMenu: '/system' }
+        meta: { titleKey: 'route.semester', roles: ['SCHOOL_ADMIN'], hideInMenu: true, activeMenu: '/system', breadcrumbParent: '/system' }
       }
     ]
   },

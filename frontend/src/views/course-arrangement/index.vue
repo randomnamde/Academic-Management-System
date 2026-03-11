@@ -510,7 +510,7 @@ function mapTeacherOption(item) {
 
 function mapClassOption(item) {
   return {
-    value: item.id,
+    value: item.classCode,
     label: `${item.className}${item.classCode ? ` (${item.classCode})` : ''}`
   }
 }

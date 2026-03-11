@@ -2,6 +2,8 @@ package com.student.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.dto.UpdateUserRolesDTO;
+import com.student.dto.BatchResetPasswordDTO;
+import com.student.dto.PasswordVerificationDTO;
 import com.student.dto.UpdatePasswordDTO;
 import com.student.dto.UpdateProfileDTO;
 import com.student.entity.Class;
@@ -87,7 +89,7 @@ public class UserController {
                 vo.setClassId(student.getClassId());
                 vo.setStudentNo(student.getStudentNo());
                 if (student.getClassId() != null) {
-                    Class currentClass = classMapper.selectById(student.getClassId());
+                    Class currentClass = classMapper.selectByClassCode(student.getClassId());
                     vo.setClassName(currentClass != null ? currentClass.getClassName() : null);
                 }
             }
@@ -110,7 +112,7 @@ public class UserController {
                                                    @RequestParam(required = false) SysUser.Role role,
                                                    @RequestParam(required = false) RoleCode roleCode,
                                                    @RequestParam(required = false) Long collegeId,
-                                                   @RequestParam(required = false) Long classId,
+                                                   @RequestParam(required = false) String classId,
                                                    @RequestParam(required = false) Integer status,
                                                    Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
@@ -119,7 +121,7 @@ public class UserController {
         String accountKeyword = account != null && !account.isBlank() ? account : username;
 
         if (classId != null) {
-            Class targetClass = classMapper.selectById(classId);
+            Class targetClass = classMapper.selectByClassCode(classId);
             if (targetClass == null) {
                 return ResultVO.success(emptyUserPage(page, size));
             }
@@ -160,14 +162,14 @@ public class UserController {
                 ? classMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Class>()
                 .eq(Class::getCollegeId, effectiveCollegeId))
                 : classMapper.selectList(null);
-        Map<Long, Class> classById = classes.stream()
-                .filter(item -> item.getId() != null)
-                .collect(Collectors.toMap(Class::getId, item -> item, (left, right) -> left));
+        Map<String, Class> classById = classes.stream()
+                .filter(item -> item.getClassCode() != null)
+                .collect(Collectors.toMap(Class::getClassCode, item -> item, (left, right) -> left));
         Map<Long, List<Class>> classesByTeacherId = classes.stream()
                 .filter(item -> item.getTeacherId() != null)
                 .collect(Collectors.groupingBy(Class::getTeacherId));
 
-        Set<Long> classIds = classById.keySet();
+        Set<String> classIds = classById.keySet();
         List<Student> students = classIds.isEmpty() && effectiveCollegeId != null
                 ? List.of()
                 : (classIds.isEmpty()
@@ -262,6 +264,53 @@ public class UserController {
         return ResultVO.success();
     }
 
+    @PutMapping("/password/reset-all")
+    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
+    public ResultVO<Integer> resetAllPasswords(@RequestBody @Validated PasswordVerificationDTO dto,
+                                               Authentication authentication) {
+        if (authentication == null) {
+            return ResultVO.error(401, "Unauthorized");
+        }
+        SysUser currentUser = sysUserService.getByUsername(authentication.getName());
+        if (currentUser == null) {
+            return ResultVO.error(404, "User not found");
+        }
+        sysUserService.verifyPassword(currentUser.getId(), dto.getOperatorPassword());
+        return ResultVO.success(sysUserService.resetAllPasswordsToInitialPassword());
+    }
+
+    @PutMapping("/{id}/password/reset")
+    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
+    public ResultVO<Void> resetUserPassword(@PathVariable Long id,
+                                            @RequestBody @Validated PasswordVerificationDTO dto,
+                                            Authentication authentication) {
+        if (authentication == null) {
+            return ResultVO.error(401, "Unauthorized");
+        }
+        SysUser currentUser = sysUserService.getByUsername(authentication.getName());
+        if (currentUser == null) {
+            return ResultVO.error(404, "User not found");
+        }
+        sysUserService.verifyPassword(currentUser.getId(), dto.getOperatorPassword());
+        sysUserService.resetPasswordToInitialPassword(id);
+        return ResultVO.success();
+    }
+
+    @PutMapping("/password/reset-batch")
+    @PreAuthorize("hasRole('SCHOOL_ADMIN')")
+    public ResultVO<Integer> resetBatchUserPasswords(@RequestBody @Validated BatchResetPasswordDTO dto,
+                                                     Authentication authentication) {
+        if (authentication == null) {
+            return ResultVO.error(401, "Unauthorized");
+        }
+        SysUser currentUser = sysUserService.getByUsername(authentication.getName());
+        if (currentUser == null) {
+            return ResultVO.error(404, "User not found");
+        }
+        sysUserService.verifyPassword(currentUser.getId(), dto.getOperatorPassword());
+        return ResultVO.success(sysUserService.resetPasswordsToInitialPassword(dto.getUserIds()));
+    }
+
     @PutMapping("/profile")
     public ResultVO<Void> updateProfile(@RequestBody @Validated UpdateProfileDTO dto, Authentication authentication) {
         if (authentication == null) {
@@ -305,10 +354,10 @@ public class UserController {
         List<Class> classes = classMapper.selectList(
                 new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Class>()
                         .eq(Class::getCollegeId, scopedCollegeId));
-        Set<Long> classIds = new HashSet<>();
+        Set<String> classIds = new HashSet<>();
         for (Class clazz : classes) {
-            if (clazz.getId() != null) {
-                classIds.add(clazz.getId());
+            if (clazz.getClassCode() != null) {
+                classIds.add(clazz.getClassCode());
             }
         }
         if (!classIds.isEmpty()) {
@@ -330,7 +379,7 @@ public class UserController {
         return result;
     }
 
-    private boolean matchesTeacherClass(Long classId,
+    private boolean matchesTeacherClass(String classId,
                                         Long userId,
                                         Map<Long, Teacher> teacherByUserId,
                                         Map<Long, List<Class>> classesByTeacherId) {
@@ -342,7 +391,7 @@ public class UserController {
             return false;
         }
         List<Class> teacherClasses = classesByTeacherId.getOrDefault(teacher.getId(), List.of());
-        return teacherClasses.stream().anyMatch(item -> Objects.equals(item.getId(), classId));
+        return teacherClasses.stream().anyMatch(item -> Objects.equals(item.getClassCode(), classId));
     }
 
     private RbacUserListItemVO toRbacUserListItem(SysUser user,
@@ -351,7 +400,7 @@ public class UserController {
                                                   Map<Long, College> collegeById,
                                                   Map<Long, Student> studentByUserId,
                                                   Map<Long, Teacher> teacherByUserId,
-                                                  Map<Long, Class> classById,
+                                                  Map<String, Class> classById,
                                                   Map<Long, List<Class>> classesByTeacherId) {
         LinkedHashSet<RoleCode> parsedRoles = storedRoleNames.stream()
                 .map(RoleCode::from)
@@ -372,7 +421,7 @@ public class UserController {
 
         Long collegeId = null;
         String collegeName = null;
-        Long classId = null;
+        String classId = null;
         String classDisplayName = null;
 
         College adminCollege = collegeByAdminUserId.get(user.getId());
@@ -404,7 +453,7 @@ public class UserController {
             List<Class> teacherClasses = classesByTeacherId.getOrDefault(teacher.getId(), List.of());
             if (!teacherClasses.isEmpty() && classId == null) {
                 Class firstClass = teacherClasses.get(0);
-                classId = firstClass.getId();
+                classId = firstClass.getClassCode();
                 classDisplayName = teacherClasses.size() == 1
                         ? firstClass.getClassName()
                         : firstClass.getClassName() + " 等" + teacherClasses.size() + "个班级";

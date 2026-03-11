@@ -86,24 +86,24 @@ public class DataScopeService {
         }
     }
 
-    public Set<Long> resolveCollegeClassIds(Authentication authentication) {
+    public Set<String> resolveCollegeClassCodes(Authentication authentication) {
         Long scopedCollegeId = resolveScopedCollegeId(authentication);
         if (scopedCollegeId == null) {
             return Set.of();
         }
         List<Class> classes = classMapper.selectList(
                 new LambdaQueryWrapper<Class>().eq(Class::getCollegeId, scopedCollegeId));
-        Set<Long> ids = new HashSet<>();
+        Set<String> ids = new HashSet<>();
         for (Class clazz : classes) {
-            if (clazz.getId() != null) {
-                ids.add(clazz.getId());
+            if (clazz.getClassCode() != null) {
+                ids.add(clazz.getClassCode());
             }
         }
         return ids;
     }
 
     public Set<Long> resolveCollegeStudentIds(Authentication authentication) {
-        Set<Long> classIds = resolveCollegeClassIds(authentication);
+        Set<String> classIds = resolveCollegeClassCodes(authentication);
         if (classIds.isEmpty()) {
             return Set.of();
         }
@@ -120,7 +120,7 @@ public class DataScopeService {
 
     public StudentArrangementScope resolveStudentArrangementScope(Authentication authentication) {
         Student student = currentUserService.getCurrentStudent(authentication);
-        Set<Long> classIds = new HashSet<>();
+        Set<String> classIds = new HashSet<>();
         Set<Long> arrangementIds = new HashSet<>();
         Set<Long> teacherIds = new HashSet<>();
         Set<Long> courseIds = new HashSet<>();
@@ -153,13 +153,13 @@ public class DataScopeService {
 
     public static final class StudentArrangementScope {
         private final Long studentId;
-        private final Set<Long> classIds;
+        private final Set<String> classIds;
         private final Set<Long> arrangementIds;
         private final Set<Long> teacherIds;
         private final Set<Long> courseIds;
 
         public StudentArrangementScope(Long studentId,
-                                       Set<Long> classIds,
+                                       Set<String> classIds,
                                        Set<Long> arrangementIds,
                                        Set<Long> teacherIds,
                                        Set<Long> courseIds) {
@@ -174,7 +174,7 @@ public class DataScopeService {
             return studentId;
         }
 
-        public Set<Long> getClassIds() {
+        public Set<String> getClassIds() {
             return classIds;
         }
 
@@ -191,4 +191,3 @@ public class DataScopeService {
         }
     }
 }
-

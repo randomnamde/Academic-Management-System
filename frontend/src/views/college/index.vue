@@ -117,6 +117,7 @@ const searchForm = reactive({
 const columns = computed(() => [
   { key: 'collegeCode', title: t('college.collegeCode'), width: 160 },
   { key: 'collegeName', title: t('college.collegeName'), width: 220 },
+  { key: 'majorCount', title: t('college.majorCount'), width: 110 },
   { key: 'adminUsername', title: t('college.adminUsername'), width: 180 },
   { key: 'description', title: t('college.description') },
   { key: 'status', title: t('college.status'), width: 100 },

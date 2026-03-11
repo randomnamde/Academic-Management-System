@@ -22,9 +22,9 @@ public interface CourseArrangementService extends IService<CourseArrangement> {
                                                Long collegeId,
                                                Long courseId,
                                                Long teacherId,
-                                               Long classId,
+                                               String classId,
                                                String semester,
                                                Integer status);
 
-    List<CourseArrangement> getArrangementOptions(Long teacherId, Long classId, Integer status);
+    List<CourseArrangement> getArrangementOptions(Long teacherId, String classId, Integer status);
 }

@@ -101,7 +101,7 @@
           </div>
 
           <div class="course-slot-actions mt-3">
-            <AppButton variant="secondary" :disabled="courseTimeSlots.length >= 12" @click="addCourseTimeSlot">
+            <AppButton class="course-slot-add-button" variant="secondary" :disabled="courseTimeSlots.length >= 12" @click="addCourseTimeSlot">
               <Plus class="h-4 w-4" />
               <span>{{ t('system.courseTimeSlots.add') }}</span>
             </AppButton>
@@ -237,25 +237,77 @@
           </div>
 
           <el-form ref="pwdFormRef" :model="passwordForm" :rules="pwdRules" label-position="top" class="security-form">
-            <el-form-item :label="t('system.password.old')" prop="oldPassword">
-              <el-input v-model="passwordForm.oldPassword" type="password" show-password />
-            </el-form-item>
-            <el-form-item :label="t('system.password.new')" prop="newPassword">
-              <el-input v-model="passwordForm.newPassword" type="password" show-password />
-              <p class="security-input-hint">{{ t('system.securityPanel.newPasswordHint') }}</p>
-            </el-form-item>
-            <el-form-item :label="t('system.password.confirm')" prop="confirmPassword">
-              <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
-            </el-form-item>
-            <div class="security-submit-row">
-              <AppButton :loading="pwdLoading" block @click="submitPassword">{{ t('system.password.save') }}</AppButton>
-              <p class="security-submit-note">{{ t('system.securityPanel.submitNote') }}</p>
+            <div class="security-form-section">
+              <el-form-item :label="t('system.password.old')" prop="oldPassword">
+                <el-input v-model="passwordForm.oldPassword" type="password" show-password />
+              </el-form-item>
+              <el-form-item :label="t('system.password.new')" prop="newPassword">
+                <el-input v-model="passwordForm.newPassword" type="password" show-password />
+                <p class="security-input-hint">{{ t('system.securityPanel.newPasswordHint') }}</p>
+              </el-form-item>
+              <el-form-item :label="t('system.password.confirm')" prop="confirmPassword">
+                <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
+              </el-form-item>
+              <div class="security-submit-row">
+                <AppButton :loading="pwdLoading" block @click="submitPassword">{{ t('system.password.save') }}</AppButton>
+                <p class="security-submit-note">{{ t('system.securityPanel.submitNote') }}</p>
+              </div>
+            </div>
+
+            <div class="security-reset-card">
+              <div class="security-reset-head">
+                <div>
+                  <p class="security-reset-title">{{ t('system.securityPanel.resetTitle') }}</p>
+                  <p class="security-reset-desc">{{ t('system.securityPanel.resetDesc') }}</p>
+                </div>
+                <span class="security-reset-chip">
+                  <CircleAlert class="h-4 w-4" />
+                  <span>{{ t('system.securityPanel.resetChip') }}</span>
+                </span>
+              </div>
+              <p class="security-reset-note">{{ t('system.securityPanel.resetInitial') }}</p>
+              <AppButton
+                variant="danger"
+                block
+                :loading="resettingAllPasswords"
+                @click="handleResetAllPasswords"
+              >
+                {{ t('system.securityPanel.resetAction') }}
+              </AppButton>
             </div>
           </el-form>
         </section>
       </div>
     </AppCard>
   </div>
+
+  <AppModal
+    v-model="verifyResetAllDialogVisible"
+    :title="t('system.securityPanel.resetVerifyTitle')"
+    width="520px"
+  >
+    <div class="verify-password-dialog">
+      <p class="verify-password-desc">{{ t('system.securityPanel.resetVerifyMessage') }}</p>
+      <el-form class="verify-password-form" label-position="top" @submit.prevent>
+        <el-form-item class="verify-password-form-item" :label="t('system.securityPanel.verifyPasswordLabel')">
+          <el-input
+            v-model="resetAllPasswordForm.operatorPassword"
+            type="password"
+            show-password
+            :placeholder="t('system.securityPanel.verifyPasswordPlaceholder')"
+            @keyup.enter="submitResetAllPasswords"
+          />
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <template #footer>
+      <AppButton variant="secondary" @click="closeResetAllDialog">{{ t('common.cancel') }}</AppButton>
+      <AppButton variant="danger" :loading="resettingAllPasswords" @click="submitResetAllPasswords">
+        {{ t('system.securityPanel.resetAction') }}
+      </AppButton>
+    </template>
+  </AppModal>
 </template>
 
 <script setup>
@@ -267,7 +319,7 @@ import { ArrowRight, CalendarRange, CheckCircle2, CircleAlert, Clock3, KeyRound,
 import { useI18n } from 'vue-i18n'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
-import { updatePassword } from '@/api/user'
+import { resetAllPasswords, updatePassword } from '@/api/user'
 import { useTheme } from '@/composables/useTheme'
 import { useLanguage } from '@/composables/useLanguage'
 import { getCourseTimeSlots, getCurrentSemester, updateCourseTimeSlots } from '@/api/system'
@@ -310,12 +362,17 @@ const passwordForm = reactive({
 })
 const pwdFormRef = ref()
 const pwdLoading = ref(false)
+const resettingAllPasswords = ref(false)
+const verifyResetAllDialogVisible = ref(false)
 const currentSemester = ref('')
 const currentSemesterStatus = ref('')
 const courseTimeSlots = ref([''])
 const courseTimeSlotsSnapshot = ref([])
 const courseTimeSlotsLoading = ref(false)
 const courseTimeSlotsSaving = ref(false)
+const resetAllPasswordForm = reactive({
+  operatorPassword: ''
+})
 
 const currentSemesterStatusLabel = computed(() => {
   if (!currentSemesterStatus.value) {
@@ -468,6 +525,32 @@ async function submitPassword() {
   }
 }
 
+async function handleResetAllPasswords() {
+  resetAllPasswordForm.operatorPassword = ''
+  verifyResetAllDialogVisible.value = true
+}
+
+function closeResetAllDialog() {
+  verifyResetAllDialogVisible.value = false
+  resetAllPasswordForm.operatorPassword = ''
+}
+
+async function submitResetAllPasswords() {
+  const operatorPassword = resetAllPasswordForm.operatorPassword.trim()
+  if (!operatorPassword) {
+    ElMessage.warning(t('system.securityPanel.verifyPasswordRequired'))
+    return
+  }
+  resettingAllPasswords.value = true
+  try {
+    const res = await resetAllPasswords(operatorPassword)
+    ElMessage.success(t('system.securityPanel.resetSuccess', { count: res.data ?? 0 }))
+    closeResetAllDialog()
+  } finally {
+    resettingAllPasswords.value = false
+  }
+}
+
 onMounted(async () => {
   await Promise.all([fetchSemesterSummary(), fetchCourseTimeSlots()])
 })
@@ -477,6 +560,32 @@ onMounted(async () => {
 .preference-card {
   border-color: color-mix(in srgb, var(--panel-border) 84%, transparent);
   background: color-mix(in srgb, var(--surface-base) 82%, transparent);
+}
+
+.verify-password-dialog {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+}
+
+.verify-password-desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.verify-password-form {
+  width: 100%;
+}
+
+.verify-password-form-item {
+  margin-bottom: 0;
+}
+
+.verify-password-form-item :deep(.el-form-item__content),
+.verify-password-form-item :deep(.el-input) {
+  width: 100%;
 }
 
 .preference-card-head {
@@ -620,6 +729,21 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.course-slot-add-button :deep(.app-button__label) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.course-slot-add-button :deep(svg) {
+  flex: 0 0 auto;
+}
+
+.course-slot-add-button :deep(.app-button) {
+  min-width: 124px;
 }
 
 .entry-card {
@@ -1001,6 +1125,11 @@ onMounted(async () => {
 
 .security-form {
   display: grid;
+  gap: 18px;
+}
+
+.security-form-section {
+  display: grid;
   gap: 4px;
 }
 
@@ -1015,6 +1144,60 @@ onMounted(async () => {
   display: grid;
   gap: 10px;
   margin-top: 6px;
+}
+
+.security-reset-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--danger) 28%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--danger) 14%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--danger) 6%, var(--surface-base)), color-mix(in srgb, var(--surface-elevated) 92%, transparent));
+}
+
+.security-reset-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.security-reset-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.security-reset-desc,
+.security-reset-note {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.8;
+  color: color-mix(in srgb, var(--text-primary) 76%, var(--text-secondary));
+}
+
+.security-reset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--danger) 24%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.security-reset-note {
+  margin: 0;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--danger) 72%, var(--text-primary));
 }
 
 @media (max-width: 767px) {
@@ -1035,8 +1218,13 @@ onMounted(async () => {
   }
 
   .security-strength-badge,
-  .security-form-chip {
+  .security-form-chip,
+  .security-reset-chip {
     align-self: flex-start;
+  }
+
+  .security-reset-head {
+    flex-direction: column;
   }
 }
 

@@ -21,7 +21,7 @@ public interface ScoreMapper extends BaseMapper<Score> {
                                      @Param("courseArrangementId") Long courseArrangementId,
                                      @Param("semester") String semester,
                                      @Param("collegeId") Long collegeId,
-                                     @Param("classId") Long classId);
+                                     @Param("classId") String classId);
     
     @Select("SELECT * FROM score WHERE student_id = #{studentId} AND course_arrangement_id = #{courseArrangementId}")
     Score selectByStudentAndCourse(@Param("studentId") Long studentId, 
@@ -42,5 +42,5 @@ public interface ScoreMapper extends BaseMapper<Score> {
     
     List<Map<String, Object>> selectScoreDistribution(@Param("courseArrangementId") Long courseArrangementId);
     
-    List<Map<String, Object>> selectClassRank(@Param("classId") Long classId, @Param("semester") String semester);
+    List<Map<String, Object>> selectClassRank(@Param("classId") String classId, @Param("semester") String semester);
 }

@@ -21,7 +21,7 @@ public class CourseArrangementDTO {
     private Long teacherId;
 
     @NotNull(message = "请选择班级")
-    private Long classId;
+    private String classId;
 
     @NotBlank(message = "请输入学期")
     private String semester;

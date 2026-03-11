@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <CrudPageShell :title="t('class.pageTitle')">
     <template #header-actions>
       <AppButton v-if="!isStudent" @click="openCreate">{{ t('class.addClass') }}</AppButton>
@@ -7,8 +7,14 @@
     <template #filters>
       <div class="app-filter-grid">
         <el-input v-model="searchForm.className" clearable :placeholder="t('class.className')" class="col-span-12 md:col-span-3" />
-        <el-input v-model="searchForm.grade" clearable :placeholder="t('class.gradePlaceholder')" class="col-span-12 md:col-span-3" />
-        <div class="app-filter-action-wrap col-span-12 md:col-span-6">
+        <el-input v-model="searchForm.grade" clearable :placeholder="t('class.gradePlaceholder')" class="col-span-12 md:col-span-2" />
+        <el-select v-model="searchForm.collegeId" clearable :placeholder="t('class.college')" class="col-span-12 md:col-span-3">
+          <el-option v-for="item in collegeOptions" :key="item.id" :label="item.collegeName" :value="item.id" />
+        </el-select>
+        <el-select v-model="searchForm.majorCode" clearable :placeholder="t('class.major')" class="col-span-12 md:col-span-2">
+          <el-option v-for="item in searchMajorOptions" :key="item.majorCode" :label="item.majorName" :value="item.majorCode" />
+        </el-select>
+        <div class="app-filter-action-wrap col-span-12 md:col-span-2">
           <div class="app-filter-action-bar">
             <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
             <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
@@ -44,7 +50,7 @@
       />
     </template>
 
-    <AppModal v-model="dialogVisible" :title="isEdit ? t('class.dialogEditTitle') : t('class.dialogAddTitle')" width="640px">
+    <AppModal v-model="dialogVisible" :title="isEdit ? t('class.dialogEditTitle') : t('class.dialogAddTitle')" width="680px">
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-row :gutter="16">
           <el-col :span="12">
@@ -53,8 +59,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item :label="t('class.classCode')" prop="classCode">
-              <el-input v-model="form.classCode" />
+            <el-form-item :label="t('class.classCode')">
+              <el-input :model-value="isEdit ? form.classCode : t('class.autoGenerateHint')" disabled />
             </el-form-item>
           </el-col>
         </el-row>
@@ -70,9 +76,22 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item :label="t('class.major')">
-          <el-input v-model="form.major" />
-        </el-form-item>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item :label="t('class.college')" prop="collegeId">
+              <el-select v-model="form.collegeId" style="width: 100%">
+                <el-option v-for="item in collegeOptions" :key="item.id" :label="item.collegeName" :value="item.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item :label="t('class.major')" prop="majorCode">
+              <el-select v-model="form.majorCode" style="width: 100%" :disabled="!form.collegeId">
+                <el-option v-for="item in formMajorOptions" :key="item.majorCode" :label="item.majorName" :value="item.majorCode" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
         <el-form-item :label="t('class.room')">
           <el-input v-model="form.room" />
         </el-form-item>
@@ -92,7 +111,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -102,10 +121,13 @@ import AppBadge from '@/components/ui/AppBadge.vue'
 import AppTable from '@/components/ui/AppTable.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import { createClass, deleteClass, getClassList, updateClass } from '@/api/clazz'
+import { getCollegeList } from '@/api/college'
+import { getMajorOptions } from '@/api/major'
 
 const store = useStore()
 const { t } = useI18n()
 const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
+const userInfo = computed(() => store.state.userInfo || {})
 const isStudent = computed(() => role.value === 'STUDENT')
 const tableDensity = computed(() => store.getters.tableDensity)
 
@@ -114,13 +136,16 @@ const page = ref(1)
 const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
+const collegeOptions = ref([])
+const searchMajorOptions = ref([])
+const formMajorOptions = ref([])
 
 const columns = computed(() => {
   const base = [
     { key: 'classCode', title: t('class.classCode'), width: 120 },
     { key: 'className', title: t('class.className'), width: 160 },
     { key: 'grade', title: t('class.grade'), width: 90 },
-    { key: 'major', title: t('class.major'), width: 170 },
+    { key: 'majorName', title: t('class.major'), width: 180 },
     { key: 'teacherId', title: t('class.homeroomTeacherId'), width: 110 },
     { key: 'studentCount', title: t('class.studentCount'), width: 90, align: 'left' },
     { key: 'status', title: t('class.status'), width: 100, align: 'left' }
@@ -131,7 +156,9 @@ const columns = computed(() => {
 
 const searchForm = reactive({
   className: '',
-  grade: ''
+  grade: '',
+  collegeId: null,
+  majorCode: null
 })
 
 const dialogVisible = ref(false)
@@ -142,7 +169,8 @@ const form = reactive({
   className: '',
   classCode: '',
   grade: 2023,
-  major: '',
+  collegeId: null,
+  majorCode: null,
   teacherId: null,
   room: '',
   status: 1,
@@ -151,9 +179,14 @@ const form = reactive({
 
 const rules = computed(() => ({
   className: [{ required: true, message: t('class.classNameRequired'), trigger: 'blur' }],
-  classCode: [{ required: true, message: t('class.classCodeRequired'), trigger: 'blur' }],
-  grade: [{ required: true, message: t('class.gradeRequired'), trigger: 'change' }]
+  grade: [{ required: true, message: t('class.gradeRequired'), trigger: 'change' }],
+  collegeId: [{ required: true, message: t('class.collegeRequired'), trigger: 'change' }],
+  majorCode: [{ required: true, message: t('class.majorRequired'), trigger: 'change' }]
 }))
+
+function getDefaultCollegeId() {
+  return userInfo.value?.collegeId || null
+}
 
 function resetForm() {
   Object.assign(form, {
@@ -161,12 +194,30 @@ function resetForm() {
     className: '',
     classCode: '',
     grade: 2023,
-    major: '',
+    collegeId: getDefaultCollegeId(),
+    majorCode: null,
     teacherId: null,
     room: '',
     status: 1,
     studentCount: 0
   })
+}
+
+async function loadCollegeOptions() {
+  const res = await getCollegeList({ page: 1, size: 500 })
+  collegeOptions.value = res.data?.records || []
+  if (!searchForm.collegeId && getDefaultCollegeId()) {
+    searchForm.collegeId = getDefaultCollegeId()
+  }
+}
+
+async function loadMajorOptions(collegeId, targetRef) {
+  if (!collegeId) {
+    targetRef.value = []
+    return
+  }
+  const res = await getMajorOptions({ collegeId, status: 1 })
+  targetRef.value = res.data || []
 }
 
 async function fetchList() {
@@ -175,8 +226,10 @@ async function fetchList() {
     const res = await getClassList({
       page: page.value,
       size: size.value,
-      className: searchForm.className,
-      grade: searchForm.grade
+      className: searchForm.className || undefined,
+      grade: searchForm.grade || undefined,
+      collegeId: searchForm.collegeId || undefined,
+      majorCode: searchForm.majorCode || undefined
     })
     tableData.value = res.data?.records || []
     total.value = Number(res.data?.total || 0)
@@ -193,6 +246,8 @@ function handleSearch() {
 function handleReset() {
   searchForm.className = ''
   searchForm.grade = ''
+  searchForm.collegeId = getDefaultCollegeId()
+  searchForm.majorCode = null
   handleSearch()
 }
 
@@ -200,14 +255,19 @@ function openCreate() {
   if (isStudent.value) return
   isEdit.value = false
   resetForm()
+  loadMajorOptions(form.collegeId, formMajorOptions)
   dialogVisible.value = true
 }
 
-function openEdit(row) {
+async function openEdit(row) {
   if (isStudent.value) return
   isEdit.value = true
   resetForm()
-  Object.assign(form, row, { grade: row.grade ? Number(row.grade) : 2023 })
+  Object.assign(form, row, {
+    grade: row.grade ? Number(row.grade) : 2023,
+    collegeId: row.collegeId || getDefaultCollegeId()
+  })
+  await loadMajorOptions(form.collegeId, formMajorOptions)
   dialogVisible.value = true
 }
 
@@ -216,10 +276,18 @@ async function submit() {
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
 
-  const payload = { ...form, grade: String(form.grade) }
+  const payload = {
+    className: form.className,
+    grade: String(form.grade),
+    majorCode: form.majorCode,
+    teacherId: form.teacherId,
+    room: form.room,
+    status: form.status,
+    studentCount: form.studentCount
+  }
 
   if (isEdit.value) {
-    await updateClass(form.id, payload)
+    await updateClass(form.classCode, payload)
     ElMessage.success(t('class.updateSuccess'))
   } else {
     await createClass(payload)
@@ -233,12 +301,33 @@ async function submit() {
 async function handleDelete(row) {
   if (isStudent.value) return
   await ElMessageBox.confirm(t('class.deleteConfirm'), t('common.tip'), { type: 'warning' })
-  await deleteClass(row.id)
+  await deleteClass(row.classCode)
   ElMessage.success(t('class.deleteSuccess'))
   fetchList()
 }
 
-onMounted(fetchList)
+watch(
+  () => searchForm.collegeId,
+  async (collegeId) => {
+    searchForm.majorCode = null
+    await loadMajorOptions(collegeId, searchMajorOptions)
+  }
+)
+
+watch(
+  () => form.collegeId,
+  async (collegeId) => {
+    form.majorCode = null
+    if (!dialogVisible.value) return
+    await loadMajorOptions(collegeId, formMajorOptions)
+  }
+)
+
+onMounted(async () => {
+  await loadCollegeOptions()
+  await loadMajorOptions(searchForm.collegeId, searchMajorOptions)
+  await fetchList()
+})
 </script>
 
 <style scoped>
@@ -247,4 +336,3 @@ onMounted(fetchList)
   justify-content: flex-end;
 }
 </style>
-

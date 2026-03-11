@@ -29,6 +29,12 @@ public class College {
     @TableField(exist = false)
     private String adminUsername;
 
+    @TableField(exist = false)
+    private Long majorCount;
+
+    @TableField(exist = false)
+    private Long classCount;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 

@@ -6,6 +6,7 @@ import com.student.entity.CourseArrangement;
 import com.student.entity.Student;
 import com.student.security.CurrentUserService;
 import com.student.security.DataScopeService;
+import com.student.service.ClassService;
 import com.student.service.CourseArrangementService;
 import com.student.service.SysConfigService;
 import com.student.vo.ResultVO;
@@ -16,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/course-arrangement")
@@ -23,6 +25,7 @@ import java.util.List;
 public class CourseArrangementController {
 
     private final CourseArrangementService courseArrangementService;
+    private final ClassService classService;
     private final CurrentUserService currentUserService;
     private final DataScopeService dataScopeService;
     private final SysConfigService sysConfigService;
@@ -31,6 +34,7 @@ public class CourseArrangementController {
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody @Validated CourseArrangementDTO dto, Authentication authentication) {
         dto.setCollegeId(resolveEffectiveCollegeId(authentication, dto.getCollegeId()));
+        dto.setClassId(resolveClassCode(dto.getClassId()));
         assertCollegeAdminClassScope(authentication, dto.getClassId());
         if (currentUserService.isTeacher(authentication)) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
@@ -48,6 +52,7 @@ public class CourseArrangementController {
                                  @RequestBody @Validated CourseArrangementDTO dto,
                                  Authentication authentication) {
         dto.setCollegeId(resolveEffectiveCollegeId(authentication, dto.getCollegeId()));
+        dto.setClassId(resolveClassCode(dto.getClassId()));
         assertCollegeAdminClassScope(authentication, dto.getClassId());
         dto.setId(id);
         if (currentUserService.isTeacher(authentication)) {
@@ -70,7 +75,7 @@ public class CourseArrangementController {
         if (currentUserService.isTeacher(authentication)) {
             CourseArrangement detail = courseArrangementService.getArrangementById(id);
             if (detail == null) {
-                return ResultVO.error(404, "排课不存在");
+                return ResultVO.error(404, "Course arrangement not found");
             }
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
             if (!teacherId.equals(detail.getTeacherId())) {
@@ -86,20 +91,20 @@ public class CourseArrangementController {
     public ResultVO<CourseArrangement> getById(@PathVariable Long id, Authentication authentication) {
         CourseArrangement detail = courseArrangementService.getArrangementById(id);
         if (detail == null) {
-            return ResultVO.error(404, "排课不存在");
+            return ResultVO.error(404, "Course arrangement not found");
         }
         assertCollegeAdminClassScope(authentication, detail.getClassId());
 
         if (currentUserService.isTeacher(authentication)) {
             Long teacherId = currentUserService.getCurrentTeacherId(authentication);
             if (!teacherId.equals(detail.getTeacherId())) {
-                return ResultVO.error(403, "无权访问");
+                return ResultVO.error(403, "Forbidden");
             }
         }
         if (currentUserService.isStudent(authentication)) {
             Student student = currentUserService.getCurrentStudent(authentication);
             if (student.getClassId() == null || !student.getClassId().equals(detail.getClassId())) {
-                return ResultVO.error(403, "无权访问");
+                return ResultVO.error(403, "Forbidden");
             }
         }
         return ResultVO.success(detail);
@@ -112,7 +117,7 @@ public class CourseArrangementController {
                                                   @RequestParam(required = false) Long collegeId,
                                                   @RequestParam(required = false) Long courseId,
                                                   @RequestParam(required = false) Long teacherId,
-                                                  @RequestParam(required = false) Long classId,
+                                                  @RequestParam(required = false) String classId,
                                                   @RequestParam(required = false) String semester,
                                                   @RequestParam(required = false) Integer status,
                                                   Authentication authentication) {
@@ -123,6 +128,7 @@ public class CourseArrangementController {
         }
         if (scopedCollegeId != null && classId != null) {
             assertCollegeAdminClassScope(authentication, classId);
+            classId = resolveClassCode(classId);
         }
         if (currentUserService.isTeacher(authentication)) {
             teacherId = currentUserService.getCurrentTeacherId(authentication);
@@ -139,7 +145,7 @@ public class CourseArrangementController {
         }
         Page<CourseArrangement> result = courseArrangementService.getArrangementPage(page, size, effectiveCollegeId, courseId, teacherId, classId, semester, status);
         if (scopedCollegeId != null && classId == null) {
-            java.util.Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+            Set<String> classIds = dataScopeService.resolveCollegeClassCodes(authentication);
             result.setRecords(result.getRecords().stream().filter(item -> classIds.contains(item.getClassId())).toList());
         }
         return ResultVO.success(result);
@@ -148,11 +154,12 @@ public class CourseArrangementController {
     @GetMapping("/options")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<List<CourseArrangement>> options(@RequestParam(required = false) Long teacherId,
-                                                     @RequestParam(required = false) Long classId,
+                                                     @RequestParam(required = false) String classId,
                                                      @RequestParam(required = false) Integer status,
                                                      Authentication authentication) {
         if (classId != null) {
             assertCollegeAdminClassScope(authentication, classId);
+            classId = resolveClassCode(classId);
         }
         if (currentUserService.isTeacher(authentication)) {
             teacherId = currentUserService.getCurrentTeacherId(authentication);
@@ -164,21 +171,27 @@ public class CourseArrangementController {
         List<CourseArrangement> result = courseArrangementService.getArrangementOptions(teacherId, classId, status);
         Long scopedCollegeId = dataScopeService.resolveScopedCollegeId(authentication);
         if (scopedCollegeId != null && classId == null) {
-            java.util.Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+            Set<String> classIds = dataScopeService.resolveCollegeClassCodes(authentication);
             result = result.stream().filter(item -> classIds.contains(item.getClassId())).toList();
         }
         return ResultVO.success(result);
     }
 
-    private void assertCollegeAdminClassScope(Authentication authentication, Long classId) {
+    private void assertCollegeAdminClassScope(Authentication authentication, String classId) {
         Long scopedCollegeId = dataScopeService.resolveScopedCollegeId(authentication);
         if (scopedCollegeId == null || classId == null) {
             return;
         }
-        var classInfo = dataScopeService.resolveCollegeClassIds(authentication);
-        if (!classInfo.contains(classId)) {
-            throw new com.student.exception.BusinessException(403, "无权访问");
+        String resolvedClassCode = resolveClassCode(classId);
+        Set<String> classCodes = dataScopeService.resolveCollegeClassCodes(authentication);
+        if (!classCodes.contains(resolvedClassCode)) {
+            throw new com.student.exception.BusinessException(403, "Forbidden");
         }
+    }
+
+    private String resolveClassCode(String classId) {
+        var clazz = classService.resolveClass(classId);
+        return clazz == null ? classId : clazz.getClassCode();
     }
 
     private Long resolveEffectiveCollegeId(Authentication authentication, Long requestedCollegeId) {
@@ -195,4 +208,3 @@ public class CourseArrangementController {
         return requestedCollegeId;
     }
 }
-

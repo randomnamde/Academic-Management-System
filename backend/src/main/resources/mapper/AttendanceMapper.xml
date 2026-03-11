@@ -24,7 +24,7 @@
                co.course_name
         FROM attendance a
         LEFT JOIN student s ON a.student_id = s.id
-        LEFT JOIN class c ON s.class_id = c.id
+        LEFT JOIN class c ON s.class_id = c.class_code
         LEFT JOIN course_arrangement ca ON a.course_arrangement_id = ca.id
         LEFT JOIN course co ON ca.course_id = co.id
         WHERE a.id = #{id}
@@ -36,7 +36,7 @@
                co.course_name
         FROM attendance a
         LEFT JOIN student s ON a.student_id = s.id
-        LEFT JOIN class c ON s.class_id = c.id
+        LEFT JOIN class c ON s.class_id = c.class_code
         LEFT JOIN course_arrangement ca ON a.course_arrangement_id = ca.id
         LEFT JOIN course co ON ca.course_id = co.id
         <where>
@@ -65,7 +65,7 @@
                co.course_name
         FROM attendance a
         LEFT JOIN student s ON a.student_id = s.id
-        LEFT JOIN class c ON s.class_id = c.id
+        LEFT JOIN class c ON s.class_id = c.class_code
         LEFT JOIN course_arrangement ca ON a.course_arrangement_id = ca.id
         LEFT JOIN course co ON ca.course_id = co.id
         WHERE a.student_id = #{studentId}

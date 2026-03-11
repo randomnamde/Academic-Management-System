@@ -36,6 +36,7 @@ public class StudentController {
     @PostMapping
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody @Validated StudentDTO studentDTO, Authentication authentication) {
+        studentDTO.setClassId(resolveClassCode(studentDTO.getClassId()));
         assertCollegeClassAccess(authentication, studentDTO.getClassId());
         studentService.addStudent(studentDTO);
         return ResultVO.success();
@@ -48,6 +49,7 @@ public class StudentController {
         if (existing == null) {
             return ResultVO.error(404, "Student not found");
         }
+        studentDTO.setClassId(resolveClassCode(studentDTO.getClassId()));
         assertCollegeStudentAccess(authentication, existing);
         assertCollegeClassAccess(authentication, studentDTO.getClassId());
         studentDTO.setId(id);
@@ -92,7 +94,8 @@ public class StudentController {
             @RequestParam(required = false) String studentNo,
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Long collegeId,
-            @RequestParam(required = false) Long classId,
+            @RequestParam(required = false) String majorCode,
+            @RequestParam(required = false) String classId,
             @RequestParam(required = false) Student.Status status,
             Authentication authentication) {
         if (currentUserService.isStudent(authentication)) {
@@ -112,7 +115,7 @@ public class StudentController {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
         if (scopedCollegeId != null) {
-            Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+            Set<String> classIds = dataScopeService.resolveCollegeClassCodes(authentication);
             if (classIds.isEmpty()) {
                 Page<Student> emptyPage = new Page<>(page, size);
                 emptyPage.setRecords(Collections.emptyList());
@@ -126,13 +129,14 @@ public class StudentController {
                     name,
                     classId,
                     effectiveCollegeId,
+                    majorCode,
                     status,
                     new ArrayList<>(classIds)
             );
             return ResultVO.success(result);
         }
 
-        Page<Student> result = studentService.getStudentPage(page, size, studentNo, name, classId, effectiveCollegeId, status, null);
+        Page<Student> result = studentService.getStudentPage(page, size, studentNo, name, classId, effectiveCollegeId, majorCode, status, null);
         return ResultVO.success(result);
     }
 
@@ -144,7 +148,7 @@ public class StudentController {
 
     @GetMapping("/class/{classId}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
-    public ResultVO<List<Student>> getByClassId(@PathVariable Long classId, Authentication authentication) {
+    public ResultVO<List<Student>> getByClassId(@PathVariable String classId, Authentication authentication) {
         if (currentUserService.isStudent(authentication)) {
             Student currentStudent = currentUserService.getCurrentStudent(authentication);
             classId = currentStudent.getClassId();
@@ -169,22 +173,27 @@ public class StudentController {
     @GetMapping("/next-no")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<String> getNextStudentNo(
-            @RequestParam Long classId,
+            @RequestParam String classId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate enrollmentDate,
             Authentication authentication) {
         assertCollegeClassAccess(authentication, classId);
         return ResultVO.success(studentService.generateStudentNo(classId, enrollmentDate));
     }
 
-    private void assertCollegeClassAccess(Authentication authentication, Long classId) {
+    private void assertCollegeClassAccess(Authentication authentication, String classId) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         if (scopedCollegeId == null || classId == null) {
             return;
         }
-        Class clazz = classService.getById(classId);
+        Class clazz = classService.resolveClass(classId);
         if (clazz == null || !scopedCollegeId.equals(clazz.getCollegeId())) {
             throw new com.student.exception.BusinessException(403, "Forbidden");
         }
+    }
+
+    private String resolveClassCode(String classId) {
+        Class clazz = classService.resolveClass(classId);
+        return clazz == null ? classId : clazz.getClassCode();
     }
 
     private void assertCollegeStudentAccess(Authentication authentication, Student student) {

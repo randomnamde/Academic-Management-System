@@ -504,7 +504,7 @@ function mapClassOption(item) {
   const classCode = item?.classCode || '-'
   const className = item?.className || '-'
   return {
-    value: item.id,
+    value: item.classCode,
     label: `${classCode} / ${className}`
   }
 }
@@ -875,7 +875,7 @@ function applyRoutePreset() {
     }
   }
   if (!isStudent && query.classId) {
-    filters.classId = Number(query.classId)
+    filters.classId = String(query.classId)
   } else if (isStudent) {
     filters.classId = null
   }

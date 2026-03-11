@@ -316,12 +316,12 @@ public class UserImportServiceImpl implements UserImportService {
         student.setPhone(phone);
         student.setEmail(email);
         student.setAddress(address);
-        student.setClassId(clazz.getId());
+        student.setClassId(clazz.getClassCode());
         student.setEnrollmentDate(enrollmentDate);
         student.setGraduationDate(graduationDate);
         student.setStatus(studentStatus);
         studentMapper.insert(student);
-        refreshClassStudentCount(clazz.getId());
+        refreshClassStudentCount(clazz.getClassCode());
 
         return successRow(row.rowNumber(), roleType, username, name);
     }
@@ -496,9 +496,12 @@ public class UserImportServiceImpl implements UserImportService {
         if (!StringUtils.hasText(rawCode)) {
             throw new BusinessException("College code cannot be empty");
         }
-        String normalized = rawCode.trim().toUpperCase(Locale.ROOT);
+        String normalized = rawCode.trim().toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]", "");
+        if (!StringUtils.hasText(normalized)) {
+            throw new BusinessException("College code cannot be empty");
+        }
         if (normalized.length() > 4) {
-            throw new BusinessException("College code length cannot exceed 4");
+            normalized = normalized.substring(normalized.length() - 4);
         }
         if (normalized.length() < 4) {
             normalized = "0".repeat(4 - normalized.length()) + normalized;
@@ -578,13 +581,17 @@ public class UserImportServiceImpl implements UserImportService {
         throw new BusinessException("Invalid date format for " + fieldName + ": " + raw);
     }
 
-    private void refreshClassStudentCount(Long classId) {
+    private void refreshClassStudentCount(String classId) {
         if (classId == null) {
             return;
         }
         Long count = studentMapper.countByClassId(classId);
+        Class existing = classMapper.selectByClassCode(classId);
+        if (existing == null) {
+            return;
+        }
         Class classPatch = new Class();
-        classPatch.setId(classId);
+        classPatch.setId(existing.getId());
         classPatch.setStudentCount(count == null ? 0 : count.intValue());
         classMapper.updateById(classPatch);
     }

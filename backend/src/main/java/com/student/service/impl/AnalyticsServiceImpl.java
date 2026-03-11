@@ -227,7 +227,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
             List<CourseArrangement> arrangements = courseArrangementMapper.selectList(
                     new LambdaQueryWrapper<CourseArrangement>().in(CourseArrangement::getId, arrangementScope.arrangementIds()));
-            Set<Long> classIds = new HashSet<>();
+            Set<String> classIds = new HashSet<>();
             for (CourseArrangement arrangement : arrangements) {
                 if (arrangement.getClassId() != null) {
                     classIds.add(arrangement.getClassId());
@@ -695,7 +695,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     private ArrangementScope resolveArrangementScope(AnalyticsFilterDTO filter, UserScope scope) {
         Long teacherId = null;
-        Long classId = null;
+        String classId = null;
         if (scope.role().isTeacherGroup()) {
             teacherId = scope.teacherId();
             classId = filter.getClassId();
@@ -732,8 +732,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         if (scope.collegeId() != null) {
             List<Class> classes = classMapper.selectList(
                     new LambdaQueryWrapper<Class>().eq(Class::getCollegeId, scope.collegeId()));
-            Set<Long> classIds = classes.stream()
-                    .map(Class::getId)
+            Set<String> classIds = classes.stream()
+                    .map(Class::getClassCode)
                     .filter(id -> id != null)
                     .collect(java.util.stream.Collectors.toSet());
             if (classIds.isEmpty()) {
@@ -864,7 +864,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
-    private record UserScope(SysUser.Role role, Long studentId, Long teacherId, Long classId, Long collegeId) {
+    private record UserScope(SysUser.Role role, Long studentId, Long teacherId, String classId, Long collegeId) {
     }
 
     private record ArrangementScope(boolean enabled, Set<Long> arrangementIds) {

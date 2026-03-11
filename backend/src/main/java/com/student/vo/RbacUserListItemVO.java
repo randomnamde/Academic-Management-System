@@ -33,7 +33,7 @@ public class RbacUserListItemVO {
 
     private String collegeName;
 
-    private Long classId;
+    private String classId;
 
     private String classDisplayName;
 }

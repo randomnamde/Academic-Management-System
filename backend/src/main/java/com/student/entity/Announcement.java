@@ -19,7 +19,7 @@ public class Announcement {
     
     private TargetRole targetRole;
     
-    private Long targetClassId;
+    private String targetClassId;
     
     @TableField(exist = false)
     private String targetClassName;

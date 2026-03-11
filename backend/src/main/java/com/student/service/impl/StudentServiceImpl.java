@@ -107,7 +107,7 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             throw new BusinessException("Student number already used");
         }
 
-        Long oldClassId = existStudent.getClassId();
+        String oldClassId = existStudent.getClassId();
 
         Student student = new Student();
         BeanUtils.copyProperties(studentDTO, student);
@@ -131,19 +131,19 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
     }
 
     @Override
-    public String generateStudentNo(Long classId, LocalDate enrollmentDate) {
+    public String generateStudentNo(String classId, LocalDate enrollmentDate) {
         if (classId == null) {
             throw new BusinessException("Class is required for student number generation");
         }
 
-        Class clazz = classMapper.selectById(classId);
+        Class clazz = resolveClass(classId);
         if (clazz == null) {
             throw new BusinessException("Class not found");
         }
 
         int year = resolveEnrollmentYear(clazz, enrollmentDate);
-        String majorCode = resolveMajorCode(clazz);
-        String prefix = year + majorCode;
+        String majorPrefix = resolveMajorPrefix(clazz);
+        String prefix = year + majorPrefix;
 
         String latestStudentNo = studentMapper.selectLatestStudentNoByPrefix(prefix);
         int nextSerial = resolveNextSerial(latestStudentNo);
@@ -180,16 +180,17 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
                                         Integer size,
                                         String studentNo,
                                         String name,
-                                        Long classId,
+                                        String classId,
                                         Long collegeId,
+                                        String majorCode,
                                         Student.Status status,
-                                        List<Long> classIds) {
+                                        List<String> classIds) {
         Page<Student> pageParam = new Page<>(page, size);
-        return studentMapper.selectPageWithClass(pageParam, studentNo, name, classId, collegeId, status, classIds);
+        return studentMapper.selectPageWithClass(pageParam, studentNo, name, classId, collegeId, majorCode, status, classIds);
     }
 
     @Override
-    public List<Student> getStudentsByClassId(Long classId) {
+    public List<Student> getStudentsByClassId(String classId) {
         return studentMapper.selectByClassId(classId);
     }
 
@@ -233,13 +234,17 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         return result;
     }
 
-    private void updateClassStudentCount(Long classId) {
+    private void updateClassStudentCount(String classId) {
         if (classId == null) {
             return;
         }
         Long count = studentMapper.countByClassId(classId);
+        Class existing = resolveClass(classId);
+        if (existing == null) {
+            return;
+        }
         Class clazz = new Class();
-        clazz.setId(classId);
+        clazz.setId(existing.getId());
         clazz.setStudentCount(count == null ? 0 : count.intValue());
         classMapper.updateById(clazz);
     }
@@ -255,9 +260,9 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         return LocalDate.now().getYear();
     }
 
-    private String resolveMajorCode(Class clazz) {
-        String major = clazz.getMajor();
-        String majorLetters = keepLetters(major);
+    private String resolveMajorPrefix(Class clazz) {
+        String majorCode = clazz.getMajorCode();
+        String majorLetters = keepLetters(majorCode);
         if (majorLetters.length() >= MAJOR_CODE_LENGTH) {
             return majorLetters.substring(0, MAJOR_CODE_LENGTH);
         }
@@ -288,5 +293,19 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
             return "";
         }
         return input.replaceAll("[^A-Za-z]", "").toUpperCase();
+    }
+
+    private Class resolveClass(String classId) {
+        if (!StringUtils.hasText(classId)) {
+            return null;
+        }
+        Class clazz = classMapper.selectByClassCode(classId);
+        if (clazz != null) {
+            return clazz;
+        }
+        if (classId.chars().allMatch(Character::isDigit)) {
+            return classMapper.selectById(Long.parseLong(classId));
+        }
+        return null;
     }
 }

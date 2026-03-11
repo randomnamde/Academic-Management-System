@@ -74,7 +74,7 @@ public class DashboardController {
         Long studentId = null;
         Long teacherId = null;
         Set<Long> arrangementIds = new HashSet<>();
-        Set<Long> classIds = new HashSet<>();
+        Set<String> classIds = new HashSet<>();
         Set<Long> courseIds = new HashSet<>();
         Set<Long> teacherIds = new HashSet<>();
 
@@ -136,13 +136,13 @@ public class DashboardController {
     }
 
     private DashboardOverviewDTO buildCollegeOverview(Authentication authentication) {
-        Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+        Set<String> classIds = dataScopeService.resolveCollegeClassCodes(authentication);
         Set<Long> arrangementIds = new HashSet<>();
         Set<Long> courseIds = new HashSet<>();
         Set<Long> teacherIds = new HashSet<>();
 
         if (!classIds.isEmpty()) {
-            List<Class> classes = classService.lambdaQuery().in(Class::getId, classIds).list();
+            List<Class> classes = classService.lambdaQuery().in(Class::getClassCode, classIds).list();
             for (Class clazz : classes) {
                 if (clazz.getTeacherId() != null) {
                     teacherIds.add(clazz.getTeacherId());
@@ -200,7 +200,7 @@ public class DashboardController {
     private void fillScopeStatistics(DashboardOverviewDTO overview,
                                      SysUser.Role role,
                                      Long studentId,
-                                     Set<Long> classIds,
+                                     Set<String> classIds,
                                      Set<Long> courseIds,
                                      Set<Long> teacherIds) {
         if (role.isAdminGroup()) {

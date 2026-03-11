@@ -146,7 +146,7 @@ class SecurityScopeIntegrationTest {
                 .get(0);
         Long arrangementId = record.path("id").asLong();
         String arrangementCode = record.path("arrangementCode").asText();
-        assertTrue(arrangementCode.startsWith("C" + Year.now().getValue() + "00CS2301"));
+        assertTrue(arrangementCode.startsWith("C" + Year.now().getValue() + "00CS0001"));
         assertTrue(arrangementCode.matches("C\\d{4}[A-Z0-9]{4}[A-Z0-9]{4}\\d{2}"));
 
         String updateBody = """
@@ -234,6 +234,7 @@ class SecurityScopeIntegrationTest {
     void addArrangementRejectsClassOutsideCollege() throws Exception {
         String adminToken = loginAndGetToken("admin", "123456");
         String suffix = String.valueOf(System.nanoTime());
+        String shortSuffix = suffix.substring(Math.max(0, suffix.length() - 6));
 
         jdbcTemplate.update("""
                 INSERT INTO college (college_code, college_name, description, status)
@@ -246,13 +247,25 @@ class SecurityScopeIntegrationTest {
         );
         Long otherCollegeId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM college", Long.class);
         jdbcTemplate.update("""
-                INSERT INTO class (class_name, class_code, grade, major, college_id, teacher_id, room, student_count, status)
+                INSERT INTO major (major_code, major_name, major_abbreviation, college_id, description, status)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                "OTHR" + shortSuffix.substring(Math.max(0, shortSuffix.length() - 4)),
+                "Other Major " + suffix,
+                "OTHR",
+                otherCollegeId,
+                "scope major",
+                1
+        );
+        String majorCode = jdbcTemplate.queryForObject("SELECT major_code FROM major WHERE college_id = ? ORDER BY major_code DESC LIMIT 1", String.class, otherCollegeId);
+        jdbcTemplate.update("""
+                INSERT INTO class (class_name, class_code, grade, major_code, college_id, teacher_id, room, student_count, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 "Other Class " + suffix,
                 "OC" + suffix.substring(Math.max(0, suffix.length() - 6)),
                 2026,
-                "Elsewhere",
+                majorCode,
                 otherCollegeId,
                 1L,
                 "C101",
@@ -319,7 +332,7 @@ class SecurityScopeIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.records[0].collegeId").value(1))
-                .andExpect(jsonPath("$.data.records[0].arrangementCode").value(org.hamcrest.Matchers.startsWith("C" + Year.now().getValue() + "00CS2301")));
+                .andExpect(jsonPath("$.data.records[0].arrangementCode").value(org.hamcrest.Matchers.startsWith("C" + Year.now().getValue() + "00CS0001")));
     }
 
     @Test
@@ -355,13 +368,25 @@ class SecurityScopeIntegrationTest {
         );
         Long teacherId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM teacher", Long.class);
         jdbcTemplate.update("""
-                INSERT INTO class (class_name, class_code, grade, major, college_id, teacher_id, room, student_count, status)
+                    INSERT INTO major (major_code, major_name, major_abbreviation, college_id, description, status)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    "EXH" + shortSuffix.substring(Math.max(0, shortSuffix.length() - 4)),
+                    "Exhaust Major " + shortSuffix,
+                    "EXHA",
+                    collegeId,
+                    "exhaust test",
+                    1
+            );
+        String majorCode = jdbcTemplate.queryForObject("SELECT major_code FROM major WHERE college_id = ? ORDER BY major_code DESC LIMIT 1", String.class, collegeId);
+        jdbcTemplate.update("""
+                INSERT INTO class (class_name, class_code, grade, major_code, college_id, teacher_id, room, student_count, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 "Exhaust Class " + shortSuffix,
                 classCode,
                 2026,
-                "Exhaust",
+                majorCode,
                 collegeId,
                 teacherId,
                 "E101",
@@ -544,13 +569,13 @@ class SecurityScopeIntegrationTest {
             );
             jdbcTemplate.update(
                     """
-                    INSERT INTO class (class_name, class_code, grade, major, college_id, teacher_id, room, student_count, status)
+                    INSERT INTO class (class_name, class_code, grade, major_code, college_id, teacher_id, room, student_count, status)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     "Scope Class " + suffix,
                     "SC" + suffix.substring(Math.max(0, suffix.length() - 6)),
                     2026,
-                    "Computer Science",
+                    jdbcTemplate.queryForObject("SELECT major_code FROM class WHERE id = ?", String.class, studentClassId),
                     studentCollegeId,
                     1L,
                     "S101",
@@ -599,13 +624,12 @@ class SecurityScopeIntegrationTest {
     @Test
     void studentCannotAccessClassOutsideOwnScope() throws Exception {
         String token = loginAndGetToken("student001", "123456");
-        Set<Long> classIds = resolveStudentScopeIds(token, "classId");
-        Long outOfScopeId = classIds.stream().findFirst().orElse(1L) + 100000L;
+        String outOfScopeClassCode = "OTHRSCPX20239999";
 
-        mockMvc.perform(get("/class/" + outOfScopeId)
+        mockMvc.perform(get("/class/" + outOfScopeClassCode)
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(403));
+                .andExpect(jsonPath("$.code").value(404));
     }
 
     @Test

@@ -54,7 +54,7 @@ public class ReportController {
     public void exportScore(@RequestParam(required = false) Long studentId,
                             @RequestParam(required = false) Long courseArrangementId,
                             @RequestParam(required = false) Long collegeId,
-                            @RequestParam(required = false) Long classId,
+                            @RequestParam(required = false) String classId,
                             @RequestParam(required = false) String semester,
                             @RequestParam(required = false) String format,
                             Authentication authentication,
@@ -261,7 +261,7 @@ public class ReportController {
         if (!currentUserService.isCollegeAdmin(authentication)) {
             return null;
         }
-        Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+        Set<String> classIds = dataScopeService.resolveCollegeClassCodes(authentication);
         if (classIds.isEmpty()) {
             return Set.of();
         }

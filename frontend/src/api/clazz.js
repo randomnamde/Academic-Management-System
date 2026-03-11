@@ -8,9 +8,9 @@ export function getClassList(params) {
   })
 }
 
-export function getClassDetail(id) {
+export function getClassDetail(classCode) {
   return request({
-    url: `/class/${id}`,
+    url: `/class/${classCode}`,
     method: 'get'
   })
 }
@@ -23,17 +23,17 @@ export function createClass(data) {
   })
 }
 
-export function updateClass(id, data) {
+export function updateClass(classCode, data) {
   return request({
-    url: `/class/${id}`,
+    url: `/class/${classCode}`,
     method: 'put',
     data
   })
 }
 
-export function deleteClass(id) {
+export function deleteClass(classCode) {
   return request({
-    url: `/class/${id}`,
+    url: `/class/${classCode}`,
     method: 'delete'
   })
 }

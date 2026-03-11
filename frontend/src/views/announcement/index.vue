@@ -134,7 +134,9 @@
         <el-row :gutter="16">
           <el-col :span="8">
             <el-form-item :label="t('announcement.targetClassId')">
-              <el-input-number v-model="form.targetClassId" :min="1" style="width: 100%" />
+              <el-select v-model="form.targetClassId" clearable filterable style="width: 100%">
+                <el-option v-for="item in classOptions" :key="item.classCode" :label="`${item.className} (${item.classCode})`" :value="item.classCode" />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -175,6 +177,7 @@ import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
+import { getClassList } from '@/api/clazz'
 import {
   createAnnouncement,
   deleteAnnouncement,
@@ -198,6 +201,7 @@ const page = ref(1)
 const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
+const classOptions = ref([])
 
 const searchForm = reactive({
   title: '',
@@ -264,6 +268,11 @@ async function fetchList() {
   } finally {
     loading.value = false
   }
+}
+
+async function fetchClassOptions() {
+  const res = await getClassList({ page: 1, size: 500 })
+  classOptions.value = res.data?.records || []
 }
 
 function handleSearch() {
@@ -344,6 +353,8 @@ function targetRoleLabel(targetRole) {
   return map[targetRole] || targetRole || '-'
 }
 
-onMounted(fetchList)
+onMounted(async () => {
+  await Promise.all([fetchList(), fetchClassOptions()])
+})
 </script>
 

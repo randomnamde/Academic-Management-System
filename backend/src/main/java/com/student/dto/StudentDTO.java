@@ -30,7 +30,7 @@ public class StudentDTO {
 
     private String address;
 
-    private Long classId;
+    private String classId;
 
     private LocalDate enrollmentDate;
 

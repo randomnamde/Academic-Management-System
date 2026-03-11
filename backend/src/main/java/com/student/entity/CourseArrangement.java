@@ -30,7 +30,7 @@ public class CourseArrangement {
     @TableField(exist = false)
     private String teacherNo;
     
-    private Long classId;
+    private String classId;
     
     @TableField(exist = false)
     private String className;

@@ -137,11 +137,11 @@ class UserImportIntegrationTest {
         String suffix = String.valueOf(System.nanoTime());
         String classCode = "HM" + suffix.substring(Math.max(0, suffix.length() - 8));
         jdbcTemplate.update(
-                "INSERT INTO class (class_name, class_code, grade, major, college_id, teacher_id, room, student_count, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO class (class_name, class_code, grade, major_code, college_id, teacher_id, room, student_count, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 "Import Homeroom Class " + suffix,
                 classCode,
                 2026,
-                "Software Engineering",
+                "SOFT2301",
                 1L,
                 null,
                 "B301",

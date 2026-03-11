@@ -13,7 +13,7 @@ public interface StudentService extends IService<Student> {
     
     void addStudent(StudentDTO studentDTO);
 
-    String generateStudentNo(Long classId, LocalDate enrollmentDate);
+    String generateStudentNo(String classId, LocalDate enrollmentDate);
     
     void updateStudent(StudentDTO studentDTO);
     
@@ -25,12 +25,13 @@ public interface StudentService extends IService<Student> {
                                  Integer size,
                                  String studentNo,
                                  String name,
-                                 Long classId,
+                                 String classId,
                                  Long collegeId,
+                                 String majorCode,
                                  Student.Status status,
-                                 List<Long> classIds);
+                                 List<String> classIds);
     
-    List<Student> getStudentsByClassId(Long classId);
+    List<Student> getStudentsByClassId(String classId);
     
     void updateStudentStatus(Long id, Student.Status status);
     

@@ -169,7 +169,7 @@ public class AttendanceController {
         if (arrangement == null) {
             return;
         }
-        java.util.Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+        java.util.Set<String> classIds = dataScopeService.resolveCollegeClassCodes(authentication);
         if (!classIds.contains(arrangement.getClassId())) {
             throw new com.student.exception.BusinessException(403, "Forbidden");
         }

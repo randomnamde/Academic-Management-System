@@ -96,7 +96,7 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
                                                       Long collegeId,
                                                       Long courseId,
                                                       Long teacherId,
-                                                      Long classId,
+                                                      String classId,
                                                       String semester,
                                                       Integer status) {
         Page<CourseArrangement> pageParam = new Page<>(page, size);
@@ -104,7 +104,7 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
     }
 
     @Override
-    public List<CourseArrangement> getArrangementOptions(Long teacherId, Long classId, Integer status) {
+    public List<CourseArrangement> getArrangementOptions(Long teacherId, String classId, Integer status) {
         return courseArrangementMapper.selectListWithDetail(teacherId, classId, status);
     }
 
@@ -160,7 +160,7 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
             throw new BusinessException(404, "教师不存在");
         }
 
-        Class clazz = classMapper.selectById(dto.getClassId());
+        Class clazz = resolveClass(dto.getClassId());
         if (clazz == null) {
             throw new BusinessException(404, "班级不存在");
         }
@@ -203,5 +203,19 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
     }
 
     private record ValidationContext(Course course, Teacher teacher, Class clazz, College college) {
+    }
+
+    private Class resolveClass(String classId) {
+        if (!StringUtils.hasText(classId)) {
+            return null;
+        }
+        Class clazz = classMapper.selectByClassCode(classId);
+        if (clazz != null) {
+            return clazz;
+        }
+        if (classId.chars().allMatch(Character::isDigit)) {
+            return classMapper.selectById(Long.parseLong(classId));
+        }
+        return null;
     }
 }

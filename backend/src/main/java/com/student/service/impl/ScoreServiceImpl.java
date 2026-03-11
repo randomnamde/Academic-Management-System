@@ -149,7 +149,7 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
     }
 
     @Override
-    public List<Map<String, Object>> getClassRank(Long classId, String semester) {
+    public List<Map<String, Object>> getClassRank(String classId, String semester) {
         return scoreMapper.selectClassRank(classId, semester);
     }
 

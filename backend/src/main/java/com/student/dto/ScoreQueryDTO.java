@@ -9,5 +9,5 @@ public class ScoreQueryDTO {
     private Long courseArrangementId;
     private String semester;
     private Long collegeId;
-    private Long classId;
+    private String classId;
 }

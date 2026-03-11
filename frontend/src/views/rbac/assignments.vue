@@ -1,9 +1,5 @@
 <template>
   <CrudPageShell :title="t('rbac.users.assignmentPageTitle')">
-    <template #header-actions>
-      <AppButton variant="secondary" @click="router.push('/rbac/users')">{{ t('rbac.users.backToHub') }}</AppButton>
-    </template>
-
     <template #filters>
       <div class="app-filter-grid">
         <el-input
@@ -125,7 +121,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import CrudPageShell from '@/components/shell/CrudPageShell.vue'
@@ -139,7 +134,6 @@ import { getClassList } from '@/api/clazz'
 import { buildRoleOptions, roleBadgeType, roleLabel } from './roleMeta'
 
 const store = useStore()
-const router = useRouter()
 const { t } = useI18n()
 
 const tableDensity = computed(() => store.getters.tableDensity)

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <CrudPageShell :title="t('student.pageTitle')">
     <template #header-actions>
       <AppButton @click="handleAdd">{{ t('student.addStudent') }}</AppButton>
@@ -11,8 +11,11 @@
         <el-select v-model="searchForm.collegeId" clearable :placeholder="t('student.college')" class="col-span-12 md:col-span-2">
           <el-option v-for="item in collegeList" :key="item.id" :label="item.collegeName" :value="item.id" />
         </el-select>
+        <el-select v-model="searchForm.majorCode" clearable :placeholder="t('student.major')" class="col-span-12 md:col-span-2">
+          <el-option v-for="item in searchMajorList" :key="item.majorCode" :label="item.majorName" :value="item.majorCode" />
+        </el-select>
         <el-select v-model="searchForm.classId" clearable :placeholder="t('student.class')" class="col-span-12 md:col-span-2">
-          <el-option v-for="item in searchClassList" :key="item.id" :label="item.className" :value="item.id" />
+          <el-option v-for="item in searchClassList" :key="item.classCode" :label="item.className" :value="item.classCode" />
         </el-select>
         <el-select v-model="searchForm.status" clearable :placeholder="t('student.status')" class="col-span-12 md:col-span-2">
           <el-option :label="t('student.statusEnrolled')" value="ENROLLED" />
@@ -20,7 +23,7 @@
           <el-option :label="t('student.statusGraduated')" value="GRADUATED" />
           <el-option :label="t('student.statusDropped')" value="DROPPED" />
         </el-select>
-        <div class="app-filter-action-wrap col-span-12 md:col-span-2">
+        <div class="app-filter-action-wrap col-span-12 md:col-span-12">
           <div class="app-filter-action-bar">
             <AppButton variant="secondary" @click="handleReset">{{ t('common.reset') }}</AppButton>
             <AppButton @click="handleSearch">{{ t('common.search') }}</AppButton>
@@ -33,7 +36,8 @@
       <AppTable :columns="columns" :rows="studentList" :loading="loading" :density="tableDensity">
         <template #cell-gender="{ row }">{{ row.gender === 'MALE' ? t('student.genderMale') : t('student.genderFemale') }}</template>
         <template #cell-collegeName="{ row }">{{ row.collegeName || getCollegeNameById(row.collegeId) || '-' }}</template>
-        <template #cell-className="{ row }">{{ row.className || getClassNameById(row.classId, row.collegeId) || '-' }}</template>
+        <template #cell-majorName="{ row }">{{ row.majorName || getMajorNameByCode(row.majorCode) || '-' }}</template>
+        <template #cell-className="{ row }">{{ row.className || getClassNameById(row.classId) || '-' }}</template>
         <template #cell-status="{ row }">
           <AppBadge :type="statusBadgeType(row.status)">{{ getStatusText(row.status) }}</AppBadge>
         </template>
@@ -94,33 +98,40 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item :label="t('student.class')" prop="classId">
-              <el-select v-model="form.classId" :placeholder="t('student.selectClass')" style="width: 100%" :disabled="!form.collegeId && isSchoolAdmin">
-                <el-option v-for="item in formClassList" :key="item.id" :label="item.className" :value="item.id" />
+            <el-form-item :label="t('student.major')" prop="majorCode">
+              <el-select v-model="form.majorCode" :placeholder="t('student.selectMajor')" style="width: 100%" :disabled="!form.collegeId">
+                <el-option v-for="item in formMajorList" :key="item.majorCode" :label="item.majorName" :value="item.majorCode" />
               </el-select>
             </el-form-item>
           </el-col>
+          <el-col :span="12">
+            <el-form-item :label="t('student.class')" prop="classId">
+              <el-select v-model="form.classId" :placeholder="t('student.selectClass')" style="width: 100%" :disabled="!form.majorCode">
+                <el-option v-for="item in formClassList" :key="item.classCode" :label="item.className" :value="item.classCode" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('student.phone')" prop="phone">
               <el-input v-model="form.phone" />
             </el-form-item>
           </el-col>
-        </el-row>
-
-        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('student.email')" prop="email">
               <el-input v-model="form.email" />
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('student.idCard')" prop="idCard">
               <el-input v-model="form.idCard" />
             </el-form-item>
           </el-col>
-        </el-row>
-
-        <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item :label="t('student.enrollmentDate')" prop="enrollmentDate">
               <el-date-picker v-model="form.enrollmentDate" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
@@ -158,6 +169,7 @@ import AppModal from '@/components/ui/AppModal.vue'
 import { createStudent, deleteStudent, getNextStudentNo, getStudentList, updateStudent } from '@/api/student'
 import { getClassList } from '@/api/clazz'
 import { getCollegeList } from '@/api/college'
+import { getMajorOptions } from '@/api/major'
 
 const router = useRouter()
 const store = useStore()
@@ -165,10 +177,11 @@ const { t } = useI18n()
 const tableDensity = computed(() => store.getters.tableDensity)
 const role = computed(() => store.state.userInfo?.primaryRole || store.state.userInfo?.role || '')
 const userInfo = computed(() => store.state.userInfo || {})
-const isSchoolAdmin = computed(() => role.value === 'SCHOOL_ADMIN')
 
 const studentList = ref([])
 const collegeList = ref([])
+const searchMajorList = ref([])
+const formMajorList = ref([])
 const searchClassList = ref([])
 const formClassList = ref([])
 const loading = ref(false)
@@ -181,6 +194,7 @@ const columns = computed(() => [
   { key: 'name', title: t('student.name'), width: 120 },
   { key: 'gender', title: t('student.gender'), width: 80 },
   { key: 'collegeName', title: t('student.college'), width: 170 },
+  { key: 'majorName', title: t('student.major'), width: 170 },
   { key: 'className', title: t('student.class'), width: 160 },
   { key: 'phone', title: t('student.phone'), width: 150 },
   { key: 'email', title: t('student.email') },
@@ -192,6 +206,7 @@ const searchForm = reactive({
   studentNo: '',
   name: '',
   collegeId: null,
+  majorCode: null,
   classId: null,
   status: ''
 })
@@ -212,6 +227,7 @@ const form = reactive({
   idCard: '',
   address: '',
   collegeId: null,
+  majorCode: null,
   classId: null,
   enrollmentDate: '',
   password: ''
@@ -221,45 +237,41 @@ const rules = computed(() => ({
   name: [{ required: true, message: t('student.nameRequired'), trigger: 'blur' }],
   gender: [{ required: true, message: t('student.genderRequired'), trigger: 'change' }],
   collegeId: [{ required: true, message: t('student.collegeRequired'), trigger: 'change' }],
+  majorCode: [{ required: true, message: t('student.majorRequired'), trigger: 'change' }],
   classId: [{ required: true, message: t('student.classRequired'), trigger: 'change' }]
 }))
 
 function getDefaultCollegeId() {
-  if (role.value === 'SCHOOL_ADMIN') return null
-  if (collegeList.value.length === 1) return collegeList.value[0].id
   return userInfo.value?.collegeId || null
 }
 
 async function fetchCollegeList() {
-  if (role.value === 'SCHOOL_ADMIN' || role.value === 'COLLEGE_ADMIN') {
-    const res = await getCollegeList({ page: 1, size: 500 })
-    collegeList.value = res.data?.records || []
-  } else if (userInfo.value?.collegeId) {
-    collegeList.value = [
-      {
-        id: userInfo.value.collegeId,
-        collegeName: userInfo.value.collegeName || `${t('student.college')} #${userInfo.value.collegeId}`
-      }
-    ]
-  } else {
-    collegeList.value = []
-  }
-
-  if (!searchForm.collegeId && role.value !== 'SCHOOL_ADMIN') {
+  const res = await getCollegeList({ page: 1, size: 500 })
+  collegeList.value = res.data?.records || []
+  if (!searchForm.collegeId && getDefaultCollegeId()) {
     searchForm.collegeId = getDefaultCollegeId()
   }
 }
 
-async function fetchClassList(collegeId, targetRef, allowAll = false) {
-  if (!collegeId && !allowAll) {
+async function fetchMajorList(collegeId, targetRef) {
+  if (!collegeId) {
     targetRef.value = []
     return
   }
+  const res = await getMajorOptions({ collegeId, status: 1 })
+  targetRef.value = res.data || []
+}
 
+async function fetchClassList(collegeId, majorCode, targetRef, allowAll = false) {
+  if ((!collegeId || !majorCode) && !allowAll) {
+    targetRef.value = []
+    return
+  }
   const res = await getClassList({
     page: 1,
     size: 500,
-    collegeId: collegeId || undefined
+    collegeId: collegeId || undefined,
+    majorCode: majorCode || undefined
   })
   targetRef.value = res.data?.records || []
 }
@@ -273,6 +285,7 @@ async function fetchList() {
       studentNo: searchForm.studentNo || undefined,
       name: searchForm.name || undefined,
       collegeId: searchForm.collegeId || undefined,
+      majorCode: searchForm.majorCode || undefined,
       classId: searchForm.classId || undefined,
       status: searchForm.status || undefined
     })
@@ -292,6 +305,7 @@ function handleReset() {
   searchForm.studentNo = ''
   searchForm.name = ''
   searchForm.collegeId = getDefaultCollegeId()
+  searchForm.majorCode = null
   searchForm.classId = null
   searchForm.status = ''
   handleSearch()
@@ -318,6 +332,7 @@ function resetForm() {
     idCard: '',
     address: '',
     collegeId: getDefaultCollegeId(),
+    majorCode: null,
     classId: null,
     enrollmentDate: '',
     password: ''
@@ -328,7 +343,8 @@ async function handleAdd() {
   isEdit.value = false
   dialogTitleKey.value = 'student.dialogAddTitle'
   resetForm()
-  await fetchClassList(form.collegeId, formClassList, !isSchoolAdmin.value)
+  await fetchMajorList(form.collegeId, formMajorList)
+  await fetchClassList(form.collegeId, form.majorCode, formClassList)
   dialogVisible.value = true
 }
 
@@ -338,9 +354,11 @@ async function handleEdit(row) {
   resetForm()
   Object.assign(form, row, {
     collegeId: row.collegeId || getDefaultCollegeId(),
+    majorCode: row.majorCode || null,
     password: ''
   })
-  await fetchClassList(form.collegeId, formClassList, !isSchoolAdmin.value)
+  await fetchMajorList(form.collegeId, formMajorList)
+  await fetchClassList(form.collegeId, form.majorCode, formClassList, true)
   dialogVisible.value = true
 }
 
@@ -361,6 +379,7 @@ async function handleSubmit() {
 
   const payload = { ...form }
   delete payload.collegeId
+  delete payload.majorCode
   if (!payload.password) delete payload.password
 
   if (!isEdit.value && !payload.password) {
@@ -413,7 +432,7 @@ function statusBadgeType(status) {
 
 function getClassNameById(classId) {
   if (!classId) return ''
-  const hit = [...searchClassList.value, ...formClassList.value].find((item) => item.id === classId)
+  const hit = [...searchClassList.value, ...formClassList.value].find((item) => item.classCode === classId)
   return hit?.className || ''
 }
 
@@ -423,20 +442,47 @@ function getCollegeNameById(collegeId) {
   return hit?.collegeName || ''
 }
 
+function getMajorNameByCode(majorCode) {
+  if (!majorCode) return ''
+  const hit = [...searchMajorList.value, ...formMajorList.value].find((item) => item.majorCode === majorCode)
+  return hit?.majorName || ''
+}
+
 watch(
   () => searchForm.collegeId,
   async (collegeId) => {
+    searchForm.majorCode = null
     searchForm.classId = null
-    await fetchClassList(collegeId, searchClassList, true)
+    await fetchMajorList(collegeId, searchMajorList)
+    await fetchClassList(collegeId, null, searchClassList, true)
+  }
+)
+
+watch(
+  () => searchForm.majorCode,
+  async (majorCode) => {
+    searchForm.classId = null
+    await fetchClassList(searchForm.collegeId, majorCode, searchClassList, true)
   }
 )
 
 watch(
   () => form.collegeId,
   async (collegeId) => {
+    form.majorCode = null
     form.classId = null
     if (!dialogVisible.value) return
-    await fetchClassList(collegeId, formClassList, !isSchoolAdmin.value)
+    await fetchMajorList(collegeId, formMajorList)
+    await fetchClassList(collegeId, null, formClassList)
+  }
+)
+
+watch(
+  () => form.majorCode,
+  async (majorCode) => {
+    form.classId = null
+    if (!dialogVisible.value) return
+    await fetchClassList(form.collegeId, majorCode, formClassList)
   }
 )
 
@@ -449,7 +495,8 @@ watch(
 
 onMounted(async () => {
   await fetchCollegeList()
-  await fetchClassList(searchForm.collegeId, searchClassList, true)
+  await fetchMajorList(searchForm.collegeId, searchMajorList)
+  await fetchClassList(searchForm.collegeId, searchForm.majorCode, searchClassList, true)
   await fetchList()
 })
 </script>

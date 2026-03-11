@@ -3,7 +3,9 @@ package com.student.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.student.entity.Class;
+import com.student.entity.Major;
 import com.student.entity.Teacher;
+import com.student.mapper.MajorMapper;
 import com.student.security.CurrentUserService;
 import com.student.security.DataScopeService;
 import com.student.security.RoleCode;
@@ -30,69 +32,74 @@ public class ClassController {
     private final DataScopeService dataScopeService;
     private final CurrentUserService currentUserService;
     private final TeacherMapper teacherMapper;
+    private final MajorMapper majorMapper;
     private final SysUserService sysUserService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> add(@RequestBody @Validated Class clazz, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId != null) {
-            clazz.setCollegeId(scopedCollegeId);
-        }
-        classService.save(clazz);
+        bindCollegeFromMajor(authentication, clazz);
+        classService.createClass(clazz);
         ensureHomeroomRole(clazz.getTeacherId());
         return ResultVO.success();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{classCode}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
-    public ResultVO<Void> update(@PathVariable Long id, @RequestBody @Validated Class clazz, Authentication authentication) {
+    public ResultVO<Void> update(@PathVariable String classCode, @RequestBody @Validated Class clazz, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        bindCollegeFromMajor(authentication, clazz);
+        Class existing = classService.getClassByCode(classCode);
+        if (existing == null) {
+            return ResultVO.error(404, "Class not found");
+        }
         if (scopedCollegeId != null) {
-            Class existing = classService.getById(id);
-            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+            if (!scopedCollegeId.equals(existing.getCollegeId())) {
                 return ResultVO.error(403, "Forbidden");
             }
-            clazz.setCollegeId(scopedCollegeId);
         }
-        clazz.setId(id);
-        classService.updateById(clazz);
+        classService.updateClassByCode(classCode, clazz);
         ensureHomeroomRole(clazz.getTeacherId());
         return ResultVO.success();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{classCode}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
-    public ResultVO<Void> delete(@PathVariable Long id, Authentication authentication) {
+    public ResultVO<Void> delete(@PathVariable String classCode, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        Class existing = classService.getClassByCode(classCode);
+        if (existing == null) {
+            return ResultVO.error(404, "Class not found");
+        }
         if (scopedCollegeId != null) {
-            Class existing = classService.getById(id);
-            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+            if (!scopedCollegeId.equals(existing.getCollegeId())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
-        classService.removeById(id);
+        classService.deleteClassByCode(classCode);
         return ResultVO.success();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{classCode}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
-    public ResultVO<Class> getById(@PathVariable Long id, Authentication authentication) {
+    public ResultVO<Class> getById(@PathVariable String classCode, Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        Class existing = classService.getClassByCode(classCode);
+        if (existing == null) {
+            return ResultVO.error(404, "Class not found");
+        }
         if (scopedCollegeId != null) {
-            Class existing = classService.getById(id);
-            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+            if (!scopedCollegeId.equals(existing.getCollegeId())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
-            if (!scope.getClassIds().contains(id)) {
+            if (!scope.getClassIds().contains(existing.getId())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
-        Class clazz = classService.getClassById(id);
-        return ResultVO.success(clazz);
+        return ResultVO.success(existing);
     }
 
     @GetMapping
@@ -103,28 +110,11 @@ public class ClassController {
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String grade,
             @RequestParam(required = false) Long collegeId,
+            @RequestParam(required = false) String majorCode,
             @RequestParam(required = false) Long teacherId,
             Authentication authentication) {
         Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
         Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
-        if (scopedCollegeId != null) {
-            Page<Class> pageParam = new Page<>(page, size);
-            Year gradeYear = null;
-            if (grade != null && !grade.isBlank()) {
-                try {
-                    gradeYear = Year.parse(grade);
-                } catch (Exception ignored) {
-                    gradeYear = null;
-                }
-            }
-            LambdaQueryWrapper<Class> wrapper = new LambdaQueryWrapper<Class>()
-                    .eq(Class::getCollegeId, effectiveCollegeId)
-                    .like(className != null && !className.isBlank(), Class::getClassName, className)
-                    .eq(gradeYear != null, Class::getGrade, gradeYear)
-                    .eq(teacherId != null, Class::getTeacherId, teacherId);
-            Page<Class> result = classService.page(pageParam, wrapper);
-            return ResultVO.success(result);
-        }
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
             Page<Class> pageParam = new Page<>(page, size);
@@ -147,30 +137,12 @@ public class ClassController {
                     .in(Class::getId, scope.getClassIds())
                     .like(className != null && !className.isBlank(), Class::getClassName, className)
                     .eq(gradeYear != null, Class::getGrade, gradeYear)
+                    .eq(majorCode != null && !majorCode.isBlank(), Class::getMajorCode, majorCode)
                     .eq(teacherId != null, Class::getTeacherId, teacherId);
             Page<Class> result = classService.page(pageParam, wrapper);
             return ResultVO.success(result);
         }
-        if (effectiveCollegeId != null) {
-            Page<Class> pageParam = new Page<>(page, size);
-            Year gradeYear = null;
-            if (grade != null && !grade.isBlank()) {
-                try {
-                    gradeYear = Year.parse(grade);
-                } catch (Exception ignored) {
-                    gradeYear = null;
-                }
-            }
-            LambdaQueryWrapper<Class> wrapper = new LambdaQueryWrapper<Class>()
-                    .eq(Class::getCollegeId, effectiveCollegeId)
-                    .like(className != null && !className.isBlank(), Class::getClassName, className)
-                    .eq(gradeYear != null, Class::getGrade, gradeYear)
-                    .eq(teacherId != null, Class::getTeacherId, teacherId);
-            Page<Class> result = classService.page(pageParam, wrapper);
-            return ResultVO.success(result);
-        }
-
-        Page<Class> result = classService.getClassPage(page, size, className, grade, teacherId);
+        Page<Class> result = classService.getClassPage(page, size, className, grade, teacherId, effectiveCollegeId, majorCode);
         return ResultVO.success(result);
     }
 
@@ -196,6 +168,21 @@ public class ClassController {
             return;
         }
         sysUserService.grantRole(teacher.getUserId(), RoleCode.HOMEROOM_TEACHER);
+    }
+
+    private void bindCollegeFromMajor(Authentication authentication, Class clazz) {
+        if (clazz == null || clazz.getMajorCode() == null || clazz.getMajorCode().isBlank()) {
+            throw new com.student.exception.BusinessException(400, "Major is required");
+        }
+        Major major = majorMapper.selectById(clazz.getMajorCode());
+        if (major == null) {
+            throw new com.student.exception.BusinessException(404, "Major not found");
+        }
+        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        if (scopedCollegeId != null && !scopedCollegeId.equals(major.getCollegeId())) {
+            throw new com.student.exception.BusinessException(403, "Forbidden");
+        }
+        clazz.setCollegeId(major.getCollegeId());
     }
 }
 

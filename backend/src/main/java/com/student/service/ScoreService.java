@@ -30,7 +30,7 @@ public interface ScoreService extends IService<Score> {
 
     List<Map<String, Object>> getScoreDistribution(Long courseArrangementId);
 
-    List<Map<String, Object>> getClassRank(Long classId, String semester);
+    List<Map<String, Object>> getClassRank(String classId, String semester);
 
     void batchAddScores(List<ScoreDTO> scoreDTOList);
 }

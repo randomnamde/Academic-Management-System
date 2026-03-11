@@ -98,7 +98,7 @@ public class ScoreController {
             @RequestParam(required = false) Long studentId,
             @RequestParam(required = false) Long courseArrangementId,
             @RequestParam(required = false) Long collegeId,
-            @RequestParam(required = false) Long classId,
+            @RequestParam(required = false) String classId,
             @RequestParam(required = false) String semester,
             Authentication authentication) {
         assertCollegeAdminArrangementScope(authentication, courseArrangementId);
@@ -168,7 +168,7 @@ public class ScoreController {
     @GetMapping("/rank")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<List<Map<String, Object>>> getClassRank(
-            @RequestParam Long classId,
+            @RequestParam String classId,
             @RequestParam String semester) {
         List<Map<String, Object>> rank = scoreService.getClassRank(classId, semester);
         return ResultVO.success(rank);
@@ -196,7 +196,7 @@ public class ScoreController {
         if (arrangement == null) {
             return;
         }
-        java.util.Set<Long> classIds = dataScopeService.resolveCollegeClassIds(authentication);
+        java.util.Set<String> classIds = dataScopeService.resolveCollegeClassCodes(authentication);
         if (!classIds.contains(arrangement.getClassId())) {
             throw new com.student.exception.BusinessException(403, "Forbidden");
         }

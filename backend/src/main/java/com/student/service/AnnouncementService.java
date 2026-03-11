@@ -21,7 +21,7 @@ public interface AnnouncementService extends IService<Announcement> {
                                                   String title,
                                                   Announcement.Type type,
                                                   Set<RoleCode> roles,
-                                                  Long classId);
+                                                  String classId);
 
     void createAnnouncement(Announcement announcement);
 

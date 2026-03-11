@@ -147,6 +147,13 @@ const classes = computed(() => [
   z-index: 1;
 }
 
+.app-button__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
 .app-button__spinner {
   width: 14px;
   height: 14px;

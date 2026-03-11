@@ -38,7 +38,7 @@ public class UserInfoVO {
 
     private String teacherDepartment;
 
-    private Long classId;
+    private String classId;
 
     private String className;
 

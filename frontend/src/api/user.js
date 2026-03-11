@@ -40,6 +40,30 @@ export function updatePassword(data) {
   })
 }
 
+export function resetAllPasswords(operatorPassword) {
+  return request({
+    url: '/user/password/reset-all',
+    method: 'put',
+    data: { operatorPassword }
+  })
+}
+
+export function resetUserPassword(id, operatorPassword) {
+  return request({
+    url: `/user/${id}/password/reset`,
+    method: 'put',
+    data: { operatorPassword }
+  })
+}
+
+export function resetBatchUserPasswords(userIds, operatorPassword) {
+  return request({
+    url: '/user/password/reset-batch',
+    method: 'put',
+    data: { userIds, operatorPassword }
+  })
+}
+
 export function updateProfile(data) {
   return request({
     url: '/user/profile',

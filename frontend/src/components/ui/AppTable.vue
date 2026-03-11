@@ -9,7 +9,9 @@
             :style="headerStyle(column)"
             :class="alignClass(column.align)"
           >
-            {{ column.title }}
+            <slot :name="`header-${column.key}`" :column="column">
+              {{ column.title }}
+            </slot>
           </th>
         </tr>
       </thead>

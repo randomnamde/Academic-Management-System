@@ -13,8 +13,7 @@ public class AnalyticsFilterDTO {
 
     private String semester;
 
-    private Long classId;
+    private String classId;
 
     private Long teacherId;
 }
-

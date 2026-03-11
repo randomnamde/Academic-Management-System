@@ -150,7 +150,7 @@ public class CurrentUserService {
             if (student.getClassId() == null) {
                 return null;
             }
-            Class clazz = classMapper.selectById(student.getClassId());
+            Class clazz = classMapper.selectByClassCode(student.getClassId());
             return clazz == null ? null : clazz.getCollegeId();
         }
         if (isTeacher(authentication)) {

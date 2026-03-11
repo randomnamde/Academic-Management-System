@@ -122,7 +122,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
         if (student == null) {
             throw new BusinessException("Student not found");
         }
-        Class clazz = student.getClassId() == null ? null : classMapper.selectById(student.getClassId());
+        Class clazz = student.getClassId() == null ? null : classMapper.selectByClassCode(student.getClassId());
         College college = clazz == null || clazz.getCollegeId() == null ? null : collegeMapper.selectById(clazz.getCollegeId());
         assertApprovalPermission(leaveRequest, clazz, college, approverUserId, approverTeacherId, approverRoles);
 
@@ -189,11 +189,11 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
         }
 
         // Teacher scope includes own homeroom students and own course arrangements.
-        Set<Long> classIds = new HashSet<>();
+        Set<String> classIds = new HashSet<>();
         List<Class> classes = classMapper.selectList(new LambdaQueryWrapper<Class>().eq(Class::getTeacherId, teacherId));
         for (Class clazz : classes) {
-            if (clazz.getId() != null) {
-                classIds.add(clazz.getId());
+            if (clazz.getClassCode() != null) {
+                classIds.add(clazz.getClassCode());
             }
         }
         Set<Long> allowedStudentIds = new HashSet<>();
@@ -279,7 +279,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
         if (classes.isEmpty()) {
             return List.of();
         }
-        Set<Long> classIds = classes.stream().map(Class::getId).collect(java.util.stream.Collectors.toSet());
+        Set<String> classIds = classes.stream().map(Class::getClassCode).collect(java.util.stream.Collectors.toSet());
         if (classIds.isEmpty()) {
             return List.of();
         }
@@ -303,7 +303,7 @@ public class LeaveRequestServiceImpl extends ServiceImpl<LeaveRequestMapper, Lea
         if (classes.isEmpty()) {
             return List.of();
         }
-        Set<Long> classIds = classes.stream().map(Class::getId).collect(java.util.stream.Collectors.toSet());
+        Set<String> classIds = classes.stream().map(Class::getClassCode).collect(java.util.stream.Collectors.toSet());
         List<Student> students = studentMapper.selectList(new LambdaQueryWrapper<Student>().in(Student::getClassId, classIds));
         Set<Long> studentIds = students.stream().map(Student::getId).collect(java.util.stream.Collectors.toSet());
         if (studentIds.isEmpty()) {

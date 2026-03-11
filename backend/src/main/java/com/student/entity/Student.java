@@ -30,7 +30,7 @@ public class Student {
     
     private String address;
     
-    private Long classId;
+    private String classId;
     
     @TableField(exist = false)
     private String className;
@@ -40,6 +40,12 @@ public class Student {
 
     @TableField(exist = false)
     private String collegeName;
+
+    @TableField(exist = false)
+    private String majorCode;
+
+    @TableField(exist = false)
+    private String majorName;
     
     private LocalDate enrollmentDate;
     

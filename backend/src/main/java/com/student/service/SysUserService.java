@@ -20,8 +20,16 @@ public interface SysUserService extends IService<SysUser> {
     void register(RegisterDTO registerDTO);
     
     SysUser getByUsername(String username);
+
+    void verifyPassword(Long userId, String password);
     
     void updatePassword(Long userId, String oldPassword, String newPassword);
+
+    void resetPasswordToInitialPassword(Long userId);
+
+    int resetPasswordsToInitialPassword(java.util.List<Long> userIds);
+
+    int resetAllPasswordsToInitialPassword();
     
     void updateStatus(Long userId, Integer status);
 

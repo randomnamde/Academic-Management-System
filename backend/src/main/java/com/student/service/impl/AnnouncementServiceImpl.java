@@ -42,7 +42,7 @@ public class AnnouncementServiceImpl extends ServiceImpl<AnnouncementMapper, Ann
                                                          String title,
                                                          Announcement.Type type,
                                                          Set<RoleCode> roles,
-                                                         Long classId) {
+                                                         String classId) {
         Page<Announcement> pageParam = new Page<>(page, size);
         Set<Announcement.TargetRole> roleTargets = new LinkedHashSet<>();
         if (roles != null) {

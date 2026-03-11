@@ -40,6 +40,7 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
 
+    private static final String INITIAL_PASSWORD = "123456";
     private static final long MAX_AVATAR_SIZE = 5 * 1024 * 1024;
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp");
 
@@ -115,6 +116,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
+    public void verifyPassword(Long userId, String password) {
+        SysUser user = userMapper.selectByIdWithPassword(userId);
+        if (user == null) {
+            throw new BusinessException("User not found");
+        }
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new BusinessException(400, "Current password is incorrect");
+        }
+    }
+
+    @Override
     @Transactional
     public void updatePassword(Long userId, String oldPassword, String newPassword) {
         SysUser user = userMapper.selectByIdWithPassword(userId);
@@ -128,6 +140,69 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         user.setPassword(passwordEncoder.encode(newPassword));
         updateById(user);
+    }
+
+    @Override
+    @Transactional
+    public void resetPasswordToInitialPassword(Long userId) {
+        SysUser user = getById(userId);
+        if (user == null) {
+            throw new BusinessException("User not found");
+        }
+
+        SysUser patch = new SysUser();
+        patch.setId(userId);
+        patch.setPassword(passwordEncoder.encode(INITIAL_PASSWORD));
+        updateById(patch);
+    }
+
+    @Override
+    @Transactional
+    public int resetPasswordsToInitialPassword(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return 0;
+        }
+
+        LinkedHashSet<Long> distinctIds = userIds.stream()
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        if (distinctIds.isEmpty()) {
+            return 0;
+        }
+
+        int updatedCount = 0;
+        for (Long userId : distinctIds) {
+            SysUser user = getById(userId);
+            if (user == null) {
+                continue;
+            }
+            SysUser patch = new SysUser();
+            patch.setId(userId);
+            patch.setPassword(passwordEncoder.encode(INITIAL_PASSWORD));
+            updatedCount += updateById(patch) ? 1 : 0;
+        }
+        return updatedCount;
+    }
+
+    @Override
+    @Transactional
+    public int resetAllPasswordsToInitialPassword() {
+        List<SysUser> users = list();
+        if (users.isEmpty()) {
+            return 0;
+        }
+
+        int updatedCount = 0;
+        for (SysUser user : users) {
+            if (user == null || user.getId() == null) {
+                continue;
+            }
+            SysUser patch = new SysUser();
+            patch.setId(user.getId());
+            patch.setPassword(passwordEncoder.encode(INITIAL_PASSWORD));
+            updatedCount += updateById(patch) ? 1 : 0;
+        }
+        return updatedCount;
     }
 
     @Override

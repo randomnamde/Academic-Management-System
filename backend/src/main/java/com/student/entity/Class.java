@@ -17,8 +17,11 @@ public class Class {
     private String classCode;
     
     private Year grade;
-    
-    private String major;
+
+    private String majorCode;
+
+    @TableField(exist = false)
+    private String majorName;
 
     private Long collegeId;
     

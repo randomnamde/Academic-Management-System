@@ -8,6 +8,7 @@ import com.student.entity.College;
 import com.student.entity.SysUser;
 import com.student.exception.BusinessException;
 import com.student.mapper.CollegeMapper;
+import com.student.mapper.MajorMapper;
 import com.student.mapper.SysUserMapper;
 import com.student.security.RoleCode;
 import com.student.service.CollegeService;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> implements CollegeService {
 
     private final CollegeMapper collegeMapper;
+    private final MajorMapper majorMapper;
     private final SysUserMapper sysUserMapper;
     private final SysUserService sysUserService;
 
@@ -46,6 +48,7 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
         }
         Page<College> result = page(pageParam, query);
         populateAdminUsernames(result.getRecords());
+        populateCounts(result.getRecords());
         return result;
     }
 
@@ -162,6 +165,18 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
                 .collect(Collectors.toMap(SysUser::getId, SysUser::getUsername, (left, right) -> left));
         for (College college : colleges) {
             college.setAdminUsername(usernameById.get(college.getAdminUserId()));
+        }
+    }
+
+    private void populateCounts(List<College> colleges) {
+        if (colleges == null || colleges.isEmpty()) {
+            return;
+        }
+        for (College college : colleges) {
+            if (college.getId() == null) {
+                continue;
+            }
+            college.setMajorCount(majorMapper.countByCollegeId(college.getId()));
         }
     }
 

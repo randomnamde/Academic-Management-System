@@ -32,7 +32,7 @@ public class AnalyticsController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String semester,
-            @RequestParam(required = false) Long classId,
+            @RequestParam(required = false) String classId,
             @RequestParam(required = false) Long teacherId,
             Authentication authentication) {
         AnalyticsFilterDTO filter = buildFilter(startDate, endDate, semester, classId, teacherId);
@@ -45,7 +45,7 @@ public class AnalyticsController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String semester,
-            @RequestParam(required = false) Long classId,
+            @RequestParam(required = false) String classId,
             @RequestParam(required = false) Long teacherId,
             @RequestParam(defaultValue = "day") String granularity,
             Authentication authentication) {
@@ -59,7 +59,7 @@ public class AnalyticsController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String semester,
-            @RequestParam(required = false) Long classId,
+            @RequestParam(required = false) String classId,
             @RequestParam(required = false) Long teacherId,
             @RequestParam(defaultValue = "day") String granularity,
             Authentication authentication) {
@@ -73,7 +73,7 @@ public class AnalyticsController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String semester,
-            @RequestParam(required = false) Long classId,
+            @RequestParam(required = false) String classId,
             @RequestParam(required = false) Long teacherId,
             @RequestParam(defaultValue = "low_score") String riskType,
             @RequestParam(defaultValue = "1") Integer page,
@@ -86,7 +86,7 @@ public class AnalyticsController {
     private AnalyticsFilterDTO buildFilter(LocalDate startDate,
                                            LocalDate endDate,
                                            String semester,
-                                           Long classId,
+                                           String classId,
                                            Long teacherId) {
         AnalyticsFilterDTO filter = new AnalyticsFilterDTO();
         filter.setStartDate(startDate);

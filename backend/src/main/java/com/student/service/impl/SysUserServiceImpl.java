@@ -40,7 +40,6 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
 
-    private static final String INITIAL_PASSWORD = "123456";
     private static final long MAX_AVATAR_SIZE = 5 * 1024 * 1024;
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp");
 
@@ -55,6 +54,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Value("${server.servlet.context-path:}")
     private String contextPath;
+
+    @Value("${initial-password.value:ChangeMe123!}")
+    private String initialPassword;
 
     @Override
     public LoginVO login(LoginDTO loginDTO) {
@@ -152,7 +154,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         SysUser patch = new SysUser();
         patch.setUsername(user.getUsername());
-        patch.setPassword(passwordEncoder.encode(INITIAL_PASSWORD));
+        patch.setPassword(passwordEncoder.encode(initialPassword));
         userMapper.updateById(patch);
     }
 
@@ -178,7 +180,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
             SysUser patch = new SysUser();
             patch.setUsername(user.getUsername());
-            patch.setPassword(passwordEncoder.encode(INITIAL_PASSWORD));
+            patch.setPassword(passwordEncoder.encode(initialPassword));
             updatedCount += userMapper.updateById(patch);
         }
         return updatedCount;
@@ -199,7 +201,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             }
             SysUser patch = new SysUser();
             patch.setUsername(user.getUsername());
-            patch.setPassword(passwordEncoder.encode(INITIAL_PASSWORD));
+            patch.setPassword(passwordEncoder.encode(initialPassword));
             updatedCount += userMapper.updateById(patch);
         }
         return updatedCount;

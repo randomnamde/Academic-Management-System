@@ -30,6 +30,7 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -66,7 +67,6 @@ public class UserImportServiceImpl implements UserImportService {
 
     private static final int MAX_IMPORT_ROWS = 2000;
     private static final int ACCOUNT_RETRY_LIMIT = 50;
-    private static final String DEFAULT_PASSWORD = "123456";
     private static final String REQUIRED_MARK = "\uff08\u5fc5\u586b\uff09";
     private static final String OPTIONAL_MARK = "\uff08\u9009\u586b\uff09";
     private static final List<DateTimeFormatter> DATE_FORMATTERS = List.of(
@@ -86,6 +86,9 @@ public class UserImportServiceImpl implements UserImportService {
     private final StudentService studentService;
     private final PasswordEncoder passwordEncoder;
     private final PlatformTransactionManager transactionManager;
+
+    @Value("${initial-password.value:ChangeMe123!}")
+    private String defaultPassword;
 
     private final DataFormatter dataFormatter = new DataFormatter();
 
@@ -473,7 +476,7 @@ public class UserImportServiceImpl implements UserImportService {
                                   SysUser.Role role) {
         SysUser user = new SysUser();
         user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
+        user.setPassword(passwordEncoder.encode(defaultPassword));
         user.setRealName(realName);
         user.setPhone(phone);
         user.setEmail(email);

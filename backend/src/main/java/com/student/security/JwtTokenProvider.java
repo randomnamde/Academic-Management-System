@@ -28,6 +28,12 @@ public class JwtTokenProvider {
     
     @PostConstruct
     public void init() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("JWT secret must be configured via environment variable JWT_SECRET");
+        }
+        if (jwtSecret.length() < 32) {
+            log.warn("JWT secret is too short. Consider using a stronger secret (at least 32 characters).");
+        }
         key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
     

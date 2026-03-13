@@ -20,6 +20,8 @@ public class College {
 
     private String collegeName;
 
+    private String collegeNameEn;
+
     private String description;
 
     private Integer status;

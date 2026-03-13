@@ -39,7 +39,6 @@ public class AuthController {
         long start = System.nanoTime();
 
         metrics.setGatewayConcurrency(ManagementFactory.getThreadMXBean().getThreadCount());
-        userService.lambdaQuery().eq(SysUser::getStatus, 1).count();
         long delayMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
 
         metrics.setSyncDelayMs(Math.max(delayMs, 1L));

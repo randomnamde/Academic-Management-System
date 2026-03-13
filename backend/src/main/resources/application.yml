@@ -55,7 +55,8 @@ mybatis-plus:
 
 # JWT配置
 jwt:
-  secret: ${JWT_SECRET:your-256-bit-secret-key-for-student-management-system}
+  # 生产环境必须通过环境变量JWT_SECRET设置强密钥（至少256位）
+  secret: ${JWT_SECRET:}
   expiration: ${JWT_EXPIRATION:86400000}  # 24小时
   header: Authorization
   prefix: Bearer
@@ -80,3 +81,7 @@ cors:
 
 file:
   upload-dir: uploads
+
+# 初始密码配置
+initial-password:
+  value: ${INITIAL_PASSWORD:ChangeMe123!}

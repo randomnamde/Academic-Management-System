@@ -50,6 +50,17 @@ const routes = [
         }
       },
       {
+        path: 'teaching-management',
+        name: 'TeachingManagement',
+        component: () => import('@/views/teaching-management/index.vue'),
+        meta: {
+          title: '教学组织管理',
+          icon: 'School',
+          roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER'],
+          menuGroup: 'teaching'
+        }
+      },
+      {
         path: 'class',
         name: 'Class',
         component: () => import('@/views/class/index.vue'),
@@ -57,7 +68,10 @@ const routes = [
           titleKey: 'route.class',
           icon: 'School',
           roles: MANAGE_ROLES,
-          menuGroup: 'teaching'
+          menuGroup: 'teaching',
+          hideInMenu: true,
+          activeMenu: '/teaching-management',
+          breadcrumbParent: '/teaching-management'
         }
       },
       {
@@ -104,7 +118,10 @@ const routes = [
           titleKey: 'route.college',
           icon: 'School',
           roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'],
-          menuGroup: 'teaching'
+          menuGroup: 'teaching',
+          hideInMenu: true,
+          activeMenu: '/teaching-management',
+          breadcrumbParent: '/teaching-management'
         }
       },
       {
@@ -115,7 +132,10 @@ const routes = [
           titleKey: 'route.major',
           icon: 'Collection',
           roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN'],
-          menuGroup: 'teaching'
+          menuGroup: 'teaching',
+          hideInMenu: true,
+          activeMenu: '/teaching-management',
+          breadcrumbParent: '/teaching-management'
         }
       },
       {

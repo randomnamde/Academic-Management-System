@@ -57,10 +57,14 @@
     <AppModal v-model="dialogVisible" :title="isEdit ? t('college.dialogEditTitle') : t('college.dialogAddTitle')" width="640px">
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-form-item :label="t('college.collegeCode')" prop="collegeCode">
-          <el-input v-model="form.collegeCode" />
+          <el-input v-if="isEdit" v-model="form.collegeCode" />
+          <el-input v-else :model-value="t('major.autoGenerateHint')" disabled />
         </el-form-item>
         <el-form-item :label="t('college.collegeName')" prop="collegeName">
           <el-input v-model="form.collegeName" />
+        </el-form-item>
+        <el-form-item :label="t('college.collegeNameEn')" prop="collegeNameEn">
+          <el-input v-model="form.collegeNameEn" />
         </el-form-item>
         <el-form-item :label="t('college.description')">
           <el-input v-model="form.description" type="textarea" :rows="3" />
@@ -117,6 +121,7 @@ const searchForm = reactive({
 const columns = computed(() => [
   { key: 'collegeCode', title: t('college.collegeCode'), width: 160 },
   { key: 'collegeName', title: t('college.collegeName'), width: 220 },
+  { key: 'collegeNameEn', title: t('college.collegeNameEn'), width: 240 },
   { key: 'majorCount', title: t('college.majorCount'), width: 110 },
   { key: 'adminUsername', title: t('college.adminUsername'), width: 180 },
   { key: 'description', title: t('college.description') },
@@ -133,12 +138,14 @@ const form = reactive({
   id: null,
   collegeCode: '',
   collegeName: '',
+  collegeNameEn: '',
   description: ''
 })
 
 const rules = computed(() => ({
-  collegeCode: [{ required: true, message: t('college.collegeCodeRequired'), trigger: 'blur' }],
-  collegeName: [{ required: true, message: t('college.collegeNameRequired'), trigger: 'blur' }]
+  collegeCode: isEdit.value ? [{ required: true, message: t('college.collegeCodeRequired'), trigger: 'blur' }] : [],
+  collegeName: [{ required: true, message: t('college.collegeNameRequired'), trigger: 'blur' }],
+  collegeNameEn: [{ required: true, message: t('college.collegeNameEnRequired'), trigger: 'blur' }]
 }))
 
 function resetForm() {
@@ -146,6 +153,7 @@ function resetForm() {
     id: null,
     collegeCode: '',
     collegeName: '',
+    collegeNameEn: '',
     description: ''
   })
 }
@@ -204,13 +212,14 @@ async function submit() {
     await updateCollege(form.id, {
       collegeCode: form.collegeCode,
       collegeName: form.collegeName,
+      collegeNameEn: form.collegeNameEn,
       description: form.description
     })
     ElMessage.success(t('college.updateSuccess'))
   } else {
     await createCollege({
-      collegeCode: form.collegeCode,
       collegeName: form.collegeName,
+      collegeNameEn: form.collegeNameEn,
       description: form.description
     })
     ElMessage.success(t('college.createSuccess'))

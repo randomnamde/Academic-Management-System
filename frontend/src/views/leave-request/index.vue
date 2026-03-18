@@ -43,7 +43,6 @@
         <el-table-column v-if="!isStudent" prop="studentName" :label="t('leaveRequest.student')" width="120" />
         <el-table-column v-if="!isStudent" prop="className" :label="t('leaveRequest.class')" width="120" />
         <el-table-column prop="courseName" :label="t('leaveRequest.course')" width="150" />
-        <el-table-column prop="courseArrangementId" :label="t('leaveRequest.arrangementId')" width="100" />
         <el-table-column prop="leaveType" :label="t('leaveRequest.leaveType')" width="100">
           <template #default="{ row }">{{ getLeaveTypeText(row.leaveType) }}</template>
         </el-table-column>
@@ -107,7 +106,6 @@
 
       <el-table v-else :data="ccData" v-loading="loading" stripe>
         <el-table-column type="index" :label="t('leaveRequest.index')" width="60" />
-        <el-table-column prop="leaveRequestId" :label="t('leaveRequest.leaveId')" width="120" />
         <el-table-column prop="remark" :label="t('leaveRequest.ccRemark')" min-width="260" />
         <el-table-column prop="createTime" :label="t('leaveRequest.ccTime')" width="180">
           <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
@@ -218,7 +216,6 @@
         <el-descriptions-item :label="t('leaveRequest.student')">{{ detail.studentName || '-' }}</el-descriptions-item>
         <el-descriptions-item :label="t('leaveRequest.class')">{{ detail.className || '-' }}</el-descriptions-item>
         <el-descriptions-item :label="t('leaveRequest.course')">{{ detail.courseName || '-' }}</el-descriptions-item>
-        <el-descriptions-item :label="t('leaveRequest.arrangementId')">{{ detail.courseArrangementId || '-' }}</el-descriptions-item>
         <el-descriptions-item :label="t('leaveRequest.leaveType')">{{ getLeaveTypeText(detail.leaveType) }}</el-descriptions-item>
         <el-descriptions-item :label="t('leaveRequest.status')">
           <el-tag :type="getStatusTagType(detail.status)">{{ getStatusText(detail.status) }}</el-tag>

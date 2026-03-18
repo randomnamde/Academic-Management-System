@@ -4,6 +4,8 @@
 # IDE files
 /.idea/
 *.iml
+/backend/.classpath
+/backend/.settings/
 
 # Node modules
 /frontend/node_modules/
@@ -22,3 +24,7 @@
 
 # Generated release bundles
 /release/
+
+# Temporary local tooling files
+/.qoder/
+/.tmp-*/

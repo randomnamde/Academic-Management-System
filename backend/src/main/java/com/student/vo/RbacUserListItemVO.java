@@ -8,32 +8,20 @@ import java.util.Set;
 
 @Data
 public class RbacUserListItemVO {
-
     private Long id;
-
     private String account;
-
     private String username;
-
     private String realName;
-
     private SysUser.Role role;
-
     private String primaryRole;
-
     private Set<String> roles = new LinkedHashSet<>();
-
     private String phone;
-
     private String email;
-
     private Integer status;
 
-    private Long collegeId;
-
+    private String collegeCode;
     private String collegeName;
 
     private String classId;
-
     private String classDisplayName;
 }

@@ -20,7 +20,7 @@ public class LeaveRequestCc {
 
     private String receiverUserId;
 
-    private Long receiverTeacherId;
+    private String receiverTeacherNo;
 
     private Integer readFlag;
 

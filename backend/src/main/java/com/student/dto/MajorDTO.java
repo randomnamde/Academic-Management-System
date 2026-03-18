@@ -13,7 +13,7 @@ public class MajorDTO {
     private String majorAbbreviation;
 
     @NotNull(message = "College is required")
-    private Long collegeId;
+    private String collegeCode;
 
     private String description;
 

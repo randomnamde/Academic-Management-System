@@ -87,10 +87,10 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
         return scoreMapper.selectPageWithDetail(
                 pageParam,
                 queryDTO.getStudentId(),
-                queryDTO.getTeacherId(),
+                queryDTO.getTeacherNo(),
                 queryDTO.getCourseArrangementId(),
                 queryDTO.getSemester(),
-                queryDTO.getCollegeId(),
+                queryDTO.getCollegeCode(),
                 queryDTO.getClassId());
     }
 
@@ -149,8 +149,8 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
     }
 
     @Override
-    public List<Map<String, Object>> getClassRank(String classId, String semester) {
-        return scoreMapper.selectClassRank(classId, semester);
+    public List<Map<String, Object>> getClassRank(String classCode, String semester) {
+        return scoreMapper.selectClassRank(classCode, semester);
     }
 
     @Override
@@ -170,3 +170,4 @@ public class ScoreServiceImpl extends ServiceImpl<ScoreMapper, Score> implements
         score.setStatus(Score.Status.NORMAL);
     }
 }
+

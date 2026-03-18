@@ -1,16 +1,14 @@
 package com.student.dto;
 
 import com.student.entity.Teacher;
-import lombok.Data;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
 import java.time.LocalDate;
 
 @Data
 public class TeacherDTO {
-
-    private Long id;
 
     private String teacherNo;
 
@@ -30,7 +28,7 @@ public class TeacherDTO {
 
     private String department;
 
-    private Long collegeId;
+    private String collegeCode;
 
     private LocalDate hireDate;
 

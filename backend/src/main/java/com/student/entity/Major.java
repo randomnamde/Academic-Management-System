@@ -20,7 +20,7 @@ public class Major {
 
     private String majorAbbreviation;
 
-    private Long collegeId;
+    private String collegeCode;
 
     @TableField(exist = false)
     private String collegeName;

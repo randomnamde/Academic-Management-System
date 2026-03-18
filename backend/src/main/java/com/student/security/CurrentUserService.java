@@ -97,13 +97,13 @@ public class CurrentUserService {
         return student;
     }
 
-    public Long getCurrentTeacherId(Authentication authentication) {
+    public String getCurrentTeacherNo(Authentication authentication) {
         SysUser user = getCurrentUser(authentication);
         Teacher teacher = teacherMapper.selectByUserId(user.getUsername());
         if (teacher == null) {
             throw new BusinessException(404, "Teacher profile not found");
         }
-        return teacher.getId();
+        return teacher.getTeacherNo();
     }
 
     public Teacher getCurrentTeacher(Authentication authentication) {
@@ -132,7 +132,7 @@ public class CurrentUserService {
         return getPrimaryRoleCode(authentication) == RoleCode.COLLEGE_ADMIN;
     }
 
-    public Long resolveManagedCollegeId(Authentication authentication) {
+    public String resolveManagedCollegeCode(Authentication authentication) {
         if (!isCollegeAdmin(authentication)) {
             return null;
         }
@@ -141,22 +141,22 @@ public class CurrentUserService {
         if (college == null) {
             throw new BusinessException(403, "Current account is not bound to a college");
         }
-        return college.getId();
+        return college.getCollegeCode();
     }
 
-    public Long resolveCurrentCollegeId(Authentication authentication) {
+    public String resolveCurrentCollegeCode(Authentication authentication) {
         if (isStudent(authentication)) {
             Student student = getCurrentStudent(authentication);
             if (student.getClassId() == null) {
                 return null;
             }
             Class clazz = classMapper.selectByClassCode(student.getClassId());
-            return clazz == null ? null : clazz.getCollegeId();
+            return clazz == null ? null : clazz.getCollegeCode();
         }
         if (isTeacher(authentication)) {
             Teacher teacher = getCurrentTeacher(authentication);
-            return teacher.getCollegeId();
+            return teacher.getCollegeCode();
         }
-        return resolveManagedCollegeId(authentication);
+        return resolveManagedCollegeCode(authentication);
     }
 }

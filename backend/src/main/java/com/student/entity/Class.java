@@ -1,21 +1,27 @@
 package com.student.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import java.time.Year;
+
 import java.time.LocalDateTime;
+import java.time.Year;
 
 @Data
 @TableName("class")
 public class Class {
-    
-    @TableId(type = IdType.AUTO)
-    private Long id;
-    
-    private String className;
-    
+
+    @TableId(value = "class_code", type = IdType.INPUT)
     private String classCode;
-    
+
+    @TableField("id")
+    private Long id;
+
+    private String className;
+
     private Year grade;
 
     private String majorCode;
@@ -23,22 +29,22 @@ public class Class {
     @TableField(exist = false)
     private String majorName;
 
-    private Long collegeId;
-    
-    private Long teacherId;
-    
+    private String collegeCode;
+
+    private String teacherNo;
+
     @TableField(exist = false)
     private String teacherName;
-    
+
     private String room;
-    
+
     private Integer studentCount;
-    
+
     private Integer status;
-    
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
-    
+
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 }

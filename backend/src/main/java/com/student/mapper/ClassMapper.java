@@ -17,7 +17,7 @@ public interface ClassMapper extends BaseMapper<Class> {
     @Select("""
             SELECT c.*, t.name AS teacher_name, m.major_name
             FROM class c
-            LEFT JOIN teacher t ON c.teacher_id = t.id
+            LEFT JOIN teacher t ON c.teacher_no = t.teacher_no
             LEFT JOIN major m ON m.major_code = c.major_code
             WHERE c.id = #{id}
             """)
@@ -26,7 +26,7 @@ public interface ClassMapper extends BaseMapper<Class> {
     @Select("""
             SELECT c.*, t.name AS teacher_name, m.major_name
             FROM class c
-            LEFT JOIN teacher t ON c.teacher_id = t.id
+            LEFT JOIN teacher t ON c.teacher_no = t.teacher_no
             LEFT JOIN major m ON m.major_code = c.major_code
             WHERE c.class_code = #{classCode}
             """)
@@ -53,16 +53,16 @@ public interface ClassMapper extends BaseMapper<Class> {
             SELECT c.*, m.major_name
             FROM class c
             LEFT JOIN major m ON m.major_code = c.major_code
-            WHERE c.teacher_id = #{teacherId}
+            WHERE c.teacher_no = #{teacherNo}
             ORDER BY c.create_time DESC
             """)
-    List<Class> selectByTeacherId(@Param("teacherId") Long teacherId);
+    List<Class> selectByTeacherNo(@Param("teacherNo") String teacherNo);
 
     @Select("""
             <script>
             SELECT c.*, t.name AS teacher_name, m.major_name
             FROM class c
-            LEFT JOIN teacher t ON c.teacher_id = t.id
+            LEFT JOIN teacher t ON c.teacher_no = t.teacher_no
             LEFT JOIN major m ON m.major_code = c.major_code
             <where>
               <if test='className != null and className != ""'>
@@ -71,11 +71,11 @@ public interface ClassMapper extends BaseMapper<Class> {
               <if test='grade != null'>
                 AND c.grade = #{grade}
               </if>
-              <if test='teacherId != null'>
-                AND c.teacher_id = #{teacherId}
+              <if test='teacherNo != null'>
+                AND c.teacher_no = #{teacherNo}
               </if>
-              <if test='collegeId != null'>
-                AND c.college_id = #{collegeId}
+              <if test='collegeCode != null'>
+                AND c.college_code = #{collegeCode}
               </if>
               <if test='majorCode != null and majorCode != ""'>
                 AND c.major_code = #{majorCode}
@@ -87,7 +87,9 @@ public interface ClassMapper extends BaseMapper<Class> {
     Page<Class> selectPageWithMajor(Page<Class> page,
                                     @Param("className") String className,
                                     @Param("grade") Year grade,
-                                    @Param("teacherId") Long teacherId,
-                                    @Param("collegeId") Long collegeId,
+                                    @Param("teacherNo") String teacherNo,
+                                    @Param("collegeCode") String collegeCode,
                                     @Param("majorCode") String majorCode);
 }
+
+

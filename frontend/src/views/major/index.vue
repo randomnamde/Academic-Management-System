@@ -7,8 +7,8 @@
     <template #filters>
       <div class="app-filter-grid">
         <el-input v-model="searchForm.keyword" clearable :placeholder="t('major.keywordPlaceholder')" class="col-span-12 md:col-span-3" />
-        <el-select v-model="searchForm.collegeId" clearable :placeholder="t('major.college')" class="col-span-12 md:col-span-3">
-          <el-option v-for="item in collegeOptions" :key="item.id" :label="item.collegeName" :value="item.id" />
+        <el-select v-model="searchForm.collegeCode" clearable :placeholder="t('major.college')" class="col-span-12 md:col-span-3">
+          <el-option v-for="item in collegeOptions" :key="item.collegeCode" :label="item.collegeName" :value="item.collegeCode" />
         </el-select>
         <el-select v-model="searchForm.status" clearable :placeholder="t('major.status')" class="col-span-12 md:col-span-2">
           <el-option :label="t('major.statusEnabled')" :value="1" />
@@ -70,9 +70,9 @@
         </el-row>
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item :label="t('major.college')" prop="collegeId">
-              <el-select v-model="form.collegeId" style="width: 100%">
-                <el-option v-for="item in collegeOptions" :key="item.id" :label="item.collegeName" :value="item.id" />
+            <el-form-item :label="t('major.college')" prop="collegeCode">
+              <el-select v-model="form.collegeCode" style="width: 100%">
+                <el-option v-for="item in collegeOptions" :key="item.collegeCode" :label="item.collegeName" :value="item.collegeCode" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -121,7 +121,7 @@ const collegeOptions = ref([])
 
 const searchForm = reactive({
   keyword: '',
-  collegeId: null,
+  collegeCode: null,
   status: null
 })
 
@@ -142,13 +142,13 @@ const form = reactive({
   majorCode: '',
   majorName: '',
   majorAbbreviation: '',
-  collegeId: null,
+  collegeCode: null,
   description: ''
 })
 
 const rules = computed(() => ({
   majorName: [{ required: true, message: t('major.majorNameRequired'), trigger: 'blur' }],
-  collegeId: [{ required: true, message: t('major.collegeRequired'), trigger: 'change' }]
+  collegeCode: [{ required: true, message: t('major.collegeRequired'), trigger: 'change' }]
 }))
 
 function resetForm() {
@@ -156,7 +156,7 @@ function resetForm() {
     majorCode: '',
     majorName: '',
     majorAbbreviation: '',
-    collegeId: userInfo.value?.collegeId || null,
+    collegeCode: userInfo.value?.collegeCode || null,
     description: ''
   })
 }
@@ -164,8 +164,8 @@ function resetForm() {
 async function loadCollegeOptions() {
   const res = await getCollegeList({ page: 1, size: 500 })
   collegeOptions.value = res.data?.records || []
-  if (!searchForm.collegeId && userInfo.value?.collegeId) {
-    searchForm.collegeId = userInfo.value.collegeId
+  if (!searchForm.collegeCode && userInfo.value?.collegeCode) {
+    searchForm.collegeCode = userInfo.value.collegeCode
   }
 }
 
@@ -176,7 +176,7 @@ async function fetchList() {
       page: page.value,
       size: size.value,
       keyword: searchForm.keyword || undefined,
-      collegeId: searchForm.collegeId || undefined,
+      collegeCode: searchForm.collegeCode || undefined,
       status: searchForm.status ?? undefined
     })
     tableData.value = res.data?.records || []
@@ -193,7 +193,7 @@ function handleSearch() {
 
 function handleReset() {
   searchForm.keyword = ''
-  searchForm.collegeId = userInfo.value?.collegeId || null
+  searchForm.collegeCode = userInfo.value?.collegeCode || null
   searchForm.status = null
   handleSearch()
 }
@@ -218,7 +218,7 @@ async function submit() {
   const payload = {
     majorName: form.majorName,
     majorAbbreviation: form.majorAbbreviation || undefined,
-    collegeId: form.collegeId,
+    collegeCode: form.collegeCode,
     description: form.description
   }
 

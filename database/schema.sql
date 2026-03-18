@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS sys_user (
 
 CREATE TABLE IF NOT EXISTS college (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    college_code VARCHAR(32) NOT NULL UNIQUE,
+    college_code VARCHAR(32) NOT NULL,
     college_name VARCHAR(100) NOT NULL,
     college_name_en VARCHAR(100) NOT NULL,
     description VARCHAR(255),
@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS college (
     admin_user_id VARCHAR(50) UNIQUE,
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_college_id (id),
+    PRIMARY KEY (college_code),
+    UNIQUE KEY uk_college_code (id),
     INDEX idx_college_code (college_code),
     CONSTRAINT fk_college_admin_user FOREIGN KEY (admin_user_id) REFERENCES sys_user(username) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -45,30 +46,30 @@ CREATE TABLE IF NOT EXISTS teacher (
     email VARCHAR(100),
     title ENUM('LECTURER', 'ASSOCIATE_PROFESSOR', 'PROFESSOR'),
     department VARCHAR(100),
-    college_id BIGINT,
+    college_code VARCHAR(32),
     hire_date DATE,
     status TINYINT DEFAULT 1,
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (teacher_no),
-    UNIQUE KEY uk_teacher_id (id),
+    UNIQUE KEY uk_teacher_no (id),
     INDEX idx_teacher_no (teacher_no),
-    INDEX idx_teacher_college_id (college_id),
+    INDEX idx_teacher_college_code (college_code),
     CONSTRAINT fk_teacher_user FOREIGN KEY (user_id) REFERENCES sys_user(username) ON DELETE CASCADE,
-    CONSTRAINT fk_teacher_college FOREIGN KEY (college_id) REFERENCES college(id) ON DELETE SET NULL
+    CONSTRAINT fk_teacher_college FOREIGN KEY (college_code) REFERENCES college(college_code) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS major (
     major_code VARCHAR(8) PRIMARY KEY,
     major_name VARCHAR(100) NOT NULL,
     major_abbreviation VARCHAR(4) NOT NULL,
-    college_id BIGINT NOT NULL,
+    college_code VARCHAR(32) NOT NULL,
     description VARCHAR(255),
     status TINYINT DEFAULT 1,
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_major_college_id (college_id),
-    CONSTRAINT fk_major_college FOREIGN KEY (college_id) REFERENCES college(id) ON DELETE CASCADE
+    INDEX idx_major_college_code (college_code),
+    CONSTRAINT fk_major_college FOREIGN KEY (college_code) REFERENCES college(college_code) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS class (
@@ -77,8 +78,8 @@ CREATE TABLE IF NOT EXISTS class (
     class_code VARCHAR(16) NOT NULL,
     grade YEAR NOT NULL,
     major_code VARCHAR(8) NOT NULL,
-    college_id BIGINT NOT NULL,
-    teacher_id BIGINT,
+    college_code VARCHAR(32) NOT NULL,
+    teacher_no VARCHAR(20),
     room VARCHAR(50),
     student_count INT DEFAULT 0,
     status TINYINT DEFAULT 1,
@@ -87,11 +88,11 @@ CREATE TABLE IF NOT EXISTS class (
     PRIMARY KEY (class_code),
     UNIQUE KEY uk_class_id (id),
     INDEX idx_class_code (class_code),
-    INDEX idx_class_college_id (college_id),
+    INDEX idx_class_college_code (college_code),
     INDEX idx_class_major_code (major_code),
-    CONSTRAINT fk_class_college FOREIGN KEY (college_id) REFERENCES college(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_class_college FOREIGN KEY (college_code) REFERENCES college(college_code) ON DELETE RESTRICT,
     CONSTRAINT fk_class_major FOREIGN KEY (major_code) REFERENCES major(major_code) ON DELETE RESTRICT,
-    CONSTRAINT fk_class_teacher FOREIGN KEY (teacher_id) REFERENCES teacher(id) ON DELETE SET NULL
+    CONSTRAINT fk_class_teacher FOREIGN KEY (teacher_no) REFERENCES teacher(teacher_no) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS student (
@@ -122,7 +123,7 @@ CREATE TABLE IF NOT EXISTS student (
 CREATE TABLE IF NOT EXISTS course (
     id BIGINT NOT NULL AUTO_INCREMENT,
     course_name VARCHAR(100) NOT NULL,
-    course_code VARCHAR(20) NOT NULL UNIQUE,
+    course_code VARCHAR(20) NOT NULL,
     credit DECIMAL(3,1) NOT NULL,
     hours INT,
     category ENUM('REQUIRED', 'ELECTIVE', 'PRACTICAL') DEFAULT 'REQUIRED',
@@ -130,7 +131,8 @@ CREATE TABLE IF NOT EXISTS course (
     status TINYINT DEFAULT 1,
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_course_id (id),
+    PRIMARY KEY (course_code),
+    UNIQUE KEY uk_course_code (id),
     INDEX idx_course_code (course_code),
     INDEX idx_category (category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -138,8 +140,8 @@ CREATE TABLE IF NOT EXISTS course (
 CREATE TABLE IF NOT EXISTS course_arrangement (
     id BIGINT NOT NULL AUTO_INCREMENT,
     arrangement_code VARCHAR(15),
-    course_id BIGINT NOT NULL,
-    teacher_id BIGINT NOT NULL,
+    course_code VARCHAR(20) NOT NULL,
+    teacher_no VARCHAR(20) NOT NULL,
     class_id VARCHAR(16) NOT NULL,
     semester VARCHAR(20) NOT NULL,
     schedule VARCHAR(100),
@@ -150,10 +152,10 @@ CREATE TABLE IF NOT EXISTS course_arrangement (
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uk_course_arrangement_id (id),
     UNIQUE KEY uk_arrangement_code (arrangement_code),
-    INDEX idx_course_teacher (course_id, teacher_id),
+    INDEX idx_course_teacher (course_code, teacher_no),
     INDEX idx_class_semester (class_id, semester),
-    CONSTRAINT fk_arrangement_course FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,
-    CONSTRAINT fk_arrangement_teacher FOREIGN KEY (teacher_id) REFERENCES teacher(id) ON DELETE CASCADE,
+    CONSTRAINT fk_arrangement_course FOREIGN KEY (course_code) REFERENCES course(course_code) ON DELETE CASCADE,
+    CONSTRAINT fk_arrangement_teacher FOREIGN KEY (teacher_no) REFERENCES teacher(teacher_no) ON DELETE CASCADE,
     CONSTRAINT fk_arrangement_class FOREIGN KEY (class_id) REFERENCES class(class_code) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -208,7 +210,7 @@ CREATE TABLE IF NOT EXISTS leave_request (
     workflow_type VARCHAR(20),
     current_node VARCHAR(50),
     final_status VARCHAR(20),
-    approver_id BIGINT,
+    approver_no VARCHAR(20),
     approve_time DATETIME,
     approve_remark VARCHAR(255),
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -218,7 +220,7 @@ CREATE TABLE IF NOT EXISTS leave_request (
     INDEX idx_leave_node_status (current_node, status),
     CONSTRAINT fk_leave_student FOREIGN KEY (student_id) REFERENCES student(student_no) ON DELETE CASCADE,
     CONSTRAINT fk_leave_arrangement FOREIGN KEY (course_arrangement_id) REFERENCES course_arrangement(id) ON DELETE SET NULL,
-    CONSTRAINT fk_leave_approver FOREIGN KEY (approver_id) REFERENCES teacher(id) ON DELETE SET NULL
+    CONSTRAINT fk_leave_approver FOREIGN KEY (approver_no) REFERENCES teacher(teacher_no) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS announcement (
@@ -276,7 +278,7 @@ CREATE TABLE IF NOT EXISTS leave_request_approval (
     leave_request_id BIGINT NOT NULL,
     node_code VARCHAR(50),
     approver_user_id VARCHAR(50),
-    approver_teacher_id BIGINT,
+    approver_teacher_no VARCHAR(20),
     decision VARCHAR(20),
     remark VARCHAR(255),
     operate_time DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -284,15 +286,14 @@ CREATE TABLE IF NOT EXISTS leave_request_approval (
     INDEX idx_leave_approval_request (leave_request_id),
     CONSTRAINT fk_leave_approval_request FOREIGN KEY (leave_request_id) REFERENCES leave_request(id) ON DELETE CASCADE,
     CONSTRAINT fk_leave_approval_user FOREIGN KEY (approver_user_id) REFERENCES sys_user(username) ON DELETE SET NULL,
-    CONSTRAINT fk_leave_approval_teacher FOREIGN KEY (approver_teacher_id) REFERENCES teacher(id) ON DELETE SET NULL
+    CONSTRAINT fk_leave_approval_teacher FOREIGN KEY (approver_teacher_no) REFERENCES teacher(teacher_no) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 请假抄送记录表
 CREATE TABLE IF NOT EXISTS leave_request_cc (
     id BIGINT NOT NULL AUTO_INCREMENT,
     leave_request_id BIGINT NOT NULL,
     receiver_user_id VARCHAR(50) NOT NULL,
-    receiver_teacher_id BIGINT,
+    receiver_teacher_no VARCHAR(20),
     read_flag TINYINT DEFAULT 0,
     read_time DATETIME,
     remark VARCHAR(255),
@@ -301,7 +302,7 @@ CREATE TABLE IF NOT EXISTS leave_request_cc (
     INDEX idx_leave_cc_receiver (receiver_user_id, read_flag),
     CONSTRAINT fk_leave_cc_request FOREIGN KEY (leave_request_id) REFERENCES leave_request(id) ON DELETE CASCADE,
     CONSTRAINT fk_leave_cc_user FOREIGN KEY (receiver_user_id) REFERENCES sys_user(username) ON DELETE CASCADE,
-    CONSTRAINT fk_leave_cc_teacher FOREIGN KEY (receiver_teacher_id) REFERENCES teacher(id) ON DELETE SET NULL
+    CONSTRAINT fk_leave_cc_teacher FOREIGN KEY (receiver_teacher_no) REFERENCES teacher(teacher_no) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS sys_config (
@@ -358,6 +359,4 @@ CREATE INDEX idx_score_arrangement_total ON score(course_arrangement_id, total_s
 CREATE INDEX idx_attendance_status_scope_date ON attendance(status, course_arrangement_id, attendance_date);
 CREATE INDEX idx_leave_pending_create ON leave_request(status, create_time);
 CREATE INDEX idx_leave_arrangement_pending ON leave_request(course_arrangement_id, status, create_time);
-
-
 

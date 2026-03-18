@@ -14,17 +14,19 @@ public interface CourseArrangementMapper extends BaseMapper<CourseArrangement> {
     CourseArrangement selectByIdWithDetail(@Param("id") Long id);
 
     Page<CourseArrangement> selectPageWithDetail(Page<CourseArrangement> page,
-                                                 @Param("collegeId") Long collegeId,
-                                                 @Param("courseId") Long courseId,
-                                                 @Param("teacherId") Long teacherId,
+                                                 @Param("collegeCode") String collegeCode,
+                                                 @Param("courseCode") String courseCode,
+                                                 @Param("teacherNo") String teacherNo,
                                                  @Param("classId") String classId,
                                                  @Param("semester") String semester,
                                                  @Param("status") Integer status);
 
-    List<CourseArrangement> selectListWithDetail(@Param("teacherId") Long teacherId,
+    List<CourseArrangement> selectListWithDetail(@Param("teacherNo") String teacherNo,
                                                  @Param("classId") String classId,
                                                  @Param("status") Integer status);
 
     @org.apache.ibatis.annotations.Update("UPDATE course_arrangement SET enrolled_count = enrolled_count + #{count} WHERE id = #{id} AND enrolled_count + #{count} <= capacity")
     int updateEnrolledCount(@Param("id") Long id, @Param("count") int count);
 }
+
+

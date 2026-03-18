@@ -34,18 +34,18 @@ public class DataScopeService {
         return requestedStudentNo;
     }
 
-    public Long resolveScopedTeacherId(Authentication authentication, Long requestedTeacherId) {
+    public String resolveScopedTeacherNo(Authentication authentication, String requestedTeacherNo) {
         if (currentUserService.isTeacher(authentication)) {
-            return currentUserService.getCurrentTeacherId(authentication);
+            return currentUserService.getCurrentTeacherNo(authentication);
         }
-        return requestedTeacherId;
+        return requestedTeacherNo;
     }
 
-    public Long resolveCurrentTeacherId(Authentication authentication) {
+    public String resolveCurrentTeacherNo(Authentication authentication) {
         if (!currentUserService.isTeacher(authentication)) {
             return null;
         }
-        return currentUserService.getCurrentTeacherId(authentication);
+        return currentUserService.getCurrentTeacherNo(authentication);
     }
 
     public void assertTeacherOwnsArrangement(Authentication authentication, Long arrangementId) {
@@ -56,8 +56,8 @@ public class DataScopeService {
         if (arrangement == null) {
             throw new BusinessException(404, "Course arrangement not found");
         }
-        Long teacherId = currentUserService.getCurrentTeacherId(authentication);
-        if (!teacherId.equals(arrangement.getTeacherId())) {
+        String teacherNo = currentUserService.getCurrentTeacherNo(authentication);
+        if (!teacherNo.equals(arrangement.getTeacherNo())) {
             throw new BusinessException(403, "Forbidden");
         }
     }
@@ -75,24 +75,24 @@ public class DataScopeService {
         return currentUserService.isStudent(authentication);
     }
 
-    public Long resolveScopedCollegeId(Authentication authentication) {
-        return currentUserService.resolveManagedCollegeId(authentication);
+    public String resolveScopedCollegeCode(Authentication authentication) {
+        return currentUserService.resolveManagedCollegeCode(authentication);
     }
 
-    public void assertCollegeScope(Authentication authentication, Long collegeId) {
-        Long scopedCollegeId = resolveScopedCollegeId(authentication);
-        if (scopedCollegeId != null && collegeId != null && !scopedCollegeId.equals(collegeId)) {
+    public void assertCollegeScope(Authentication authentication, String collegeCode) {
+        String scopedCollegeCode = resolveScopedCollegeCode(authentication);
+        if (scopedCollegeCode != null && collegeCode != null && !scopedCollegeCode.equals(collegeCode)) {
             throw new BusinessException(403, "Forbidden");
         }
     }
 
     public Set<String> resolveCollegeClassCodes(Authentication authentication) {
-        Long scopedCollegeId = resolveScopedCollegeId(authentication);
-        if (scopedCollegeId == null) {
+        String scopedCollegeCode = resolveScopedCollegeCode(authentication);
+        if (scopedCollegeCode == null) {
             return Set.of();
         }
         List<Class> classes = classMapper.selectList(
-                new LambdaQueryWrapper<Class>().eq(Class::getCollegeId, scopedCollegeId));
+                new LambdaQueryWrapper<Class>().eq(Class::getCollegeCode, scopedCollegeCode));
         Set<String> ids = new HashSet<>();
         for (Class clazz : classes) {
             if (clazz.getClassCode() != null) {
@@ -122,11 +122,11 @@ public class DataScopeService {
         Student student = currentUserService.getCurrentStudent(authentication);
         Set<String> classIds = new HashSet<>();
         Set<Long> arrangementIds = new HashSet<>();
-        Set<Long> teacherIds = new HashSet<>();
-        Set<Long> courseIds = new HashSet<>();
+        Set<String> teacherNos = new HashSet<>();
+        Set<String> courseCodes = new HashSet<>();
 
         if (student.getClassId() == null) {
-            return new StudentArrangementScope(student.getStudentNo(), classIds, arrangementIds, teacherIds, courseIds);
+            return new StudentArrangementScope(student.getStudentNo(), classIds, arrangementIds, teacherNos, courseCodes);
         }
 
         classIds.add(student.getClassId());
@@ -138,36 +138,36 @@ public class DataScopeService {
             if (arrangement.getId() != null) {
                 arrangementIds.add(arrangement.getId());
             }
-            if (arrangement.getTeacherId() != null) {
-                teacherIds.add(arrangement.getTeacherId());
+            if (arrangement.getTeacherNo() != null) {
+                teacherNos.add(arrangement.getTeacherNo());
             }
-            if (arrangement.getCourseId() != null) {
-                courseIds.add(arrangement.getCourseId());
+            if (arrangement.getCourseCode() != null) {
+                courseCodes.add(arrangement.getCourseCode());
             }
             if (arrangement.getClassId() != null) {
                 classIds.add(arrangement.getClassId());
             }
         }
-        return new StudentArrangementScope(student.getStudentNo(), classIds, arrangementIds, teacherIds, courseIds);
+        return new StudentArrangementScope(student.getStudentNo(), classIds, arrangementIds, teacherNos, courseCodes);
     }
 
     public static final class StudentArrangementScope {
         private final String studentNo;
         private final Set<String> classIds;
         private final Set<Long> arrangementIds;
-        private final Set<Long> teacherIds;
-        private final Set<Long> courseIds;
+        private final Set<String> teacherNos;
+        private final Set<String> courseCodes;
 
         public StudentArrangementScope(String studentNo,
                                        Set<String> classIds,
                                        Set<Long> arrangementIds,
-                                       Set<Long> teacherIds,
-                                       Set<Long> courseIds) {
+                                       Set<String> teacherNos,
+                                       Set<String> courseCodes) {
             this.studentNo = studentNo;
             this.classIds = Collections.unmodifiableSet(new HashSet<>(classIds));
             this.arrangementIds = Collections.unmodifiableSet(new HashSet<>(arrangementIds));
-            this.teacherIds = Collections.unmodifiableSet(new HashSet<>(teacherIds));
-            this.courseIds = Collections.unmodifiableSet(new HashSet<>(courseIds));
+            this.teacherNos = Collections.unmodifiableSet(new HashSet<>(teacherNos));
+            this.courseCodes = Collections.unmodifiableSet(new HashSet<>(courseCodes));
         }
 
         public String getStudentNo() {
@@ -182,12 +182,12 @@ public class DataScopeService {
             return arrangementIds;
         }
 
-        public Set<Long> getTeacherIds() {
-            return teacherIds;
+        public Set<String> getTeacherNos() {
+            return teacherNos;
         }
 
-        public Set<Long> getCourseIds() {
-            return courseIds;
+        public Set<String> getCourseCodes() {
+            return courseCodes;
         }
     }
 }

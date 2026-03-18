@@ -27,27 +27,27 @@ public class MajorController {
     public ResultVO<Page<Major>> list(@RequestParam(defaultValue = "1") Integer page,
                                       @RequestParam(defaultValue = "10") Integer size,
                                       @RequestParam(required = false) String keyword,
-                                      @RequestParam(required = false) Long collegeId,
+                                      @RequestParam(required = false) String collegeCode,
                                       @RequestParam(required = false) Integer status,
                                       Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        return ResultVO.success(majorService.getMajorPage(page, size, keyword, collegeId, status, scopedCollegeId));
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        return ResultVO.success(majorService.getMajorPage(page, size, keyword, collegeCode, status, scopedCollegeCode));
     }
 
     @GetMapping("/options")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
-    public ResultVO<List<Major>> options(@RequestParam(required = false) Long collegeId,
+    public ResultVO<List<Major>> options(@RequestParam(required = false) String collegeCode,
                                          @RequestParam(required = false) Integer status,
                                          Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        return ResultVO.success(majorService.getMajorOptions(collegeId, status, scopedCollegeId));
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        return ResultVO.success(majorService.getMajorOptions(collegeCode, status, scopedCollegeCode));
     }
 
     @GetMapping("/{majorCode}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Major> detail(@PathVariable String majorCode, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        Major major = majorService.getMajorDetail(majorCode, scopedCollegeId);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        Major major = majorService.getMajorDetail(majorCode, scopedCollegeCode);
         if (major == null) {
             return ResultVO.error(404, "Major not found");
         }
@@ -57,8 +57,8 @@ public class MajorController {
     @PostMapping
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Major> create(@RequestBody @Validated MajorDTO dto, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        return ResultVO.success(majorService.createMajor(dto, scopedCollegeId));
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        return ResultVO.success(majorService.createMajor(dto, scopedCollegeCode));
     }
 
     @PutMapping("/{majorCode}")
@@ -66,8 +66,8 @@ public class MajorController {
     public ResultVO<Void> update(@PathVariable String majorCode,
                                  @RequestBody @Validated MajorDTO dto,
                                  Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        majorService.updateMajor(majorCode, dto, scopedCollegeId);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        majorService.updateMajor(majorCode, dto, scopedCollegeCode);
         return ResultVO.success();
     }
 
@@ -76,8 +76,10 @@ public class MajorController {
     public ResultVO<Void> updateStatus(@PathVariable String majorCode,
                                        @RequestParam Integer status,
                                        Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        majorService.updateMajorStatus(majorCode, status, scopedCollegeId);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        majorService.updateMajorStatus(majorCode, status, scopedCollegeCode);
         return ResultVO.success();
     }
 }
+
+

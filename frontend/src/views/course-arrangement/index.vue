@@ -29,7 +29,7 @@
         <label class="filter-field">
           <span class="filter-label">{{ t('courseArrangement.college') }}</span>
           <el-select
-            v-model="searchForm.collegeId"
+            v-model="searchForm.collegeCode"
             clearable
             filterable
             :disabled="collegeLocked"
@@ -40,9 +40,9 @@
           </el-select>
         </label>
         <label class="filter-field">
-          <span class="filter-label">{{ t('courseArrangement.courseId') }}</span>
+          <span class="filter-label">{{ t('courseArrangement.courseCode') }}</span>
           <el-select
-            v-model="searchForm.courseId"
+            v-model="searchForm.courseCode"
             clearable
             filterable
             :placeholder="t('courseArrangement.selectCourse')"
@@ -51,9 +51,9 @@
           </el-select>
         </label>
         <label v-if="!isStudent && !isTeacher" class="filter-field">
-          <span class="filter-label">{{ t('courseArrangement.teacherId') }}</span>
+          <span class="filter-label">{{ t('courseArrangement.teacherNo') }}</span>
           <el-select
-            v-model="searchForm.teacherId"
+            v-model="searchForm.teacherNo"
             clearable
             filterable
             :placeholder="t('courseArrangement.selectTeacher')"
@@ -182,9 +182,9 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item :label="t('courseArrangement.college')" prop="collegeId">
+            <el-form-item :label="t('courseArrangement.college')" prop="collegeCode">
               <el-select
-                v-model="form.collegeId"
+                v-model="form.collegeCode"
                 filterable
                 style="width: 100%"
                 :disabled="collegeLocked"
@@ -196,9 +196,9 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item :label="t('courseArrangement.courseId')" prop="courseId">
+            <el-form-item :label="t('courseArrangement.courseCode')" prop="courseCode">
               <el-select
-                v-model="form.courseId"
+                v-model="form.courseCode"
                 filterable
                 style="width: 100%"
                 :placeholder="t('courseArrangement.selectCourse')"
@@ -211,9 +211,9 @@
 
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item :label="t('courseArrangement.teacherId')" prop="teacherId">
+            <el-form-item :label="t('courseArrangement.teacherNo')" prop="teacherNo">
               <el-select
-                v-model="form.teacherId"
+                v-model="form.teacherNo"
                 filterable
                 style="width: 100%"
                 :placeholder="t('courseArrangement.selectTeacher')"
@@ -330,7 +330,7 @@ const currentSemester = ref('')
 const canViewTimetable = computed(() => {
   if (isStudent.value) return !!searchForm.semester // Students just need semester, classId is implicit
   if (isTeacher.value) return !!searchForm.semester // Teachers just need semester
-  return !!searchForm.semester && (!!searchForm.classId || !!searchForm.teacherId) // Admins need semester AND (class or teacher)
+  return !!searchForm.semester && (!!searchForm.classId || !!searchForm.teacherNo) // Admins need semester AND (class or teacher)
 })
 
 const loading = ref(false)
@@ -347,9 +347,9 @@ const formTeacherOptions = ref([])
 const formClassOptions = ref([])
 
 const searchForm = reactive({
-  collegeId: null,
-  courseId: null,
-  teacherId: null,
+  collegeCode: null,
+  courseCode: null,
+  teacherNo: null,
   classId: null,
   semester: ''
 })
@@ -359,9 +359,9 @@ const isEdit = ref(false)
 const formRef = ref()
 const form = reactive({
   id: null,
-  collegeId: null,
-  courseId: null,
-  teacherId: null,
+  collegeCode: null,
+  courseCode: null,
+  teacherNo: null,
   classId: null,
   semester: '',
   scheduleDay: '',
@@ -373,9 +373,9 @@ const form = reactive({
 })
 
 const rules = computed(() => ({
-  collegeId: [{ required: true, message: t('courseArrangement.collegeRequired'), trigger: 'change' }],
-  courseId: [{ required: true, message: t('courseArrangement.courseIdRequired'), trigger: 'change' }],
-  teacherId: [{ required: true, message: t('courseArrangement.teacherIdRequired'), trigger: 'change' }],
+  collegeCode: [{ required: true, message: t('courseArrangement.collegeRequired'), trigger: 'change' }],
+  courseCode: [{ required: true, message: t('courseArrangement.courseCodeRequired'), trigger: 'change' }],
+  teacherNo: [{ required: true, message: t('courseArrangement.teacherNoRequired'), trigger: 'change' }],
   classId: [{ required: true, message: t('courseArrangement.classIdRequired'), trigger: 'change' }],
   semester: [{ required: true, message: t('courseArrangement.semesterRequired'), trigger: 'blur' }],
   scheduleDay: [{ required: true, message: t('courseArrangement.scheduleDayRequired'), trigger: 'change' }],
@@ -439,7 +439,7 @@ const tableColumns = computed(() => {
 })
 
 const activeArrangementCount = computed(() => tableData.value.filter((item) => Number(item.status) === 1).length)
-const courseCoverageCount = computed(() => new Set(tableData.value.map((item) => item.courseId || item.courseName).filter(Boolean)).size)
+const courseCoverageCount = computed(() => new Set(tableData.value.map((item) => item.courseCode || item.courseName).filter(Boolean)).size)
 const occupiedSlotCount = computed(() => new Set(tableData.value.map((item) => item.schedule).filter(Boolean)).size)
 
 const arrangementMetrics = computed(() => [
@@ -489,21 +489,21 @@ function statusBadgeType(status) {
 
 function mapCollegeOption(item) {
   return {
-    value: item.id,
+    value: item.collegeCode,
     label: `${item.collegeName}${item.collegeCode ? ` (${item.collegeCode})` : ''}`
   }
 }
 
 function mapCourseOption(item) {
   return {
-    value: item.id,
+    value: item.collegeCode,
     label: `${item.courseName}${item.courseCode ? ` (${item.courseCode})` : ''}`
   }
 }
 
 function mapTeacherOption(item) {
   return {
-    value: item.id,
+    value: item.teacherNo,
     label: `${item.name}${item.teacherNo ? ` (${item.teacherNo})` : ''}`
   }
 }
@@ -516,16 +516,16 @@ function mapClassOption(item) {
 }
 
 function getLockedCollegeOption() {
-  if (!userInfo.value?.collegeId) return null
+  if (!userInfo.value?.collegeCode) return null
   return {
-    value: userInfo.value.collegeId,
-    label: userInfo.value.collegeName || `${t('courseArrangement.college')} #${userInfo.value.collegeId}`
+    value: userInfo.value.collegeCode,
+    label: userInfo.value.collegeName || `${t('courseArrangement.college')} #${userInfo.value.collegeCode}`
   }
 }
 
-function getDefaultCollegeId() {
+function getDefaultCollegeCode() {
   if (collegeLocked.value) {
-    return userInfo.value?.collegeId || collegeOptions.value[0]?.value || null
+    return userInfo.value?.collegeCode || collegeOptions.value[0]?.value || null
   }
   return null
 }
@@ -533,9 +533,9 @@ function getDefaultCollegeId() {
 function resetForm() {
   Object.assign(form, {
     id: null,
-    collegeId: getDefaultCollegeId(),
-    courseId: null,
-    teacherId: null,
+    collegeCode: getDefaultCollegeCode(),
+    courseCode: null,
+    teacherNo: null,
     classId: null,
     semester: searchForm.semester,
     scheduleDay: '',
@@ -549,7 +549,7 @@ function resetForm() {
 
 async function ensureUserScopeInfo() {
   if (!collegeLocked.value && !isStudent.value) return
-  if (userInfo.value?.collegeId && (!isStudent.value || userInfo.value?.classId)) return
+  if (userInfo.value?.collegeCode && (!isStudent.value || userInfo.value?.classId)) return
   await store.dispatch('getUserInfo').catch(() => null)
 }
 
@@ -568,35 +568,35 @@ async function loadCourseOptions() {
   courseOptions.value = (res.data?.records || []).map(mapCourseOption)
 }
 
-async function loadTeacherOptions(collegeId, targetRef) {
-  if (!collegeId) {
+async function loadTeacherOptions(collegeCode, targetRef) {
+  if (!collegeCode) {
     targetRef.value = []
     return
   }
-  const res = await getTeacherList({ page: 1, size: 500, collegeId })
+  const res = await getTeacherList({ page: 1, size: 500, collegeCode })
   targetRef.value = (res.data?.records || []).map(mapTeacherOption)
 }
 
-async function loadClassOptions(collegeId, targetRef) {
-  if (!collegeId) {
+async function loadClassOptions(collegeCode, targetRef) {
+  if (!collegeCode) {
     targetRef.value = []
     return
   }
-  const res = await getClassList({ page: 1, size: 500, collegeId })
+  const res = await getClassList({ page: 1, size: 500, collegeCode })
   targetRef.value = (res.data?.records || []).map(mapClassOption)
 }
 
 async function syncSearchScopedOptions() {
   await Promise.all([
-    loadTeacherOptions(searchForm.collegeId, searchTeacherOptions),
-    loadClassOptions(searchForm.collegeId, searchClassOptions)
+    loadTeacherOptions(searchForm.collegeCode, searchTeacherOptions),
+    loadClassOptions(searchForm.collegeCode, searchClassOptions)
   ])
 }
 
 async function syncFormScopedOptions() {
   await Promise.all([
-    loadTeacherOptions(form.collegeId, formTeacherOptions),
-    loadClassOptions(form.collegeId, formClassOptions)
+    loadTeacherOptions(form.collegeCode, formTeacherOptions),
+    loadClassOptions(form.collegeCode, formClassOptions)
   ])
 }
 
@@ -697,7 +697,7 @@ function hashCourseKey(value) {
 }
 
 function getCourseCardStyle(course) {
-  const paletteSeed = course?.courseId || course?.courseCode || course?.courseName || course?.id || 'course'
+  const paletteSeed = course?.courseCode || course?.courseName || course?.id || 'course'
   const palette = courseCardPalettes[hashCourseKey(paletteSeed) % courseCardPalettes.length]
   return {
     '--course-card-bg': palette.background,
@@ -718,9 +718,9 @@ async function fetchList() {
     const res = await getCourseArrangementList({
       page: viewMode.value === 'list' ? page.value : 1, // Timetable needs all data
       size: viewMode.value === 'list' ? size.value : 500,
-      collegeId: searchForm.collegeId || undefined,
-      courseId: searchForm.courseId || undefined,
-      teacherId: searchForm.teacherId || undefined,
+      collegeCode: searchForm.collegeCode || undefined,
+      courseCode: searchForm.courseCode || undefined,
+      teacherNo: searchForm.teacherNo || undefined,
       classId: searchForm.classId || undefined,
       semester: searchForm.semester || undefined
     })
@@ -752,21 +752,21 @@ function handleSearch() {
 }
 
 async function handleSearchCollegeChange() {
-  searchForm.teacherId = null
+  searchForm.teacherNo = null
   searchForm.classId = null
   await syncSearchScopedOptions()
 }
 
 async function handleFormCollegeChange() {
-  form.teacherId = null
+  form.teacherNo = null
   form.classId = null
   await syncFormScopedOptions()
 }
 
 async function handleReset() {
-  searchForm.collegeId = getDefaultCollegeId()
-  searchForm.courseId = null
-  searchForm.teacherId = null
+  searchForm.collegeCode = getDefaultCollegeCode()
+  searchForm.courseCode = null
+  searchForm.teacherNo = null
   searchForm.classId = isStudent.value ? (userInfo.value?.classId || null) : null
   searchForm.semester = currentSemester.value || ''
   await syncSearchScopedOptions()
@@ -796,9 +796,9 @@ async function openEdit(row) {
   
   Object.assign(form, {
     id: row.id,
-    collegeId: row.collegeId || getDefaultCollegeId(),
-    courseId: row.courseId,
-    teacherId: row.teacherId,
+    collegeCode: row.collegeCode || getDefaultCollegeCode(),
+    courseCode: row.courseCode,
+    teacherNo: row.teacherNo,
     classId: row.classId,
     semester: row.semester || '',
     scheduleDay: scheduleDay,
@@ -819,9 +819,9 @@ async function submit() {
   form.schedule = `${form.scheduleDay} ${form.scheduleTime}`
 
   const payload = {
-    collegeId: form.collegeId,
-    courseId: form.courseId,
-    teacherId: form.teacherId,
+    collegeCode: form.collegeCode,
+    courseCode: form.courseCode,
+    teacherNo: form.teacherNo,
     classId: form.classId,
     semester: form.semester,
     schedule: form.schedule,
@@ -853,9 +853,9 @@ async function initializePage() {
   await ensureUserScopeInfo()
   await Promise.all([loadCollegeOptions(), loadCourseOptions(), loadCourseTimeSlotOptions(), loadCurrentSemesterOption()])
 
-  const defaultCollegeId = getDefaultCollegeId()
-  if (defaultCollegeId) {
-    searchForm.collegeId = defaultCollegeId
+  const defaultCollegeCode = getDefaultCollegeCode()
+  if (defaultCollegeCode) {
+    searchForm.collegeCode = defaultCollegeCode
   }
   if (isStudent.value && userInfo.value?.classId) {
     searchForm.classId = userInfo.value.classId

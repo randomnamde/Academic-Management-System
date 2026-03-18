@@ -1,7 +1,7 @@
 package com.student.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.student.dto.TeacherDTO;
 import com.student.entity.Teacher;
 import com.student.security.CurrentUserService;
@@ -26,24 +26,32 @@ public class TeacherController {
     @PostMapping
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> add(@RequestBody @Validated TeacherDTO teacherDTO, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId != null) {
-            teacherDTO.setCollegeId(scopedCollegeId);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        if (scopedCollegeCode != null) {
+            teacherDTO.setCollegeCode(scopedCollegeCode);
         }
         teacherService.addTeacher(teacherDTO);
         return ResultVO.success();
     }
 
+    @GetMapping("/next-no")
+    @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
+    public ResultVO<String> nextTeacherNo(@RequestParam String collegeCode, Authentication authentication) {
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        String effectiveCollegeCode = scopedCollegeCode != null ? scopedCollegeCode : collegeCode;
+        return ResultVO.success(teacherService.generateNextTeacherNo(effectiveCollegeCode));
+    }
+
     @PutMapping("/{teacherNo}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> update(@PathVariable String teacherNo, @RequestBody @Validated TeacherDTO teacherDTO, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId != null) {
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        if (scopedCollegeCode != null) {
             Teacher existing = teacherService.getById(teacherNo);
-            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+            if (existing == null || !scopedCollegeCode.equals(existing.getCollegeCode())) {
                 return ResultVO.error(403, "Forbidden");
             }
-            teacherDTO.setCollegeId(scopedCollegeId);
+            teacherDTO.setCollegeCode(scopedCollegeCode);
         }
         teacherDTO.setTeacherNo(teacherNo);
         teacherService.updateTeacher(teacherDTO);
@@ -53,10 +61,10 @@ public class TeacherController {
     @DeleteMapping("/{teacherNo}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> delete(@PathVariable String teacherNo, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId != null) {
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        if (scopedCollegeCode != null) {
             Teacher existing = teacherService.getById(teacherNo);
-            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+            if (existing == null || !scopedCollegeCode.equals(existing.getCollegeCode())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
@@ -67,17 +75,17 @@ public class TeacherController {
     @GetMapping("/{teacherNo}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Teacher> getById(@PathVariable String teacherNo, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId != null) {
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        if (scopedCollegeCode != null) {
             Teacher existing = teacherService.getById(teacherNo);
-            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+            if (existing == null || !scopedCollegeCode.equals(existing.getCollegeCode())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
         Teacher teacher = teacherService.getById(teacherNo);
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
-            if (teacher == null || teacher.getId() == null || !scope.getTeacherIds().contains(teacher.getId())) {
+            if (teacher == null || !scope.getTeacherNos().contains(teacher.getTeacherNo())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
@@ -91,58 +99,54 @@ public class TeacherController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String teacherNo,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) Long collegeId,
-            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) String collegeCode,
+            @RequestParam(required = false) String department,
             Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
-        if (scopedCollegeId == null && currentUserService.isTeacher(authentication)) {
-            effectiveCollegeId = currentUserService.resolveCurrentCollegeId(authentication);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        String effectiveCollegeCode = scopedCollegeCode != null ? scopedCollegeCode : collegeCode;
+        if (scopedCollegeCode == null && currentUserService.isTeacher(authentication)) {
+            effectiveCollegeCode = currentUserService.resolveCurrentCollegeCode(authentication);
         }
-        if (scopedCollegeId != null) {
+        if (scopedCollegeCode != null) {
             Page<Teacher> pageParam = new Page<>(page, size);
-            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Teacher> wrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Teacher>()
-                    .eq(Teacher::getCollegeId, effectiveCollegeId)
+            LambdaQueryWrapper<Teacher> wrapper = new LambdaQueryWrapper<Teacher>()
+                    .eq(Teacher::getCollegeCode, effectiveCollegeCode)
                     .like(teacherNo != null && !teacherNo.isBlank(), Teacher::getTeacherNo, teacherNo)
                     .like(name != null && !name.isBlank(), Teacher::getName, name);
-            Page<Teacher> result = teacherService.page(pageParam, wrapper);
-            return ResultVO.success(result);
+            return ResultVO.success(teacherService.page(pageParam, wrapper));
         }
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
             Page<Teacher> pageParam = new Page<>(page, size);
-            if (scope.getTeacherIds().isEmpty()) {
+            if (scope.getTeacherNos().isEmpty()) {
                 pageParam.setRecords(java.util.Collections.emptyList());
                 pageParam.setTotal(0);
                 return ResultVO.success(pageParam);
             }
             LambdaQueryWrapper<Teacher> wrapper = new LambdaQueryWrapper<Teacher>()
-                    .in(Teacher::getId, scope.getTeacherIds())
+                    .in(Teacher::getTeacherNo, scope.getTeacherNos())
                     .like(teacherNo != null && !teacherNo.isBlank(), Teacher::getTeacherNo, teacherNo)
                     .like(name != null && !name.isBlank(), Teacher::getName, name);
-            Page<Teacher> result = teacherService.page(pageParam, wrapper);
-            return ResultVO.success(result);
+            return ResultVO.success(teacherService.page(pageParam, wrapper));
         }
-        if (effectiveCollegeId != null) {
+        if (effectiveCollegeCode != null) {
             Page<Teacher> pageParam = new Page<>(page, size);
             LambdaQueryWrapper<Teacher> wrapper = new LambdaQueryWrapper<Teacher>()
-                    .eq(Teacher::getCollegeId, effectiveCollegeId)
+                    .eq(Teacher::getCollegeCode, effectiveCollegeCode)
                     .like(teacherNo != null && !teacherNo.isBlank(), Teacher::getTeacherNo, teacherNo)
                     .like(name != null && !name.isBlank(), Teacher::getName, name);
-            Page<Teacher> result = teacherService.page(pageParam, wrapper);
-            return ResultVO.success(result);
+            return ResultVO.success(teacherService.page(pageParam, wrapper));
         }
-        Page<Teacher> result = teacherService.getTeacherPage(page, size, teacherNo, name, departmentId);
-        return ResultVO.success(result);
+        return ResultVO.success(teacherService.getTeacherPage(page, size, teacherNo, name, department));
     }
 
     @PutMapping("/{teacherNo}/status")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> updateStatus(@PathVariable String teacherNo, @RequestParam Integer status, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId != null) {
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        if (scopedCollegeCode != null) {
             Teacher existing = teacherService.getById(teacherNo);
-            if (existing == null || !scopedCollegeId.equals(existing.getCollegeId())) {
+            if (existing == null || !scopedCollegeCode.equals(existing.getCollegeCode())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
@@ -150,4 +154,3 @@ public class TeacherController {
         return ResultVO.success();
     }
 }
-

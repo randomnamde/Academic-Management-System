@@ -50,6 +50,17 @@ const routes = [
         }
       },
       {
+        path: 'teacher/workload',
+        name: 'TeacherWorkload',
+        component: () => import('@/views/teacher/workload.vue'),
+        meta: {
+          titleKey: 'route.teacherWorkload',
+          icon: 'PieChart',
+          roles: ALL_ROLES,
+          menuGroup: 'teaching'
+        }
+      },
+      {
         path: 'teaching-management',
         name: 'TeachingManagement',
         component: () => import('@/views/teaching-management/index.vue'),
@@ -159,6 +170,24 @@ const routes = [
         meta: { titleKey: 'route.score', icon: 'TrendCharts', roles: ALL_ROLES, menuGroup: 'assessment' }
       },
       {
+        path: 'course-evaluation',
+        name: 'CourseEvaluation',
+        component: () => import('@/views/course-evaluation/index.vue'),
+        meta: { titleKey: 'route.courseEvaluation', icon: 'Star', roles: ALL_ROLES, menuGroup: 'assessment' }
+      },
+      {
+        path: 'exam-arrangement',
+        name: 'ExamArrangement',
+        component: () => import('@/views/exam-arrangement/index.vue'),
+        meta: { titleKey: 'route.examArrangement', icon: 'Document', roles: ALL_ROLES, menuGroup: 'assessment' }
+      },
+      {
+        path: 'reward-punishment',
+        name: 'RewardPunishment',
+        component: () => import('@/views/reward-punishment/index.vue'),
+        meta: { titleKey: 'route.rewardPunishment', icon: 'Medal', roles: MANAGE_ROLES, menuGroup: 'assessment' }
+      },
+      {
         path: 'attendance',
         name: 'Attendance',
         component: () => import('@/views/attendance/index.vue'),
@@ -235,6 +264,30 @@ const routes = [
         name: 'Semester',
         component: () => import('@/views/semester/index.vue'),
         meta: { titleKey: 'route.semester', roles: ['SCHOOL_ADMIN'], hideInMenu: true, activeMenu: '/system', breadcrumbParent: '/system' }
+      },
+      {
+        path: 'backup',
+        name: 'DataBackup',
+        component: () => import('@/views/system/backup.vue'),
+        meta: { titleKey: 'route.backup', roles: ['SCHOOL_ADMIN'], hideInMenu: true, activeMenu: '/system', breadcrumbParent: '/system' }
+      },
+      {
+        path: 'syslog',
+        name: 'SysLog',
+        component: () => import('@/views/system-log/index.vue'),
+        meta: { titleKey: 'route.syslog', roles: ['SCHOOL_ADMIN'], hideInMenu: true, activeMenu: '/system', breadcrumbParent: '/system' }
+      },
+      {
+        path: 'mental-health',
+        name: 'MentalHealth',
+        component: () => import('@/views/mental-health/index.vue'),
+        meta: { titleKey: 'route.mentalHealth', icon: 'FirstAidKit', roles: ['SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'COUNSELOR', 'HOMEROOM_TEACHER'], menuGroup: 'teaching' }
+      },
+      {
+        path: 'employment',
+        name: 'Employment',
+        component: () => import('@/views/employment/index.vue'),
+        meta: { titleKey: 'route.employment', icon: 'Briefcase', roles: MANAGE_ROLES, menuGroup: 'teaching' }
       }
     ]
   },

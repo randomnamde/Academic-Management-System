@@ -9,17 +9,19 @@ import java.util.List;
 
 public interface MajorService extends IService<Major> {
 
-    Page<Major> getMajorPage(Integer page, Integer size, String keyword, Long collegeId, Integer status, Long scopedCollegeId);
+    Page<Major> getMajorPage(Integer page, Integer size, String keyword, String collegeCode, Integer status, String scopedCollegeCode);
 
-    List<Major> getMajorOptions(Long collegeId, Integer status, Long scopedCollegeId);
+    List<Major> getMajorOptions(String collegeCode, Integer status, String scopedCollegeCode);
 
-    Major getMajorDetail(String majorCode, Long scopedCollegeId);
+    Major getMajorDetail(String majorCode, String scopedCollegeCode);
 
-    Major createMajor(MajorDTO dto, Long scopedCollegeId);
+    Major createMajor(MajorDTO dto, String scopedCollegeCode);
 
-    void updateMajor(String majorCode, MajorDTO dto, Long scopedCollegeId);
+    void updateMajor(String majorCode, MajorDTO dto, String scopedCollegeCode);
 
-    void updateMajorStatus(String majorCode, Integer status, Long scopedCollegeId);
+    void updateMajorStatus(String majorCode, Integer status, String scopedCollegeCode);
 
     String generateMajorCode(String majorName, String majorAbbreviation);
 }
+
+

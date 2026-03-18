@@ -13,10 +13,11 @@ import java.time.LocalDateTime;
 @TableName("college")
 public class College {
 
-    @TableId(type = IdType.AUTO)
-    private Long id;
-
+    @TableId(value = "college_code", type = IdType.INPUT)
     private String collegeCode;
+
+    @TableField("id")
+    private Long id;
 
     private String collegeName;
 

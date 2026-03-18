@@ -93,7 +93,7 @@ public class StudentController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String studentNo,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) Long collegeId,
+            @RequestParam(required = false) String collegeCode,
             @RequestParam(required = false) String majorCode,
             @RequestParam(required = false) String classId,
             @RequestParam(required = false) Student.Status status,
@@ -112,9 +112,9 @@ public class StudentController {
             return ResultVO.success(singlePage);
         }
 
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
-        if (scopedCollegeId != null) {
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        String effectiveCollegeCode = scopedCollegeCode != null ? scopedCollegeCode : collegeCode;
+        if (scopedCollegeCode != null) {
             Set<String> classIds = dataScopeService.resolveCollegeClassCodes(authentication);
             if (classIds.isEmpty()) {
                 Page<Student> emptyPage = new Page<>(page, size);
@@ -128,7 +128,7 @@ public class StudentController {
                     studentNo,
                     name,
                     classId,
-                    effectiveCollegeId,
+                    effectiveCollegeCode,
                     majorCode,
                     status,
                     new ArrayList<>(classIds)
@@ -136,7 +136,7 @@ public class StudentController {
             return ResultVO.success(result);
         }
 
-        Page<Student> result = studentService.getStudentPage(page, size, studentNo, name, classId, effectiveCollegeId, majorCode, status, null);
+        Page<Student> result = studentService.getStudentPage(page, size, studentNo, name, classId, effectiveCollegeCode, majorCode, status, null);
         return ResultVO.success(result);
     }
 
@@ -181,12 +181,12 @@ public class StudentController {
     }
 
     private void assertCollegeClassAccess(Authentication authentication, String classId) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId == null || classId == null) {
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        if (scopedCollegeCode == null || classId == null) {
             return;
         }
         Class clazz = classService.resolveClass(classId);
-        if (clazz == null || !scopedCollegeId.equals(clazz.getCollegeId())) {
+        if (clazz == null || !scopedCollegeCode.equals(clazz.getCollegeCode())) {
             throw new com.student.exception.BusinessException(403, "Forbidden");
         }
     }
@@ -203,5 +203,7 @@ public class StudentController {
         assertCollegeClassAccess(authentication, student.getClassId());
     }
 }
+
+
 
 

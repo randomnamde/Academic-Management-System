@@ -15,7 +15,9 @@ public interface TeacherService extends IService<Teacher> {
 
     Teacher getTeacherByNo(String teacherNo);
 
-    Page<Teacher> getTeacherPage(Integer page, Integer size, String teacherNo, String name, Long departmentId);
+    Page<Teacher> getTeacherPage(Integer page, Integer size, String teacherNo, String name, String department);
 
     void updateTeacherStatus(String teacherNo, Integer status);
+
+    String generateNextTeacherNo(String collegeCode);
 }

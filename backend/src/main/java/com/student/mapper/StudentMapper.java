@@ -16,10 +16,10 @@ import java.util.Map;
 public interface StudentMapper extends BaseMapper<Student> {
     
     @Select("""
-            SELECT s.*, c.class_name, c.college_id, co.college_name, c.major_code, m.major_name
+            SELECT s.*, c.class_name, c.college_code, co.college_name, c.major_code, m.major_name
             FROM student s
             LEFT JOIN class c ON s.class_id = c.class_code
-            LEFT JOIN college co ON c.college_id = co.id
+            LEFT JOIN college co ON c.college_code = co.college_code
             LEFT JOIN major m ON m.major_code = c.major_code
             WHERE s.student_no = #{studentNo}
             """)
@@ -27,10 +27,10 @@ public interface StudentMapper extends BaseMapper<Student> {
 
     @Select({
             "<script>",
-            "SELECT s.*, c.class_name, c.college_id, co.college_name, c.major_code, m.major_name",
+            "SELECT s.*, c.class_name, c.college_code, co.college_name, c.major_code, m.major_name",
             "FROM student s",
             "LEFT JOIN class c ON s.class_id = c.class_code",
-            "LEFT JOIN college co ON c.college_id = co.id",
+            "LEFT JOIN college co ON c.college_code = co.college_code",
             "LEFT JOIN major m ON m.major_code = c.major_code",
             "WHERE s.student_no IN",
             "<foreach item='studentNo' collection='studentNos' open='(' separator=',' close=')'>",
@@ -42,10 +42,10 @@ public interface StudentMapper extends BaseMapper<Student> {
 
     @Select({
             "<script>",
-            "SELECT s.*, c.class_name, c.college_id, co.college_name, c.major_code, m.major_name",
+            "SELECT s.*, c.class_name, c.college_code, co.college_name, c.major_code, m.major_name",
             "FROM student s",
             "LEFT JOIN class c ON s.class_id = c.class_code",
-            "LEFT JOIN college co ON c.college_id = co.id",
+            "LEFT JOIN college co ON c.college_code = co.college_code",
             "LEFT JOIN major m ON m.major_code = c.major_code",
             "<where>",
             "  <if test='studentNo != null and studentNo != \"\"'>",
@@ -57,8 +57,8 @@ public interface StudentMapper extends BaseMapper<Student> {
             "  <if test='classId != null'>",
             "    AND s.class_id = #{classId}",
             "  </if>",
-            "  <if test='collegeId != null'>",
-            "    AND c.college_id = #{collegeId}",
+            "  <if test='collegeCode != null'>",
+            "    AND c.college_code = #{collegeCode}",
             "  </if>",
             "  <if test='majorCode != null and majorCode != \"\"'>",
             "    AND c.major_code = #{majorCode}",
@@ -80,7 +80,7 @@ public interface StudentMapper extends BaseMapper<Student> {
                                       @Param("studentNo") String studentNo,
                                       @Param("name") String name,
                                       @Param("classId") String classId,
-                                      @Param("collegeId") Long collegeId,
+                                      @Param("collegeCode") String collegeCode,
                                       @Param("majorCode") String majorCode,
                                       @Param("status") Student.Status status,
                                       @Param("classIds") List<String> classIds);
@@ -92,10 +92,10 @@ public interface StudentMapper extends BaseMapper<Student> {
     String selectLatestStudentNoByPrefix(@Param("prefix") String prefix);
     
     @Select("""
-            SELECT s.*, c.class_name, c.college_id, co.college_name, c.major_code, m.major_name
+            SELECT s.*, c.class_name, c.college_code, co.college_name, c.major_code, m.major_name
             FROM student s
             LEFT JOIN class c ON s.class_id = c.class_code
-            LEFT JOIN college co ON c.college_id = co.id
+            LEFT JOIN college co ON c.college_code = co.college_code
             LEFT JOIN major m ON m.major_code = c.major_code
             WHERE s.class_id = #{classId}
             """)
@@ -113,3 +113,5 @@ public interface StudentMapper extends BaseMapper<Student> {
     @Select("SELECT gender, COUNT(*) AS count FROM student GROUP BY gender")
     List<Map<String, Object>> countByGender();
 }
+
+

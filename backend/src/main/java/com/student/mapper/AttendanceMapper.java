@@ -16,7 +16,7 @@ public interface AttendanceMapper extends BaseMapper<Attendance> {
 
     Page<Attendance> selectPageWithDetail(Page<Attendance> page,
                                            @Param("studentId") String studentId,
-                                           @Param("teacherId") Long teacherId,
+                                           @Param("teacherNo") String teacherNo,
                                            @Param("courseArrangementId") Long courseArrangementId,
                                            @Param("attendanceDate") LocalDate attendanceDate,
                                            @Param("status") Attendance.Status status);
@@ -30,3 +30,5 @@ public interface AttendanceMapper extends BaseMapper<Attendance> {
                        @Param("startDate") LocalDate startDate,
                        @Param("endDate") LocalDate endDate);
 }
+
+

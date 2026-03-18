@@ -26,7 +26,7 @@ public interface StudentService extends IService<Student> {
                                  String studentNo,
                                  String name,
                                  String classId,
-                                 Long collegeId,
+                                 String collegeCode,
                                  String majorCode,
                                  Student.Status status,
                                  List<String> classIds);
@@ -39,3 +39,5 @@ public interface StudentService extends IService<Student> {
 
     Map<String, Long> getGenderStatistics();
 }
+
+

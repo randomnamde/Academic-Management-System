@@ -214,7 +214,7 @@ public class UserImportServiceImpl implements UserImportService {
         teacher.setEmail(email);
         teacher.setTitle(title);
         teacher.setDepartment(department);
-        teacher.setCollegeId(college.getId());
+        teacher.setCollegeCode(college.getCollegeCode());
         teacher.setHireDate(hireDate);
         teacher.setStatus(status);
         teacherMapper.insert(teacher);
@@ -225,18 +225,18 @@ public class UserImportServiceImpl implements UserImportService {
             if (clazz == null) {
                 throw new BusinessException("Class not found: " + classCode);
             }
-            if (clazz.getCollegeId() == null || !clazz.getCollegeId().equals(college.getId())) {
+            if (clazz.getCollegeCode() == null || !clazz.getCollegeCode().equals(college.getCollegeCode())) {
                 throw new BusinessException("Class does not belong to the selected college: " + classCode);
             }
-            if (persistedTeacher == null || persistedTeacher.getId() == null) {
-                throw new BusinessException("Teacher internal id not found after import");
+            if (persistedTeacher == null || persistedTeacher.getTeacherNo() == null) {
+                throw new BusinessException("Teacher number not found after import");
             }
-            if (clazz.getTeacherId() != null && !clazz.getTeacherId().equals(persistedTeacher.getId())) {
+            if (clazz.getTeacherNo() != null && !clazz.getTeacherNo().equals(persistedTeacher.getTeacherNo())) {
                 throw new BusinessException("Class already has another homeroom teacher bound: " + classCode);
             }
             Class classPatch = new Class();
             classPatch.setId(clazz.getId());
-            classPatch.setTeacherId(persistedTeacher.getId());
+            classPatch.setTeacherNo(persistedTeacher.getTeacherNo());
             classMapper.updateById(classPatch);
         }
 
@@ -273,7 +273,7 @@ public class UserImportServiceImpl implements UserImportService {
         teacher.setEmail(email);
         teacher.setTitle(title);
         teacher.setDepartment(department);
-        teacher.setCollegeId(college.getId());
+        teacher.setCollegeCode(college.getCollegeCode());
         teacher.setHireDate(hireDate);
         teacher.setStatus(status);
         teacherMapper.insert(teacher);
@@ -302,10 +302,10 @@ public class UserImportServiceImpl implements UserImportService {
         if (clazz == null) {
             throw new BusinessException("Class not found: " + classCode);
         }
-        if (clazz.getCollegeId() == null) {
+        if (clazz.getCollegeCode() == null) {
             throw new BusinessException("Class has no bound college: " + classCode);
         }
-        College college = collegeCache.byId().get(clazz.getCollegeId());
+        College college = collegeCache.byId().get(clazz.getCollegeCode());
         if (college == null) {
             throw new BusinessException("College not found for class: " + classCode);
         }
@@ -854,4 +854,5 @@ public class UserImportServiceImpl implements UserImportService {
     private record CollegeCache(Map<String, College> byNormalizedCode, Map<Long, College> byId) {
     }
 }
+
 

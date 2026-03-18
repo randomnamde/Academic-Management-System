@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <CrudPageShell :title="t('score.pageTitle')">
     <template #header-actions>
       <el-dropdown @command="handleExport">
@@ -15,12 +15,30 @@
 
     <template #filters>
       <div class="app-filter-grid">
-        <el-input v-if="canFilterStudent" v-model="searchForm.studentId" clearable inputmode="numeric" class="col-span-12 md:col-span-2" :placeholder="t('score.studentId')" />
-        <el-select v-if="canFilterStudent" v-model="searchForm.collegeId" clearable :placeholder="t('student.college')" class="col-span-12 md:col-span-2">
-          <el-option v-for="item in collegeList" :key="item.id" :label="item.collegeName" :value="item.id" />
+        <el-select
+          v-if="canFilterStudent"
+          v-model="searchForm.studentId"
+          clearable
+          filterable
+          remote
+          reserve-keyword
+          :remote-method="handleStudentSearch"
+          :loading="studentLoading"
+          :placeholder="t('score.studentPlaceholder')"
+          class="col-span-12 md:col-span-2"
+        >
+          <el-option
+            v-for="item in studentOptions"
+            :key="item.studentNo"
+            :label="`${item.name} (${item.studentNo})`"
+            :value="item.studentNo"
+          />
         </el-select>
-        <el-select v-if="canFilterStudent" v-model="searchForm.classId" clearable :placeholder="t('student.class')" class="col-span-12 md:col-span-2">
-          <el-option v-for="item in searchClassList" :key="item.id" :label="item.className" :value="item.id" />
+        <el-select v-if="canFilterStudent" v-model="searchForm.collegeCode" clearable :placeholder="t('student.college')" class="col-span-12 md:col-span-2">
+          <el-option v-for="item in collegeList" :key="item.collegeCode" :label="item.collegeName" :value="item.collegeCode" />
+        </el-select>
+        <el-select v-if="canFilterStudent" v-model="searchForm.classCode" clearable :placeholder="t('student.class')" class="col-span-12 md:col-span-2">
+          <el-option v-for="item in searchClassList" :key="item.classCode" :label="item.className" :value="item.classCode" />
         </el-select>
         <el-select
           v-model="searchForm.courseArrangementId"
@@ -141,6 +159,7 @@ import { createScore, deleteScore, exportScoreReport, getScoreList, updateScore 
 import { getCourseArrangementOptions } from '@/api/courseArrangement'
 import { getCollegeList } from '@/api/college'
 import { getClassList } from '@/api/clazz'
+import { getStudentList } from '@/api/student'
 import { canAction } from '@/permission/ability'
 
 const store = useStore()
@@ -160,6 +179,8 @@ const tableData = ref([])
 const collegeList = ref([])
 const searchClassList = ref([])
 const arrangementOptions = ref([])
+const studentOptions = ref([])
+const studentLoading = ref(false)
 const arrangementClassMap = computed(() => {
   const map = new Map()
   arrangementOptions.value.forEach((item) => {
@@ -171,8 +192,8 @@ const arrangementClassMap = computed(() => {
 })
 const filteredArrangementOptions = computed(() =>
   arrangementOptions.value.filter((item) => {
-    if (searchForm.collegeId && item.collegeId !== searchForm.collegeId) return false
-    if (searchForm.classId && item.classId !== searchForm.classId) return false
+    if (searchForm.collegeCode && item.collegeCode !== searchForm.collegeCode) return false
+    if (searchForm.classCode && item.classCode !== searchForm.classCode) return false
     return true
   })
 )
@@ -197,8 +218,8 @@ const columns = computed(() => {
 
 const searchForm = reactive({
   studentId: '',
-  collegeId: null,
-  classId: null,
+  collegeCode: null,
+  classCode: null,
   courseArrangementId: null,
   semester: ''
 })
@@ -235,34 +256,34 @@ function resetForm() {
   })
 }
 
-function getDefaultCollegeId() {
+function getDefaultCollegeCode() {
   if (role.value === 'SCHOOL_ADMIN') return null
-  if (collegeList.value.length === 1) return collegeList.value[0].id
-  return userInfo.value?.collegeId || null
+  if (collegeList.value.length === 1) return collegeList.value[0].collegeCode
+  return userInfo.value?.collegeCode || null
 }
 
 async function fetchCollegeList() {
   if (role.value === 'SCHOOL_ADMIN' || role.value === 'COLLEGE_ADMIN') {
     const res = await getCollegeList({ page: 1, size: 500 })
     collegeList.value = res.data?.records || []
-  } else if (userInfo.value?.collegeId) {
+  } else if (userInfo.value?.collegeCode) {
     collegeList.value = [
       {
-        id: userInfo.value.collegeId,
-        collegeName: userInfo.value.collegeName || `${t('student.college')} #${userInfo.value.collegeId}`
+        collegeCode: userInfo.value.collegeCode,
+        collegeName: userInfo.value.collegeName || `${t('student.college')} #${userInfo.value.collegeCode}`
       }
     ]
   } else {
     collegeList.value = []
   }
 
-  if (!searchForm.collegeId && canFilterStudent.value && role.value !== 'SCHOOL_ADMIN') {
-    searchForm.collegeId = getDefaultCollegeId()
+  if (!searchForm.collegeCode && canFilterStudent.value && role.value !== 'SCHOOL_ADMIN') {
+    searchForm.collegeCode = getDefaultCollegeCode()
   }
 }
 
-async function fetchClassList(collegeId, allowAll = false) {
-  if (!collegeId && !allowAll) {
+async function fetchClassList(collegeCode, allowAll = false) {
+  if (!collegeCode && !allowAll) {
     searchClassList.value = []
     return
   }
@@ -270,7 +291,7 @@ async function fetchClassList(collegeId, allowAll = false) {
   const res = await getClassList({
     page: 1,
     size: 500,
-    collegeId: collegeId || undefined
+    collegeCode: collegeCode || undefined
   })
   searchClassList.value = res.data?.records || []
 }
@@ -282,8 +303,8 @@ async function fetchList() {
       page: page.value,
       size: size.value,
       studentId: searchForm.studentId || undefined,
-      collegeId: searchForm.collegeId || undefined,
-      classId: searchForm.classId || undefined,
+      collegeCode: searchForm.collegeCode || undefined,
+      classCode: searchForm.classCode || undefined,
       courseArrangementId: searchForm.courseArrangementId || undefined,
       semester: searchForm.semester || undefined
     })
@@ -305,6 +326,24 @@ async function fetchArrangementOptions() {
   arrangementOptions.value = Array.isArray(res.data) ? res.data : []
 }
 
+async function handleStudentSearch(query) {
+  if (!query) {
+    studentOptions.value = []
+    return
+  }
+  studentLoading.value = true
+  try {
+    const res = await getStudentList({
+      name: query,
+      page: 1,
+      size: 20
+    })
+    studentOptions.value = res.data?.records || []
+  } finally {
+    studentLoading.value = false
+  }
+}
+
 function resolveClassName(row) {
   if (row?.className) return row.className
   const arrangementId = row?.courseArrangementId
@@ -315,8 +354,8 @@ function resolveClassName(row) {
 async function handleExport(format) {
   await exportScoreReport({
     studentId: searchForm.studentId || undefined,
-    collegeId: searchForm.collegeId || undefined,
-    classId: searchForm.classId || undefined,
+    collegeCode: searchForm.collegeCode || undefined,
+    classCode: searchForm.classCode || undefined,
     courseArrangementId: searchForm.courseArrangementId || undefined,
     semester: searchForm.semester || undefined,
     format
@@ -331,8 +370,8 @@ function handleSearch() {
 
 function handleReset() {
   if (canFilterStudent.value) searchForm.studentId = ''
-  searchForm.collegeId = canFilterStudent.value ? getDefaultCollegeId() : null
-  searchForm.classId = null
+  searchForm.collegeCode = canFilterStudent.value ? getDefaultCollegeCode() : null
+  searchForm.classCode = null
   searchForm.courseArrangementId = null
   searchForm.semester = ''
   handleSearch()
@@ -399,16 +438,16 @@ async function handleDelete(row) {
 }
 
 watch(
-  () => searchForm.collegeId,
-  async (collegeId) => {
-    searchForm.classId = null
+  () => searchForm.collegeCode,
+  async (collegeCode) => {
+    searchForm.classCode = null
     searchForm.courseArrangementId = null
-    await fetchClassList(collegeId, true)
+    await fetchClassList(collegeCode, true)
   }
 )
 
 watch(
-  () => searchForm.classId,
+  () => searchForm.classCode,
   () => {
     searchForm.courseArrangementId = null
   }
@@ -416,7 +455,7 @@ watch(
 
 onMounted(async () => {
   await fetchCollegeList()
-  await fetchClassList(searchForm.collegeId, true)
+  await fetchClassList(searchForm.collegeCode, true)
   await fetchArrangementOptions()
   await fetchList()
 })

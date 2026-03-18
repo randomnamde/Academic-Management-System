@@ -173,12 +173,12 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
                                         String studentNo,
                                         String name,
                                         String classId,
-                                        Long collegeId,
+                                        String collegeCode,
                                         String majorCode,
                                         Student.Status status,
                                         List<String> classIds) {
         Page<Student> pageParam = new Page<>(page, size);
-        return studentMapper.selectPageWithClass(pageParam, studentNo, name, classId, collegeId, majorCode, status, classIds);
+        return studentMapper.selectPageWithClass(pageParam, studentNo, name, classId, collegeCode, majorCode, status, classIds);
     }
 
     @Override
@@ -301,3 +301,5 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
         return null;
     }
 }
+
+

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.mapper.StudentRewardPunishmentMapper">
+
+    <resultMap id="BaseResultMap" type="com.student.entity.StudentRewardPunishment">
+        <id column="id" property="id"/>
+        <result column="student_id" property="studentId"/>
+        <result column="student_name" property="studentName"/>
+        <result column="class_name" property="className"/>
+        <result column="type" property="type"/>
+        <result column="category" property="category"/>
+        <result column="reason" property="reason"/>
+        <result column="amount" property="amount"/>
+        <result column="status" property="status"/>
+        <result column="approver_no" property="approverNo"/>
+        <result column="approver_name" property="approverName"/>
+        <result column="approve_time" property="approveTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectPageWithDetail" resultMap="BaseResultMap">
+        SELECT rp.*,
+               st.name as student_name,
+               COALESCE(st_cl.class_name, st_cl2.class_name) as class_name,
+               t.name as approver_name
+        FROM student_reward_punishment rp
+        LEFT JOIN student st ON rp.student_id = st.student_no
+        LEFT JOIN class st_cl ON st.class_code = st_cl.class_code
+        LEFT JOIN class st_cl2 ON st.class_id = st_cl2.class_code
+        LEFT JOIN teacher t ON rp.approver_no = t.teacher_no
+        <where>
+            <if test="studentId != null and studentId != ''">
+                AND rp.student_id = #{studentId}
+            </if>
+            <if test="type != null and type != ''">
+                AND rp.type = #{type}
+            </if>
+            <if test="status != null and status != ''">
+                AND rp.status = #{status}
+            </if>
+            <if test="category != null and category != ''">
+                AND rp.category = #{category}
+            </if>
+        </where>
+        ORDER BY rp.create_time DESC
+        LIMIT #{page}, #{size}
+    </select>
+
+    <select id="countWithDetail" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM student_reward_punishment rp
+        <where>
+            <if test="studentId != null and studentId != ''">
+                AND rp.student_id = #{studentId}
+            </if>
+            <if test="type != null and type != ''">
+                AND rp.type = #{type}
+            </if>
+            <if test="status != null and status != ''">
+                AND rp.status = #{status}
+            </if>
+            <if test="category != null and category != ''">
+                AND rp.category = #{category}
+            </if>
+        </where>
+    </select>
+
+</mapper>

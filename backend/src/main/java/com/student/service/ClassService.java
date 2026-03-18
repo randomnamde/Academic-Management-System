@@ -15,9 +15,9 @@ public interface ClassService extends IService<Class> {
 
     Class resolveClass(String classIdentifier);
 
-    Page<Class> getClassPage(Integer page, Integer size, String className, String grade, Long teacherId, Long collegeId, String majorCode);
+    Page<Class> getClassPage(Integer page, Integer size, String className, String grade, String teacherNo, String collegeCode, String majorCode);
 
-    List<Class> getClassesByTeacherId(Long teacherId);
+    List<Class> getClassesByTeacherNo(String teacherNo);
 
     Class createClass(Class clazz);
 
@@ -25,5 +25,7 @@ public interface ClassService extends IService<Class> {
 
     void deleteClassByCode(String classCode);
 
-    String generateClassCode(Long collegeId, String majorCode, Year grade);
+    String generateClassCode(String collegeCode, String majorCode, Year grade);
 }
+
+

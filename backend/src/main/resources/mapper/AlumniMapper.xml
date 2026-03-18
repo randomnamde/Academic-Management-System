@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.mapper.AlumniMapper">
+
+    <resultMap id="BaseResultMap" type="com.student.entity.Alumni">
+        <id column="id" property="id"/>
+        <result column="student_id" property="studentId"/>
+        <result column="name" property="name"/>
+        <result column="gender" property="gender"/>
+        <result column="class_code" property="classCode"/>
+        <result column="graduation_year" property="graduationYear"/>
+        <result column="major_code" property="majorCode"/>
+        <result column="college_code" property="collegeCode"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="wechat" property="wechat"/>
+        <result column="current_company" property="currentCompany"/>
+        <result column="current_position" property="currentPosition"/>
+        <result column="work_years" property="workYears"/>
+        <result column="alumni_association_member" property="alumniAssociationMember"/>
+        <result column="volunteer" property="volunteer"/>
+        <result column="donation" property="donation"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="class_name" property="className"/>
+        <result column="college_name" property="collegeName"/>
+        <result column="major_name" property="majorName"/>
+    </resultMap>
+
+    <select id="selectPageWithDetail" resultMap="BaseResultMap">
+        SELECT a.*, c.class_name, co.college_name, m.major_name
+        FROM alumni a
+        LEFT JOIN class c ON a.class_code = c.class_code
+        LEFT JOIN college co ON a.college_code = co.college_code
+        LEFT JOIN major m ON a.major_code = m.major_code
+        <where>
+            a.status = 1
+            <if test="studentId != null">
+                AND a.student_id LIKE CONCAT('%', #{studentId}, '%')
+            </if>
+            <if test="name != null">
+                AND a.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="graduationYear != null">
+                AND a.graduation_year = #{graduationYear}
+            </if>
+            <if test="collegeCode != null">
+                AND a.college_code = #{collegeCode}
+            </if>
+            <if test="majorCode != null">
+                AND a.major_code = #{majorCode}
+            </if>
+        </where>
+        ORDER BY a.graduation_year DESC, a.name ASC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countWithDetail" resultType="long">
+        SELECT COUNT(*)
+        FROM alumni a
+        <where>
+            a.status = 1
+            <if test="studentId != null">
+                AND a.student_id LIKE CONCAT('%', #{studentId}, '%')
+            </if>
+            <if test="name != null">
+                AND a.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="graduationYear != null">
+                AND a.graduation_year = #{graduationYear}
+            </if>
+            <if test="collegeCode != null">
+                AND a.college_code = #{collegeCode}
+            </if>
+            <if test="majorCode != null">
+                AND a.major_code = #{majorCode}
+            </if>
+        </where>
+    </select>
+
+</mapper>

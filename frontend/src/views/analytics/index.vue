@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="app-page space-y-3">
     <AppCard :title="t('analytics.pageTitle')" content-class="p-4 space-y-4">
       <div class="analytics-hero">
@@ -104,9 +104,9 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item v-if="isAdmin" :label="t('analytics.teacherId')">
+            <el-form-item v-if="isAdmin" :label="t('analytics.teacherNo')">
               <el-select
-                v-model="filters.teacherId"
+                v-model="filters.teacherNo"
                 clearable
                 filterable
                 :loading="teacherOptionsLoading"
@@ -245,7 +245,6 @@
               </template>
 
               <template v-if="isStudent && riskType === 'approval_overdue'">
-                <el-table-column prop="leaveRequestId" :label="t('analytics.approvalId')" width="120" />
                 <el-table-column :label="t('analytics.submitTime')" min-width="180" show-overflow-tooltip>
                   <template #default="{ row }">{{ formatDateTime(row.submitTime) }}</template>
                 </el-table-column>
@@ -329,7 +328,7 @@ const dateRange = ref([formatDate(thirtyDaysAgo), formatDate(today)])
 const filters = reactive({
   semester: '',
   classId: null,
-  teacherId: null,
+  teacherNo: null,
   granularity: 'day'
 })
 
@@ -370,7 +369,7 @@ const currentGranularityLabel = computed(() => {
     week: t('analytics.week'),
     month: t('analytics.month')
   }
-  return `${t('analytics.granularity')} · ${map[filters.granularity] || t('analytics.day')}`
+  return `${t('analytics.granularity')} 路 ${map[filters.granularity] || t('analytics.day')}`
 })
 const currentRangeLabel = computed(() => {
   const [start, end] = dateRange.value || []
@@ -486,7 +485,7 @@ function buildParams() {
     params.classId = filters.classId || undefined
   }
   if (isAdmin) {
-    params.teacherId = filters.teacherId || undefined
+    params.teacherNo = filters.teacherNo || undefined
   }
   return params
 }
@@ -519,8 +518,8 @@ function mapSemesterOption(item) {
 
 async function ensureUserScopeInfo() {
   const info = currentUserInfo.value || {}
-  const needsTeacherScope = isTeacherRole && !info.teacherId
-  const needsCollegeScope = userRole === 'COLLEGE_ADMIN' && !info.collegeId
+  const needsTeacherScope = isTeacherRole && !info.teacherNo
+  const needsCollegeScope = userRole === 'COLLEGE_ADMIN' && !info.collegeCode
   if (!info.id || needsTeacherScope || needsCollegeScope) {
     await store.dispatch('getUserInfo').catch(() => null)
   }
@@ -534,13 +533,13 @@ async function loadTeacherOptions() {
   teacherOptionsLoading.value = true
   try {
     const params = { page: 1, size: 500 }
-    if (currentUserInfo.value?.collegeId) {
-      params.collegeId = currentUserInfo.value.collegeId
+    if (currentUserInfo.value?.collegeCode) {
+      params.collegeCode = currentUserInfo.value.collegeCode
     }
     const res = await getTeacherList(params)
     teacherOptions.value = (res.data?.records || []).map(mapTeacherOption)
-    if (filters.teacherId && !teacherOptions.value.some((item) => item.value === filters.teacherId)) {
-      filters.teacherId = null
+    if (filters.teacherNo && !teacherOptions.value.some((item) => item.value === filters.teacherNo)) {
+      filters.teacherNo = null
     }
   } finally {
     teacherOptionsLoading.value = false
@@ -555,12 +554,12 @@ async function loadClassOptions() {
   classOptionsLoading.value = true
   try {
     const params = { page: 1, size: 500 }
-    if (isAdmin && filters.teacherId) {
-      params.teacherId = filters.teacherId
-    } else if (isTeacherRole && currentUserInfo.value?.teacherId) {
-      params.teacherId = currentUserInfo.value.teacherId
-    } else if ((userRole === 'COLLEGE_ADMIN' || isTeacherRole) && currentUserInfo.value?.collegeId) {
-      params.collegeId = currentUserInfo.value.collegeId
+    if (isAdmin && filters.teacherNo) {
+      params.teacherNo = filters.teacherNo
+    } else if (isTeacherRole && currentUserInfo.value?.teacherNo) {
+      params.teacherNo = currentUserInfo.value.teacherNo
+    } else if ((userRole === 'COLLEGE_ADMIN' || isTeacherRole) && currentUserInfo.value?.collegeCode) {
+      params.collegeCode = currentUserInfo.value.collegeCode
     }
     const res = await getClassList(params)
     classOptions.value = (res.data?.records || []).map(mapClassOption)
@@ -704,7 +703,7 @@ function resetFilters() {
   dateRange.value = [formatDate(thirtyDaysAgo), formatDate(today)]
   filters.semester = ''
   filters.classId = null
-  filters.teacherId = null
+  filters.teacherNo = null
   filters.granularity = 'day'
   riskType.value = 'low_score'
   riskPage.value = 1
@@ -879,10 +878,10 @@ function applyRoutePreset() {
   } else if (isStudent) {
     filters.classId = null
   }
-  if (isAdmin && query.teacherId) {
-    filters.teacherId = Number(query.teacherId)
+  if (isAdmin && query.teacherNo) {
+    filters.teacherNo = Number(query.teacherNo)
   } else if (!isAdmin) {
-    filters.teacherId = null
+    filters.teacherNo = null
   }
 }
 
@@ -895,7 +894,7 @@ watch(
 )
 
 watch(
-  () => filters.teacherId,
+  () => filters.teacherNo,
   async (current, previous) => {
     if (!isAdmin || current === previous) {
       return
@@ -1392,3 +1391,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+

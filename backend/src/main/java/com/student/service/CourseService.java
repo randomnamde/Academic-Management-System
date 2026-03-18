@@ -12,13 +12,13 @@ public interface CourseService extends IService<Course> {
 
     void updateCourse(CourseDTO courseDTO);
 
-    void deleteCourse(Long id);
+    void deleteCourse(String courseCode);
 
-    Course getCourseById(Long id);
+    Course getCourseById(String courseCode);
 
     Page<Course> getCoursePage(Integer page, Integer size, String courseCode, String courseName, Course.Category category);
 
-    void updateCourseStatus(Long id, Integer status);
+    void updateCourseStatus(String courseCode, Integer status);
 
     CourseCategoryStatisticsDTO getCategoryStatistics();
 }

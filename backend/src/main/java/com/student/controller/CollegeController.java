@@ -29,21 +29,21 @@ public class CollegeController {
                                         @RequestParam(required = false) String keyword,
                                         @RequestParam(required = false) Integer status,
                                         Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        Page<College> result = collegeService.getCollegePage(page, size, keyword, status, scopedCollegeId);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        Page<College> result = collegeService.getCollegePage(page, size, keyword, status, scopedCollegeCode);
         return ResultVO.success(result);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{collegeCode}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
-    public ResultVO<College> detail(@PathVariable Long id, Authentication authentication) {
-        College college = collegeService.getById(id);
+    public ResultVO<College> detail(@PathVariable String collegeCode, Authentication authentication) {
+        College college = collegeService.getById(collegeCode);
         if (college == null) {
-            return ResultVO.error(404, "学院不存在");
+            return ResultVO.error(404, "College not found");
         }
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId != null && !scopedCollegeId.equals(id)) {
-            return ResultVO.error(403, "无权查看该学院");
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        if (scopedCollegeCode != null && !scopedCollegeCode.equals(collegeCode)) {
+            return ResultVO.error(403, "Forbidden");
         }
         if (college.getAdminUserId() != null) {
             var adminUser = sysUserService.getByUsername(college.getAdminUserId());
@@ -58,35 +58,33 @@ public class CollegeController {
         return ResultVO.success(collegeService.createCollege(dto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{collegeCode}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
-    public ResultVO<Void> update(@PathVariable Long id,
+    public ResultVO<Void> update(@PathVariable String collegeCode,
                                  @RequestBody @Validated CollegeDTO dto,
                                  Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        collegeService.updateCollege(id, dto, scopedCollegeId);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        collegeService.updateCollege(collegeCode, dto, scopedCollegeCode);
         return ResultVO.success();
     }
 
-    @PutMapping("/{id}/status")
+    @PutMapping("/{collegeCode}/status")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
-    public ResultVO<Void> updateStatus(@PathVariable Long id,
+    public ResultVO<Void> updateStatus(@PathVariable String collegeCode,
                                        @RequestParam Integer status,
                                        Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        collegeService.updateCollegeStatus(id, status, scopedCollegeId);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        collegeService.updateCollegeStatus(collegeCode, status, scopedCollegeCode);
         return ResultVO.success();
     }
 
-    @PutMapping("/{id}/admin")
+    @PutMapping("/{collegeCode}/admin")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
-    public ResultVO<Void> bindAdmin(@PathVariable Long id,
+    public ResultVO<Void> bindAdmin(@PathVariable String collegeCode,
                                     @RequestParam String adminUsername,
                                     Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        collegeService.bindAdmin(id, adminUsername, scopedCollegeId);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        collegeService.bindAdmin(collegeCode, adminUsername, scopedCollegeCode);
         return ResultVO.success();
     }
 }
-
-

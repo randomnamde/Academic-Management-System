@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.mapper.ExamArrangementMapper">
+
+    <resultMap id="BaseResultMap" type="com.student.entity.ExamArrangement">
+        <id column="id" property="id"/>
+        <result column="exam_code" property="examCode"/>
+        <result column="course_arrangement_id" property="courseArrangementId"/>
+        <result column="course_name" property="courseName"/>
+        <result column="teacher_name" property="teacherName"/>
+        <result column="semester" property="semester"/>
+        <result column="exam_type" property="examType"/>
+        <result column="exam_date" property="examDate"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="room" property="room"/>
+        <result column="capacity" property="capacity"/>
+        <result column="enrolled_count" property="enrolledCount"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectPageWithDetail" resultMap="BaseResultMap">
+        SELECT e.*,
+               c.name as course_name,
+               t.name as teacher_name,
+               ca.semester as semester
+        FROM exam_arrangement e
+        LEFT JOIN course_arrangement ca ON e.course_arrangement_id = ca.id
+        LEFT JOIN course c ON ca.course_code = c.id
+        LEFT JOIN teacher t ON ca.teacher_no = t.teacher_no
+        <where>
+            <if test="courseArrangementId != null">
+                AND e.course_arrangement_id = #{courseArrangementId}
+            </if>
+            <if test="examType != null and examType != ''">
+                AND e.exam_type = #{examType}
+            </if>
+            <if test="status != null and status != ''">
+                AND e.status = #{status}
+            </if>
+            <if test="examDate != null and examDate != ''">
+                AND e.exam_date = #{examDate}
+            </if>
+        </where>
+        ORDER BY e.exam_date DESC, e.start_time ASC
+        LIMIT #{page}, #{size}
+    </select>
+
+    <select id="countWithDetail" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM exam_arrangement e
+        <where>
+            <if test="courseArrangementId != null">
+                AND e.course_arrangement_id = #{courseArrangementId}
+            </if>
+            <if test="examType != null and examType != ''">
+                AND e.exam_type = #{examType}
+            </if>
+            <if test="status != null and status != ''">
+                AND e.status = #{status}
+            </if>
+            <if test="examDate != null and examDate != ''">
+                AND e.exam_date = #{examDate}
+            </if>
+        </where>
+    </select>
+
+</mapper>

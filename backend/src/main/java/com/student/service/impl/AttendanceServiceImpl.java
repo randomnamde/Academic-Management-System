@@ -69,12 +69,12 @@ public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attenda
     public Page<Attendance> getAttendancePage(Integer page,
                                               Integer size,
                                               String studentId,
-                                              Long teacherId,
+                                              String teacherNo,
                                               Long courseArrangementId,
                                               LocalDate attendanceDate,
                                               Attendance.Status status) {
         Page<Attendance> pageParam = new Page<>(page, size);
-        return attendanceMapper.selectPageWithDetail(pageParam, studentId, teacherId, courseArrangementId, attendanceDate, status);
+        return attendanceMapper.selectPageWithDetail(pageParam, studentId, teacherNo, courseArrangementId, attendanceDate, status);
     }
 
     @Override
@@ -177,3 +177,5 @@ public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attenda
         return new LocalDate[]{start, end};
     }
 }
+
+

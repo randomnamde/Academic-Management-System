@@ -5,16 +5,16 @@
     <resultMap id="BaseResultMap" type="com.student.entity.CourseArrangement">
         <id column="id" property="id"/>
         <result column="arrangement_code" property="arrangementCode"/>
-        <result column="course_id" property="courseId"/>
+        <result column="course_code" property="courseCode"/>
         <result column="course_name" property="courseName"/>
         <result column="credit" property="credit"/>
-        <result column="teacher_id" property="teacherId"/>
+        <result column="teacher_no" property="teacherNo"/>
         <result column="teacher_name" property="teacherName"/>
         <result column="teacher_no" property="teacherNo"/>
         <result column="class_id" property="classId"/>
         <result column="class_name" property="className"/>
         <result column="class_code" property="classCode"/>
-        <result column="college_id" property="collegeId"/>
+        <result column="college_code" property="collegeCode"/>
         <result column="college_name" property="collegeName"/>
         <result column="semester" property="semester"/>
         <result column="schedule" property="schedule"/>
@@ -33,13 +33,13 @@
                t.teacher_no,
                c.class_name,
                c.class_code,
-               c.college_id,
+               c.college_code,
                cg.college_name
         FROM course_arrangement ca
-        LEFT JOIN course co ON ca.course_id = co.id
-        LEFT JOIN teacher t ON ca.teacher_id = t.id
+        LEFT JOIN course co ON ca.course_code = co.course_code
+        LEFT JOIN teacher t ON ca.teacher_no = t.teacher_no
         LEFT JOIN class c ON ca.class_id = c.class_code
-        LEFT JOIN college cg ON c.college_id = cg.id
+        LEFT JOIN college cg ON c.college_code = cg.college_code
         WHERE ca.id = #{id}
     </select>
 
@@ -51,22 +51,22 @@
                t.teacher_no,
                c.class_name,
                c.class_code,
-               c.college_id,
+               c.college_code,
                cg.college_name
         FROM course_arrangement ca
-        LEFT JOIN course co ON ca.course_id = co.id
-        LEFT JOIN teacher t ON ca.teacher_id = t.id
+        LEFT JOIN course co ON ca.course_code = co.course_code
+        LEFT JOIN teacher t ON ca.teacher_no = t.teacher_no
         LEFT JOIN class c ON ca.class_id = c.class_code
-        LEFT JOIN college cg ON c.college_id = cg.id
+        LEFT JOIN college cg ON c.college_code = cg.college_code
         <where>
-            <if test="collegeId != null">
-                AND c.college_id = #{collegeId}
+            <if test="collegeCode != null">
+                AND c.college_code = #{collegeCode}
             </if>
-            <if test="courseId != null">
-                AND ca.course_id = #{courseId}
+            <if test="courseCode != null">
+                AND ca.course_code = #{courseCode}
             </if>
-            <if test="teacherId != null">
-                AND ca.teacher_id = #{teacherId}
+            <if test="teacherNo != null">
+                AND ca.teacher_no = #{teacherNo}
             </if>
             <if test="classId != null">
                 AND ca.class_id = #{classId}
@@ -89,16 +89,16 @@
                t.teacher_no,
                c.class_name,
                c.class_code,
-               c.college_id,
+               c.college_code,
                cg.college_name
         FROM course_arrangement ca
-        LEFT JOIN course co ON ca.course_id = co.id
-        LEFT JOIN teacher t ON ca.teacher_id = t.id
+        LEFT JOIN course co ON ca.course_code = co.course_code
+        LEFT JOIN teacher t ON ca.teacher_no = t.teacher_no
         LEFT JOIN class c ON ca.class_id = c.class_code
-        LEFT JOIN college cg ON c.college_id = cg.id
+        LEFT JOIN college cg ON c.college_code = cg.college_code
         <where>
-            <if test="teacherId != null">
-                AND ca.teacher_id = #{teacherId}
+            <if test="teacherNo != null">
+                AND ca.teacher_no = #{teacherNo}
             </if>
             <if test="classId != null">
                 AND ca.class_id = #{classId}
@@ -111,3 +111,4 @@
     </select>
 
 </mapper>
+

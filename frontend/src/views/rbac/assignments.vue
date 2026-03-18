@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <CrudPageShell :title="t('rbac.users.assignmentPageTitle')">
     <template #filters>
       <div class="app-filter-grid">
@@ -17,7 +17,7 @@
           <el-option v-for="option in roleOptions" :key="option.value" :label="option.label" :value="option.value" />
         </el-select>
         <el-select
-          v-model="searchForm.collegeId"
+          v-model="searchForm.collegeCode"
           clearable
           :placeholder="t('rbac.users.filterCollege')"
           class="col-span-12 md:col-span-3"
@@ -153,7 +153,7 @@ const classOptions = ref([])
 const searchForm = reactive({
   account: '',
   roleCode: '',
-  collegeId: null,
+  collegeCode: null,
   classId: null
 })
 
@@ -180,12 +180,12 @@ async function loadCollegeOptions() {
   }))
 }
 
-async function loadClassOptions(collegeId) {
-  if (!collegeId) {
+async function loadClassOptions(collegeCode) {
+  if (!collegeCode) {
     classOptions.value = []
     return
   }
-  const res = await getClassList({ page: 1, size: 200, collegeId })
+  const res = await getClassList({ page: 1, size: 200, collegeCode })
   classOptions.value = (res.data?.records || []).map((item) => ({
     value: item.id,
     label: item.className
@@ -200,7 +200,7 @@ async function fetchList() {
       size: size.value,
       account: searchForm.account || undefined,
       roleCode: searchForm.roleCode || undefined,
-      collegeId: searchForm.collegeId || undefined,
+      collegeCode: searchForm.collegeCode || undefined,
       classId: searchForm.classId || undefined
     })
     tableData.value = res.data?.records || []
@@ -218,7 +218,7 @@ function handleSearch() {
 function handleReset() {
   searchForm.account = ''
   searchForm.roleCode = ''
-  searchForm.collegeId = null
+  searchForm.collegeCode = null
   searchForm.classId = null
   classOptions.value = []
   handleSearch()
@@ -248,7 +248,7 @@ async function handleSaveRoles() {
 }
 
 watch(
-  () => searchForm.collegeId,
+  () => searchForm.collegeCode,
   async (value, oldValue) => {
     if (value === oldValue) return
     searchForm.classId = null
@@ -268,3 +268,4 @@ onMounted(async () => {
   justify-content: flex-end;
 }
 </style>
+

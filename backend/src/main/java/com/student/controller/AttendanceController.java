@@ -102,10 +102,10 @@ public class AttendanceController {
             Authentication authentication) {
         assertCollegeAdminArrangementScope(authentication, courseArrangementId);
         String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
-        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        String scopedTeacherNo = dataScopeService.resolveScopedTeacherNo(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         Page<Attendance> result = attendanceService.getAttendancePage(
-                page, size, scopedStudentId, scopedTeacherId, courseArrangementId, attendanceDate, status);
+                page, size, scopedStudentId, scopedTeacherNo, courseArrangementId, attendanceDate, status);
         return ResultVO.success(result);
     }
 
@@ -117,10 +117,10 @@ public class AttendanceController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Authentication authentication) {
         String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
-        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
-        if (scopedTeacherId != null) {
+        String scopedTeacherNo = dataScopeService.resolveScopedTeacherNo(authentication, null);
+        if (scopedTeacherNo != null) {
             Page<Attendance> result = attendanceService.getAttendancePage(
-                    1, 10000, scopedStudentId, scopedTeacherId, null, null, null);
+                    1, 10000, scopedStudentId, scopedTeacherNo, null, null, null);
             List<Attendance> records = filterByDateRange(result.getRecords(), startDate, endDate);
             return ResultVO.success(records);
         }
@@ -136,10 +136,10 @@ public class AttendanceController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Authentication authentication) {
         String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
-        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
-        if (scopedTeacherId != null) {
+        String scopedTeacherNo = dataScopeService.resolveScopedTeacherNo(authentication, null);
+        if (scopedTeacherNo != null) {
             Page<Attendance> result = attendanceService.getAttendancePage(
-                    1, 10000, scopedStudentId, scopedTeacherId, null, null, null);
+                    1, 10000, scopedStudentId, scopedTeacherNo, null, null, null);
             List<Attendance> records = filterByDateRange(result.getRecords(), startDate, endDate);
             return ResultVO.success(buildStatistics(records));
         }
@@ -161,8 +161,8 @@ public class AttendanceController {
     }
 
     private void assertCollegeAdminArrangementScope(Authentication authentication, Long arrangementId) {
-        Long scopedCollegeId = dataScopeService.resolveScopedCollegeId(authentication);
-        if (scopedCollegeId == null || arrangementId == null) {
+        String scopedCollegeCode = dataScopeService.resolveScopedCollegeCode(authentication);
+        if (scopedCollegeCode == null || arrangementId == null) {
             return;
         }
         CourseArrangement arrangement = courseArrangementMapper.selectById(arrangementId);
@@ -230,4 +230,5 @@ public class AttendanceController {
         return statistics;
     }
 }
+
 

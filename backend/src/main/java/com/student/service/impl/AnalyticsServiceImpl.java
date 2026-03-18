@@ -2,6 +2,7 @@ package com.student.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.student.dto.*;
 import com.student.dto.AnalyticsFilterDTO;
 import com.student.dto.AnalyticsOverviewDTO;
 import com.student.dto.RiskStudentDTO;
@@ -208,6 +209,313 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return result;
     }
 
+    @Override
+    public ScoreDistributionDTO getScoreDistribution(Long courseArrangementId, String semester, String classCode, Authentication authentication) {
+        UserScope scope = resolveUserScope(authentication);
+
+        // Build query
+        var query = scoreService.lambdaQuery();
+        query.select(Score::getTotalScore);
+        query.join(Score.class, Score::getCourseArrangementId, CourseArrangement.class, Score::getCourseArrangementId);
+        query.leftJoin(Student.class, Score::getStudentId, Student::getStudentNo);
+
+        if (courseArrangementId != null) {
+            query.eq(Score::getCourseArrangementId, courseArrangementId);
+        }
+        if (StringUtils.hasText(semester)) {
+            query.eq(CourseArrangement::getSemester, semester);
+        }
+        if (StringUtils.hasText(classCode)) {
+            query.eq(Student::getClassCode, classCode);
+        }
+
+        // Apply data scope
+        if (scope.role().isStudent()) {
+            query.eq(Score::getStudentId, scope.userNo());
+        } else if (scope.role().isTeacher()) {
+            query.eq(CourseArrangement::getTeacherNo, scope.userNo());
+        }
+
+        List<Score> scores = query.list();
+
+        ScoreDistributionDTO dto = new ScoreDistributionDTO();
+        if (scores.isEmpty()) {
+            dto.setTotalStudents(0);
+            dto.setAverageScore(0.0);
+            return dto;
+        }
+
+        List<Double> scoreList = scores.stream()
+                .map(Score::getTotalScore)
+                .filter(s -> s != null)
+                .map(BigDecimal::doubleValue)
+                .toList();
+
+        dto.setTotalStudents(scoreList.size());
+
+        // Calculate statistics
+        double avg = scoreList.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+        double max = scoreList.stream().mapToDouble(Double::doubleValue).max().orElse(0);
+        double min = scoreList.stream().mapToDouble(Double::doubleValue).min().orElse(0);
+        double stdDev = calculateStandardDeviation(scoreList, avg);
+
+        dto.setAverageScore(round2(avg));
+        dto.setMaxScore(max);
+        dto.setMinScore(min);
+        dto.setStandardDeviation(round2(stdDev));
+
+        // Distribution
+        List<ScoreDistributionDTO.ScoreRange> distribution = calculateDistribution(scoreList);
+        dto.setDistribution(distribution);
+
+        // Pass rate
+        long passCount = scoreList.stream().filter(s -> s >= 60).count();
+        long excellentCount = scoreList.stream().filter(s -> s >= 90).count();
+        dto.setPassRate(round2(100.0 * passCount / scoreList.size()));
+        dto.setExcellentRate(round2(100.0 * excellentCount / scoreList.size()));
+
+        return dto;
+    }
+
+    @Override
+    public ClassComparisonDTO getClassComparison(String semester, Long courseArrangementId, String collegeCode, Authentication authentication) {
+        ClassComparisonDTO dto = new ClassComparisonDTO();
+        dto.setSemester(semester);
+
+        // Query scores grouped by class
+        var scoreQuery = scoreService.lambdaQuery();
+        scoreQuery.select(Score::getStudentId, Score::getTotalScore);
+        scoreQuery.join(Score.class, Score::getCourseArrangementId, CourseArrangement.class, Score::getCourseArrangementId);
+        scoreQuery.leftJoin(Student.class, Score::getStudentId, Student::getStudentNo);
+        scoreQuery.leftJoin(Class.class, Student::getClassCode, Class::getClassCode);
+
+        if (StringUtils.hasText(semester)) {
+            scoreQuery.eq(CourseArrangement::getSemester, semester);
+        }
+        if (courseArrangementId != null) {
+            scoreQuery.eq(Score::getCourseArrangementId, courseArrangementId);
+        }
+        if (StringUtils.hasText(collegeCode)) {
+            scoreQuery.eq(Class::getCollegeCode, collegeCode);
+        }
+
+        List<Score> scores = scoreQuery.list();
+
+        // Group by class
+        Map<String, List<Score>> byClass = scores.stream()
+                .filter(s -> s.getStudentId() != null)
+                .collect(java.util.stream.Collectors.groupingBy(Score::getStudentId));
+
+        // Get class info
+        List<Class> classes = classMapper.selectList(null);
+        Map<String, Class> classMap = classes.stream()
+                .collect(java.util.stream.Collectors.toMap(Class::getClassCode, c -> c));
+
+        // Build comparison data
+        List<ClassComparisonDTO.ClassScoreData> classDataList = new ArrayList<>();
+        int ranking = 1;
+
+        for (Map.Entry<String, List<Score>> entry : byClass.entrySet()) {
+            String studentNo = entry.getKey();
+            Student student = studentMapper.selectByStudentNo(studentNo);
+            if (student == null || student.getClassCode() == null) continue;
+
+            Class cls = classMap.get(student.getClassCode());
+            if (cls == null) continue;
+
+            List<Score> classScores = entry.getValue();
+            List<Double> scoreValues = classScores.stream()
+                    .map(Score::getTotalScore)
+                    .filter(s -> s != null)
+                    .map(BigDecimal::doubleValue)
+                    .toList();
+
+            if (scoreValues.isEmpty()) continue;
+
+            double avg = scoreValues.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+            long passCount = scoreValues.stream().filter(s -> s >= 60).count();
+            long excellentCount = scoreValues.stream().filter(s -> s >= 90).count();
+
+            ClassComparisonDTO.ClassScoreData data = new ClassComparisonDTO.ClassScoreData();
+            data.setClassCode(cls.getClassCode());
+            data.setClassName(cls.getClassName());
+            data.setStudentCount(classScores.size());
+            data.setAverageScore(round2(avg));
+            data.setPassRate(round2(100.0 * passCount / classScores.size()));
+            data.setExcellentRate(round2(100.0 * excellentCount / classScores.size()));
+            data.setMaxScore(scoreValues.stream().mapToDouble(Double::doubleValue).max().orElse(0));
+            data.setMinScore(scoreValues.stream().mapToDouble(Double::doubleValue).min().orElse(0));
+            data.setRanking(ranking++);
+            classDataList.add(data);
+        }
+
+        // Sort by average score
+        classDataList.sort((a, b) -> Double.compare(b.getAverageScore(), a.getAverageScore()));
+        for (int i = 0; i < classDataList.size(); i++) {
+            classDataList.get(i).setRanking(i + 1);
+        }
+
+        dto.setClasses(classDataList);
+        return dto;
+    }
+
+    @Override
+    public List<CourseDifficultyDTO> getCourseDifficulty(String semester, String collegeCode, String courseCode, Authentication authentication) {
+        UserScope scope = resolveUserScope(authentication);
+
+        // Query course arrangements
+        var caQuery = new LambdaQueryWrapper<CourseArrangement>();
+        if (StringUtils.hasText(semester)) {
+            caQuery.eq(CourseArrangement::getSemester, semester);
+        }
+        if (StringUtils.hasText(collegeCode)) {
+            caQuery.eq(CourseArrangement::getCollegeCode, collegeCode);
+        }
+        if (StringUtils.hasText(courseCode)) {
+            caQuery.eq(CourseArrangement::getCourseCode, courseCode);
+        }
+        if (scope.role().isTeacher()) {
+            caQuery.eq(CourseArrangement::getTeacherNo, scope.userNo());
+        }
+
+        List<CourseArrangement> arrangements = courseArrangementMapper.selectList(caQuery);
+
+        List<CourseDifficultyDTO> results = new ArrayList<>();
+        for (CourseArrangement ca : arrangements) {
+            // Get scores for this course
+            var scoreQuery = scoreService.lambdaQuery();
+            scoreQuery.eq(Score::getCourseArrangementId, ca.getId());
+            List<Score> scores = scoreQuery.list();
+
+            if (scores.isEmpty()) continue;
+
+            List<Double> scoreValues = scores.stream()
+                    .map(Score::getTotalScore)
+                    .filter(s -> s != null)
+                    .map(BigDecimal::doubleValue)
+                    .toList();
+
+            if (scoreValues.isEmpty()) continue;
+
+            double avg = scoreValues.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+            double stdDev = calculateStandardDeviation(scoreValues, avg);
+            long passCount = scoreValues.stream().filter(s -> s >= 60).count();
+
+            // Difficulty index = 1 - (average / 100)
+            double difficultyIndex = 1 - (avg / 100);
+
+            CourseDifficultyDTO dto = new CourseDifficultyDTO();
+            dto.setCourseCode(ca.getCourseCode());
+            dto.setCourseName(ca.getCourseName());
+            dto.setSemester(ca.getSemester());
+            dto.setDifficultyIndex(round2(difficultyIndex));
+            dto.setDifficultyLevel(CourseDifficultyDTO.calculateDifficultyLevel(difficultyIndex));
+            dto.setTotalStudents(scoreValues.size());
+            dto.setAverageScore(round2(avg));
+            dto.setPassRate(round2(100.0 * passCount / scoreValues.size()));
+
+            // Discrimination index (simplified)
+            dto.setDiscriminationIndex(round2(stdDev / 25));
+            dto.setReliabilityIndex(round2(Math.min(1.0, stdDev / 15)));
+
+            results.add(dto);
+        }
+
+        // Sort by difficulty
+        results.sort((a, b) -> Double.compare(b.getDifficultyIndex(), a.getDifficultyIndex()));
+        return results;
+    }
+
+    @Override
+    public List<Map<String, Object>> getScoreRank(String semester, String classCode, Long courseArrangementId, Integer topN, Authentication authentication) {
+        UserScope scope = resolveUserScope(authentication);
+
+        var query = scoreService.lambdaQuery();
+        query.select(Score::getStudentId, Score::getTotalScore);
+        query.join(Score.class, Score::getCourseArrangementId, CourseArrangement.class, Score::getCourseArrangementId);
+        query.leftJoin(Student.class, Score::getStudentId, Student::getStudentNo);
+
+        if (StringUtils.hasText(semester)) {
+            query.eq(CourseArrangement::getSemester, semester);
+        }
+        if (classCode != null) {
+            query.eq(Student::getClassCode, classCode);
+        }
+        if (courseArrangementId != null) {
+            query.eq(Score::getCourseArrangementId, courseArrangementId);
+        }
+
+        if (scope.role().isStudent()) {
+            query.eq(Score::getStudentId, scope.userNo());
+        }
+
+        List<Score> scores = query.list();
+
+        // Group and calculate average
+        Map<String, List<Score>> byStudent = scores.stream()
+                .filter(s -> s.getStudentId() != null)
+                .collect(java.util.stream.Collectors.groupingBy(Score::getStudentId));
+
+        List<Map<String, Object>> rankings = new ArrayList<>();
+        int rank = 1;
+        for (Map.Entry<String, List<Score>> entry : byStudent.entrySet()) {
+            Student student = studentMapper.selectByStudentNo(entry.getKey());
+            if (student == null) continue;
+
+            List<Double> scoreValues = entry.getValue().stream()
+                    .map(Score::getTotalScore)
+                    .filter(s -> s != null)
+                    .map(BigDecimal::doubleValue)
+                    .toList();
+
+            if (scoreValues.isEmpty()) continue;
+
+            double avg = scoreValues.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+
+            Map<String, Object> row = new HashMap<>();
+            row.put("rank", rank++);
+            row.put("studentNo", student.getStudentNo());
+            row.put("studentName", student.getName());
+            row.put("classCode", student.getClassCode());
+            row.put("averageScore", round2(avg));
+            row.put("courseCount", scoreValues.size());
+            rankings.add(row);
+        }
+
+        // Sort by average and take top N
+        rankings.sort((a, b) -> Double.compare((Double) b.get("averageScore"), (Double) a.get("averageScore")));
+        return rankings.stream().limit(topN).toList();
+    }
+
+    private double calculateStandardDeviation(List<Double> values, double mean) {
+        if (values.isEmpty()) return 0;
+        double variance = values.stream()
+                .mapToDouble(v -> Math.pow(v - mean, 2))
+                .average()
+                .orElse(0);
+        return Math.sqrt(variance);
+    }
+
+    private List<ScoreDistributionDTO.ScoreRange> calculateDistribution(List<Double> scores) {
+        String[] ranges = {"0-59", "60-69", "70-79", "80-89", "90-100"};
+        int[] bounds = {0, 60, 70, 80, 90, 101};
+
+        List<ScoreDistributionDTO.ScoreRange> result = new ArrayList<>();
+        for (int i = 0; i < ranges.length; i++) {
+            int finalI = i;
+            long count = scores.stream()
+                    .filter(s -> s >= bounds[finalI] && s < bounds[finalI + 1])
+                    .count();
+
+            ScoreDistributionDTO.ScoreRange range = new ScoreDistributionDTO.ScoreRange();
+            range.setRange(ranges[i]);
+            range.setCount((int) count);
+            range.setPercentage(scores.isEmpty() ? 0.0 : round2(100.0 * count / scores.size()));
+            result.add(range);
+        }
+        return result;
+    }
+
     private OverviewMetrics computeOverviewMetrics(DateRange range, UserScope scope, ArrangementScope arrangementScope) {
         Long studentCount = countStudents(scope, arrangementScope);
         Long pendingApproval = countPendingApprovals(scope, arrangementScope);
@@ -287,13 +595,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         List<CourseArrangement> arrangements = courseArrangementMapper.selectList(
                 new LambdaQueryWrapper<CourseArrangement>().in(CourseArrangement::getId, arrangementIds));
-        Set<Long> courseIds = new HashSet<>();
+        Set<String> courseCodes = new HashSet<>();
         for (CourseArrangement arrangement : arrangements) {
-            if (arrangement.getCourseId() != null) {
-                courseIds.add(arrangement.getCourseId());
+            if (arrangement.getCourseCode() != null) {
+                courseCodes.add(arrangement.getCourseCode());
             }
         }
-        return (long) courseIds.size();
+        return (long) courseCodes.size();
     }
 
     private Double calculateAttendanceRate(DateRange range, UserScope scope, ArrangementScope arrangementScope) {
@@ -441,8 +749,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             }
             Long arrangementId = score.getCourseArrangementId();
             CourseRef courseRef = arrangementId == null ? null : courseRefByArrangementId.get(arrangementId);
-            Long courseId = courseRef == null ? null : courseRef.courseId();
-            String groupKey = courseId != null ? "course_" + courseId : "arrangement_" + arrangementId;
+            String courseCode = courseRef == null ? null : courseRef.courseCode();
+            String groupKey = courseCode != null ? "course_" + courseCode : "arrangement_" + arrangementId;
             String courseName = courseRef == null || !StringUtils.hasText(courseRef.courseName()) ? "-" : courseRef.courseName();
             double scoreValue = score.getTotalScore().doubleValue();
             aggregateByCourse.computeIfAbsent(groupKey, key -> new LowScoreDetailAggregate(courseName)).add(scoreValue);
@@ -634,16 +942,16 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             return Map.of();
         }
 
-        Set<Long> courseIds = new HashSet<>();
+        Set<String> courseCodes = new HashSet<>();
         for (CourseArrangement arrangement : arrangements) {
-            if (arrangement.getCourseId() != null) {
-                courseIds.add(arrangement.getCourseId());
+            if (arrangement.getCourseCode() != null) {
+                courseCodes.add(arrangement.getCourseCode());
             }
         }
 
         Map<Long, String> courseNameById = new HashMap<>();
-        if (!courseIds.isEmpty()) {
-            List<Course> courses = courseMapper.selectBatchIds(courseIds);
+        if (!courseCodes.isEmpty()) {
+            List<Course> courses = courseMapper.selectBatchIds(courseCodes);
             for (Course course : courses) {
                 if (course.getId() != null) {
                     courseNameById.put(course.getId(), course.getCourseName());
@@ -656,8 +964,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             if (arrangement.getId() == null) {
                 continue;
             }
-            String courseName = arrangement.getCourseId() == null ? null : courseNameById.get(arrangement.getCourseId());
-            result.put(arrangement.getId(), new CourseRef(arrangement.getCourseId(), courseName));
+            String courseName = arrangement.getCourseCode() == null ? null : courseNameById.get(arrangement.getCourseCode());
+            result.put(arrangement.getId(), new CourseRef(arrangement.getCourseCode(), courseName));
         }
         return result;
     }
@@ -683,34 +991,34 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             return new UserScope(primaryRole, student.getStudentNo(), null, student.getClassId(), null);
         }
         if (primaryRole.isTeacherGroup()) {
-            Long teacherId = currentUserService.getCurrentTeacherId(authentication);
-            return new UserScope(primaryRole, null, teacherId, null, null);
+            String teacherNo = currentUserService.getCurrentTeacherNo(authentication);
+            return new UserScope(primaryRole, null, teacherNo, null, null);
         }
-        Long managedCollegeId = null;
+        String managedCollegeCode = null;
         if (primaryRole == SysUser.Role.COLLEGE_ADMIN) {
-            managedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+            managedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
         }
-        return new UserScope(primaryRole, null, null, null, managedCollegeId);
+        return new UserScope(primaryRole, null, null, null, managedCollegeCode);
     }
 
     private ArrangementScope resolveArrangementScope(AnalyticsFilterDTO filter, UserScope scope) {
-        Long teacherId = null;
+        String teacherNo = null;
         String classId = null;
         if (scope.role().isTeacherGroup()) {
-            teacherId = scope.teacherId();
+            teacherNo = scope.teacherNo();
             classId = filter.getClassId();
         } else if (scope.role().isAdminGroup()) {
-            teacherId = filter.getTeacherId();
+            teacherNo = filter.getTeacherNo();
             classId = filter.getClassId();
         }
         String semester = filter.getSemester();
 
-        // Student analytics must stay in "self" scope; classId/teacherId filters are ignored.
+        // Student analytics must stay in "self" scope; classId/teacherNo filters are ignored.
         // Optional semester filter is still supported for narrowing personal records.
         boolean enabled;
         if (scope.role().isAdminGroup()) {
-            enabled = teacherId != null || classId != null || StringUtils.hasText(semester);
-            if (scope.collegeId() != null) {
+            enabled = teacherNo != null || classId != null || StringUtils.hasText(semester);
+            if (scope.collegeCode() != null) {
                 enabled = true;
             }
         } else if (scope.role().isTeacherGroup()) {
@@ -723,15 +1031,15 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
 
         var query = new LambdaQueryWrapper<CourseArrangement>();
-        if (teacherId != null) {
-            query.eq(CourseArrangement::getTeacherId, teacherId);
+        if (teacherNo != null) {
+            query.eq(CourseArrangement::getTeacherNo, teacherNo);
         }
         if (classId != null) {
             query.eq(CourseArrangement::getClassId, classId);
         }
-        if (scope.collegeId() != null) {
+        if (scope.collegeCode() != null) {
             List<Class> classes = classMapper.selectList(
-                    new LambdaQueryWrapper<Class>().eq(Class::getCollegeId, scope.collegeId()));
+                    new LambdaQueryWrapper<Class>().eq(Class::getCollegeCode, scope.collegeCode()));
             Set<String> classIds = classes.stream()
                     .map(Class::getClassCode)
                     .filter(id -> id != null)
@@ -864,7 +1172,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
-    private record UserScope(SysUser.Role role, String studentNo, Long teacherId, String classId, Long collegeId) {
+    private record UserScope(SysUser.Role role, String studentNo, String teacherNo, String classId, String collegeCode) {
     }
 
     private record ArrangementScope(boolean enabled, Set<Long> arrangementIds) {
@@ -883,7 +1191,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                                    Double approvalAvgHours) {
     }
 
-    private record CourseRef(Long courseId, String courseName) {
+    private record CourseRef(String courseCode, String courseName) {
     }
 
     private static class LowScoreDetailAggregate {
@@ -932,3 +1240,5 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         }
     }
 }
+
+

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.mapper.StudentEmploymentMapper">
+
+    <resultMap id="BaseResultMap" type="com.student.entity.StudentEmployment">
+        <id column="id" property="id"/>
+        <result column="student_id" property="studentId"/>
+        <result column="graduation_year" property="graduationYear"/>
+        <result column="employment_status" property="employmentStatus"/>
+        <result column="company_name" property="companyName"/>
+        <result column="company_type" property="companyType"/>
+        <result column="industry" property="industry"/>
+        <result column="position" property="position"/>
+        <result column="salary_range" property="salaryRange"/>
+        <result column="work_city" property="workCity"/>
+        <result column="work_province" property="workProvince"/>
+        <result column="contract_type" property="contractType"/>
+        <result column="social_insurance" property="socialInsurance"/>
+        <result column="contact_name" property="contactName"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="contact_email" property="contactEmail"/>
+        <result column="employment_prove_url" property="employmentProveUrl"/>
+        <result column="graduation_school" property="graduationSchool"/>
+        <result column="graduation_major" property="graduationMajor"/>
+        <result column="degree_type" property="degreeType"/>
+        <result column="remarks" property="remarks"/>
+        <result column="recorder_no" property="recorderNo"/>
+        <result column="record_time" property="recordTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="student_name" property="studentName"/>
+        <result column="class_name" property="className"/>
+        <result column="college_name" property="collegeName"/>
+        <result column="major_name" property="majorName"/>
+    </resultMap>
+
+    <select id="selectPageWithDetail" resultMap="BaseResultMap">
+        SELECT e.*, s.name as student_name, c.class_name, co.college_name, m.major_name
+        FROM student_employment e
+        LEFT JOIN student s ON e.student_id = s.student_no
+        LEFT JOIN class c ON s.class_code = c.class_code
+        LEFT JOIN college co ON c.college_code = co.college_code
+        LEFT JOIN major m ON s.major_code = m.major_code
+        <where>
+            <if test="studentId != null">
+                AND e.student_id = #{studentId}
+            </if>
+            <if test="graduationYear != null">
+                AND e.graduation_year = #{graduationYear}
+            </if>
+            <if test="employmentStatus != null">
+                AND e.employment_status = #{employmentStatus}
+            </if>
+            <if test="collegeCode != null">
+                AND co.college_code = #{collegeCode}
+            </if>
+        </where>
+        ORDER BY e.record_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countWithDetail" resultType="long">
+        SELECT COUNT(*)
+        FROM student_employment e
+        LEFT JOIN student s ON e.student_id = s.student_no
+        LEFT JOIN class c ON s.class_code = c.class_code
+        LEFT JOIN college co ON c.college_code = co.college_code
+        <where>
+            <if test="studentId != null">
+                AND e.student_id = #{studentId}
+            </if>
+            <if test="graduationYear != null">
+                AND e.graduation_year = #{graduationYear}
+            </if>
+            <if test="employmentStatus != null">
+                AND e.employment_status = #{employmentStatus}
+            </if>
+            <if test="collegeCode != null">
+                AND co.college_code = #{collegeCode}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectStatisticsByYear" resultType="map">
+        SELECT
+            e.graduation_year as year,
+            e.employment_status as status,
+            COUNT(*) as count,
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM student_employment WHERE graduation_year = #{graduationYear}), 2) as percentage
+        FROM student_employment e
+        LEFT JOIN student s ON e.student_id = s.student_no
+        LEFT JOIN class c ON s.class_code = c.class_code
+        <where>
+            <if test="graduationYear != null">
+                AND e.graduation_year = #{graduationYear}
+            </if>
+            <if test="collegeCode != null">
+                AND c.college_code = #{collegeCode}
+            </if>
+        </where>
+        GROUP BY e.graduation_year, e.employment_status
+        ORDER BY e.graduation_year DESC
+    </select>
+
+    <select id="selectStatisticsByIndustry" resultType="map">
+        SELECT
+            e.industry as industry,
+            COUNT(*) as count,
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM student_employment WHERE employment_status = 'EMPLOYED'), 2) as percentage
+        FROM student_employment e
+        LEFT JOIN student s ON e.student_id = s.student_no
+        LEFT JOIN class c ON s.class_code = c.class_code
+        <where>
+            e.employment_status = 'EMPLOYED'
+            <if test="graduationYear != null">
+                AND e.graduation_year = #{graduationYear}
+            </if>
+            <if test="collegeCode != null">
+                AND c.college_code = #{collegeCode}
+            </if>
+        </where>
+        GROUP BY e.industry
+        ORDER BY count DESC
+    </select>
+
+    <select id="selectStatisticsByCompanyType" resultType="map">
+        SELECT
+            e.company_type as companyType,
+            COUNT(*) as count,
+            ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM student_employment WHERE employment_status = 'EMPLOYED'), 2) as percentage
+        FROM student_employment e
+        LEFT JOIN student s ON e.student_id = s.student_no
+        LEFT JOIN class c ON s.class_code = c.class_code
+        <where>
+            e.employment_status = 'EMPLOYED'
+            <if test="graduationYear != null">
+                AND e.graduation_year = #{graduationYear}
+            </if>
+            <if test="collegeCode != null">
+                AND c.college_code = #{collegeCode}
+            </if>
+        </where>
+        GROUP BY e.company_type
+        ORDER BY count DESC
+    </select>
+
+    <select id="selectEmploymentRate" resultType="map">
+        SELECT
+            (SELECT COUNT(*) FROM student_employment WHERE employment_status IN ('EMPLOYED', 'SELF_EMPLOYED')
+                <if test="graduationYear != null">
+                    AND graduation_year = #{graduationYear}
+                </if>
+            ) as employedCount,
+            (SELECT COUNT(DISTINCT student_id) FROM student
+                <where>
+                    <if test="graduationYear != null">
+                        SUBSTRING(student_no, 1, 4) = #{graduationYear}
+                    </if>
+                    <if test="collegeCode != null">
+                        AND class_code IN (SELECT class_code FROM class WHERE college_code = #{collegeCode})
+                    </if>
+                </where>
+            ) as totalCount,
+            ROUND(
+                (SELECT COUNT(*) FROM student_employment WHERE employment_status IN ('EMPLOYED', 'SELF_EMPLOYED')
+                    <if test="graduationYear != null">
+                        AND graduation_year = #{graduationYear}
+                    </if>
+                ) * 100.0 /
+                (SELECT COUNT(DISTINCT student_id) FROM student
+                    <where>
+                        <if test="graduationYear != null">
+                            SUBSTRING(student_no, 1, 4) = #{graduationYear}
+                        </if>
+                        <if test="collegeCode != null">
+                            AND class_code IN (SELECT class_code FROM class WHERE college_code = #{collegeCode})
+                        </if>
+                    </where>
+                ), 2
+            ) as employmentRate
+    </select>
+
+</mapper>

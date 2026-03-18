@@ -5,9 +5,9 @@ import lombok.Data;
 @Data
 public class ScoreQueryDTO {
     private String studentId;
-    private Long teacherId;
+    private String teacherNo;
     private Long courseArrangementId;
     private String semester;
-    private Long collegeId;
-    private String classId;
+    private String collegeCode;
+    private String classCode;
 }

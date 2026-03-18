@@ -64,7 +64,7 @@ public class ClassServiceImpl extends ServiceImpl<ClassMapper, Class> implements
     }
 
     @Override
-    public Page<Class> getClassPage(Integer page, Integer size, String className, String grade, Long teacherId, Long collegeId, String majorCode) {
+    public Page<Class> getClassPage(Integer page, Integer size, String className, String grade, String teacherNo, String collegeCode, String majorCode) {
         Page<Class> pageParam = new Page<>(page, size);
 
         Year gradeYear = null;
@@ -77,15 +77,15 @@ public class ClassServiceImpl extends ServiceImpl<ClassMapper, Class> implements
         }
 
         Year finalGradeYear = gradeYear;
-        return classMapper.selectPageWithMajor(pageParam, className, finalGradeYear, teacherId, collegeId, majorCode);
+        return classMapper.selectPageWithMajor(pageParam, className, finalGradeYear, teacherNo, collegeCode, majorCode);
     }
 
     @Override
-    public List<Class> getClassesByTeacherId(Long teacherId) {
-        if (teacherId == null) {
+    public List<Class> getClassesByTeacherNo(String teacherNo) {
+        if (teacherNo == null) {
             return Collections.emptyList();
         }
-        return classMapper.selectByTeacherId(teacherId);
+        return classMapper.selectByTeacherNo(teacherNo);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class ClassServiceImpl extends ServiceImpl<ClassMapper, Class> implements
         if (clazz == null) {
             throw new BusinessException(400, "Class payload is required");
         }
-        clazz.setClassCode(generateClassCode(clazz.getCollegeId(), clazz.getMajorCode(), clazz.getGrade()));
+        clazz.setClassCode(generateClassCode(clazz.getCollegeCode(), clazz.getMajorCode(), clazz.getGrade()));
         if (clazz.getStudentCount() == null) {
             clazz.setStudentCount(0);
         }
@@ -134,11 +134,11 @@ public class ClassServiceImpl extends ServiceImpl<ClassMapper, Class> implements
     }
 
     @Override
-    public String generateClassCode(Long collegeId, String majorCode, Year grade) {
+    public String generateClassCode(String collegeCode, String majorCode, Year grade) {
         if (grade == null) {
             throw new BusinessException(400, "Grade is required");
         }
-        College college = collegeId == null ? null : collegeMapper.selectById(collegeId);
+        College college = collegeCode == null ? null : collegeMapper.selectById(collegeCode);
         if (college == null) {
             throw new BusinessException(404, "College not found");
         }
@@ -170,3 +170,5 @@ public class ClassServiceImpl extends ServiceImpl<ClassMapper, Class> implements
         return normalized + "X".repeat(SEGMENT_LENGTH - normalized.length());
     }
 }
+
+

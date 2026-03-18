@@ -40,39 +40,39 @@ public class ClassController {
     public ResultVO<Void> add(@RequestBody @Validated Class clazz, Authentication authentication) {
         bindCollegeFromMajor(authentication, clazz);
         classService.createClass(clazz);
-        ensureHomeroomRole(clazz.getTeacherId());
+        ensureHomeroomRole(clazz.getTeacherNo());
         return ResultVO.success();
     }
 
     @PutMapping("/{classCode}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<Void> update(@PathVariable String classCode, @RequestBody @Validated Class clazz, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
         bindCollegeFromMajor(authentication, clazz);
         Class existing = classService.getClassByCode(classCode);
         if (existing == null) {
             return ResultVO.error(404, "Class not found");
         }
-        if (scopedCollegeId != null) {
-            if (!scopedCollegeId.equals(existing.getCollegeId())) {
+        if (scopedCollegeCode != null) {
+            if (!scopedCollegeCode.equals(existing.getCollegeCode())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
         classService.updateClassByCode(classCode, clazz);
-        ensureHomeroomRole(clazz.getTeacherId());
+        ensureHomeroomRole(clazz.getTeacherNo());
         return ResultVO.success();
     }
 
     @DeleteMapping("/{classCode}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN')")
     public ResultVO<Void> delete(@PathVariable String classCode, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
         Class existing = classService.getClassByCode(classCode);
         if (existing == null) {
             return ResultVO.error(404, "Class not found");
         }
-        if (scopedCollegeId != null) {
-            if (!scopedCollegeId.equals(existing.getCollegeId())) {
+        if (scopedCollegeCode != null) {
+            if (!scopedCollegeCode.equals(existing.getCollegeCode())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
@@ -83,13 +83,13 @@ public class ClassController {
     @GetMapping("/{classCode}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public ResultVO<Class> getById(@PathVariable String classCode, Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
         Class existing = classService.getClassByCode(classCode);
         if (existing == null) {
             return ResultVO.error(404, "Class not found");
         }
-        if (scopedCollegeId != null) {
-            if (!scopedCollegeId.equals(existing.getCollegeId())) {
+        if (scopedCollegeCode != null) {
+            if (!scopedCollegeCode.equals(existing.getCollegeCode())) {
                 return ResultVO.error(403, "Forbidden");
             }
         }
@@ -109,12 +109,12 @@ public class ClassController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String className,
             @RequestParam(required = false) String grade,
-            @RequestParam(required = false) Long collegeId,
+            @RequestParam(required = false) String collegeCode,
             @RequestParam(required = false) String majorCode,
-            @RequestParam(required = false) Long teacherId,
+            @RequestParam(required = false) String teacherNo,
             Authentication authentication) {
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        String effectiveCollegeCode = scopedCollegeCode != null ? scopedCollegeCode : collegeCode;
         if (dataScopeService.isStudent(authentication)) {
             DataScopeService.StudentArrangementScope scope = dataScopeService.resolveStudentArrangementScope(authentication);
             Page<Class> pageParam = new Page<>(page, size);
@@ -138,32 +138,32 @@ public class ClassController {
                     .like(className != null && !className.isBlank(), Class::getClassName, className)
                     .eq(gradeYear != null, Class::getGrade, gradeYear)
                     .eq(majorCode != null && !majorCode.isBlank(), Class::getMajorCode, majorCode)
-                    .eq(teacherId != null, Class::getTeacherId, teacherId);
+                    .eq(teacherNo != null, Class::getTeacherNo, teacherNo);
             Page<Class> result = classService.page(pageParam, wrapper);
             return ResultVO.success(result);
         }
-        Page<Class> result = classService.getClassPage(page, size, className, grade, teacherId, effectiveCollegeId, majorCode);
+        Page<Class> result = classService.getClassPage(page, size, className, grade, teacherNo, effectiveCollegeCode, majorCode);
         return ResultVO.success(result);
     }
 
-    @GetMapping("/teacher/{teacherId}")
+    @GetMapping("/teacher/{teacherNo}")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
-    public ResultVO<List<Class>> getByTeacherId(@PathVariable Long teacherId, Authentication authentication) {
-        List<Class> classes = classService.getClassesByTeacherId(teacherId);
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId != null) {
+    public ResultVO<List<Class>> getByTeacherNo(@PathVariable String teacherNo, Authentication authentication) {
+        List<Class> classes = classService.getClassesByTeacherNo(teacherNo);
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        if (scopedCollegeCode != null) {
             classes = classes.stream()
-                    .filter(item -> scopedCollegeId.equals(item.getCollegeId()))
+                    .filter(item -> scopedCollegeCode.equals(item.getCollegeCode()))
                     .toList();
         }
         return ResultVO.success(classes);
     }
 
-    private void ensureHomeroomRole(Long teacherId) {
-        if (teacherId == null) {
+    private void ensureHomeroomRole(String teacherNo) {
+        if (teacherNo == null) {
             return;
         }
-        Teacher teacher = teacherMapper.selectByInternalId(teacherId);
+        Teacher teacher = teacherMapper.selectByTeacherNo(teacherNo);
         if (teacher == null || teacher.getUserId() == null) {
             return;
         }
@@ -178,11 +178,13 @@ public class ClassController {
         if (major == null) {
             throw new com.student.exception.BusinessException(404, "Major not found");
         }
-        Long scopedCollegeId = currentUserService.resolveManagedCollegeId(authentication);
-        if (scopedCollegeId != null && !scopedCollegeId.equals(major.getCollegeId())) {
+        String scopedCollegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+        if (scopedCollegeCode != null && !scopedCollegeCode.equals(major.getCollegeCode())) {
             throw new com.student.exception.BusinessException(403, "Forbidden");
         }
-        clazz.setCollegeId(major.getCollegeId());
+        clazz.setCollegeCode(major.getCollegeCode());
     }
 }
+
+
 

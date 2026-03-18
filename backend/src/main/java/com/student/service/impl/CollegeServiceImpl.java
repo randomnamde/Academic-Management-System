@@ -15,6 +15,8 @@ import com.student.service.CollegeService;
 import com.student.service.SysUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -44,10 +46,11 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
     private final SysUserService sysUserService;
 
     @Override
-    public Page<College> getCollegePage(Integer page, Integer size, String keyword, Integer status, Long scopedCollegeId) {
+    @Cacheable(value = "college", key = "'page:' + #page + ':' + #size + ':' + #keyword + ':' + #status + ':' + #scopedCollegeCode")
+    public Page<College> getCollegePage(Integer page, Integer size, String keyword, Integer status, String scopedCollegeCode) {
         Page<College> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<College> query = new LambdaQueryWrapper<College>()
-                .eq(scopedCollegeId != null, College::getId, scopedCollegeId)
+                .eq(scopedCollegeCode != null, College::getCollegeCode, scopedCollegeCode)
                 .eq(status != null, College::getStatus, status)
                 .orderByDesc(College::getCreateTime);
         if (StringUtils.hasText(keyword)) {
@@ -66,16 +69,22 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
 
     @Override
     @Transactional
+    @CacheEvict(value = "college", allEntries = true)
     public College createCollege(CollegeDTO dto) {
         College college = new College();
         BeanUtils.copyProperties(dto, college);
-        college.setCollegeCode(generateCollegeCode(dto.getCollegeNameEn(), dto.getCollegeName()));
+        if (!StringUtils.hasText(college.getCollegeCode())) {
+            college.setCollegeCode(generateCollegeCode(dto.getCollegeNameEn(), dto.getCollegeName()));
+        }
+        if (collegeMapper.selectByCollegeCode(college.getCollegeCode()) != null) {
+            throw new BusinessException(400, "College code already exists");
+        }
         if (college.getStatus() == null) {
             college.setStatus(1);
         }
         save(college);
         if (StringUtils.hasText(dto.getAdminUsername())) {
-            bindAdmin(college.getId(), dto.getAdminUsername(), null);
+            bindAdmin(college.getCollegeCode(), dto.getAdminUsername(), null);
             college.setAdminUsername(dto.getAdminUsername().trim());
         }
         return college;
@@ -83,12 +92,13 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
 
     @Override
     @Transactional
-    public void updateCollege(Long id, CollegeDTO dto, Long scopedCollegeId) {
-        College existing = getById(id);
+    @CacheEvict(value = "college", allEntries = true)
+    public void updateCollege(String collegeCode, CollegeDTO dto, String scopedCollegeCode) {
+        College existing = getById(collegeCode);
         if (existing == null) {
             throw new BusinessException(404, "College not found");
         }
-        assertScope(existing, scopedCollegeId);
+        assertScope(existing, scopedCollegeCode);
 
         if (StringUtils.hasText(dto.getCollegeCode())) {
             String nextCode = dto.getCollegeCode().trim();
@@ -100,41 +110,38 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
 
         College update = new College();
         BeanUtils.copyProperties(dto, update);
-        update.setId(id);
-        if (!StringUtils.hasText(update.getCollegeCode())) {
-            update.setCollegeCode(existing.getCollegeCode());
-        }
+        update.setCollegeCode(collegeCode);
         if (update.getStatus() == null) {
             update.setStatus(existing.getStatus());
         }
         updateById(update);
         if (StringUtils.hasText(dto.getAdminUsername())) {
-            bindAdmin(id, dto.getAdminUsername(), scopedCollegeId);
+            bindAdmin(collegeCode, dto.getAdminUsername(), scopedCollegeCode);
         }
     }
 
     @Override
     @Transactional
-    public void updateCollegeStatus(Long id, Integer status, Long scopedCollegeId) {
-        College existing = getById(id);
+    public void updateCollegeStatus(String collegeCode, Integer status, String scopedCollegeCode) {
+        College existing = getById(collegeCode);
         if (existing == null) {
             throw new BusinessException(404, "College not found");
         }
-        assertScope(existing, scopedCollegeId);
+        assertScope(existing, scopedCollegeCode);
         College update = new College();
-        update.setId(id);
+        update.setCollegeCode(collegeCode);
         update.setStatus(status);
         updateById(update);
     }
 
     @Override
     @Transactional
-    public void bindAdmin(Long id, String adminUsername, Long scopedCollegeId) {
-        College existing = getById(id);
+    public void bindAdmin(String collegeCode, String adminUsername, String scopedCollegeCode) {
+        College existing = getById(collegeCode);
         if (existing == null) {
             throw new BusinessException(404, "College not found");
         }
-        assertScope(existing, scopedCollegeId);
+        assertScope(existing, scopedCollegeCode);
         if (!StringUtils.hasText(adminUsername)) {
             throw new BusinessException(400, "Please input admin username");
         }
@@ -146,20 +153,20 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
         }
 
         College occupied = collegeMapper.selectByAdminUserId(user.getUsername());
-        if (occupied != null && !occupied.getId().equals(id)) {
+        if (occupied != null && !occupied.getCollegeCode().equals(collegeCode)) {
             throw new BusinessException(400, "This account is bound to another college");
         }
 
         College update = new College();
-        update.setId(id);
+        update.setCollegeCode(collegeCode);
         update.setAdminUserId(user.getUsername());
         updateById(update);
 
         sysUserService.grantRole(user.getUsername(), RoleCode.COLLEGE_ADMIN);
     }
 
-    private void assertScope(College college, Long scopedCollegeId) {
-        if (scopedCollegeId != null && !scopedCollegeId.equals(college.getId())) {
+    private void assertScope(College college, String scopedCollegeCode) {
+        if (scopedCollegeCode != null && !scopedCollegeCode.equals(college.getCollegeCode())) {
             throw new BusinessException(403, "Forbidden");
         }
     }
@@ -192,10 +199,10 @@ public class CollegeServiceImpl extends ServiceImpl<CollegeMapper, College> impl
             return;
         }
         for (College college : colleges) {
-            if (college.getId() == null) {
+            if (college.getCollegeCode() == null) {
                 continue;
             }
-            college.setMajorCount(majorMapper.countByCollegeId(college.getId()));
+            college.setMajorCount(majorMapper.countByCollegeCode(college.getCollegeCode()));
         }
     }
 

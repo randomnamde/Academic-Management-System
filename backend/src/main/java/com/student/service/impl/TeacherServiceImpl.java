@@ -11,8 +11,8 @@ import com.student.mapper.CollegeMapper;
 import com.student.mapper.SysUserMapper;
 import com.student.mapper.TeacherMapper;
 import com.student.security.RoleCode;
-import com.student.service.TeacherService;
 import com.student.service.SysUserService;
+import com.student.service.TeacherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,8 +38,11 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     @Override
     @Transactional
     public void addTeacher(TeacherDTO teacherDTO) {
+        if (!StringUtils.hasText(teacherDTO.getCollegeCode())) {
+            throw new BusinessException("College is required");
+        }
         if (!StringUtils.hasText(teacherDTO.getTeacherNo())) {
-            teacherDTO.setTeacherNo(generateTeacherNo(teacherDTO.getCollegeId()));
+            teacherDTO.setTeacherNo(generateNextTeacherNo(teacherDTO.getCollegeCode()));
         }
         if (teacherMapper.selectByTeacherNo(teacherDTO.getTeacherNo()) != null) {
             throw new BusinessException("Teacher number already exists");
@@ -76,18 +79,9 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
             throw new BusinessException("Teacher number cannot be null");
         }
 
-        Teacher existing = resolveTeacher(teacherDTO.getTeacherNo());
+        Teacher existing = teacherMapper.selectByTeacherNo(teacherDTO.getTeacherNo());
         if (existing == null) {
             throw new BusinessException("Teacher not found");
-        }
-
-        if (StringUtils.hasText(teacherDTO.getTeacherNo()) && !teacherDTO.getTeacherNo().equals(existing.getTeacherNo())) {
-            throw new BusinessException("Teacher number cannot be changed");
-        }
-
-        Teacher existingByNo = teacherMapper.selectByTeacherNo(teacherDTO.getTeacherNo());
-        if (existingByNo != null && !existingByNo.getTeacherNo().equals(existing.getTeacherNo())) {
-            throw new BusinessException("Teacher number already used");
         }
 
         Teacher teacher = new Teacher();
@@ -111,7 +105,7 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
     @Override
     @Transactional
     public void deleteTeacher(String teacherNo) {
-        Teacher existing = resolveTeacher(teacherNo);
+        Teacher existing = teacherMapper.selectByTeacherNo(teacherNo);
         if (existing == null) {
             throw new BusinessException("Teacher not found");
         }
@@ -122,22 +116,23 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     public Teacher getTeacherByNo(String teacherNo) {
-        return resolveTeacher(teacherNo);
+        return teacherMapper.selectByTeacherNo(teacherNo);
     }
 
     @Override
-    public Page<Teacher> getTeacherPage(Integer page, Integer size, String teacherNo, String name, Long departmentId) {
+    public Page<Teacher> getTeacherPage(Integer page, Integer size, String teacherNo, String name, String department) {
         Page<Teacher> pageParam = new Page<>(page, size);
         return lambdaQuery()
                 .like(StringUtils.hasText(teacherNo), Teacher::getTeacherNo, teacherNo)
                 .like(StringUtils.hasText(name), Teacher::getName, name)
+                .like(StringUtils.hasText(department), Teacher::getDepartment, department)
                 .page(pageParam);
     }
 
     @Override
     @Transactional
     public void updateTeacherStatus(String teacherNo, Integer status) {
-        Teacher existing = resolveTeacher(teacherNo);
+        Teacher existing = teacherMapper.selectByTeacherNo(teacherNo);
         if (existing == null) {
             throw new BusinessException("Teacher not found");
         }
@@ -153,11 +148,16 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         userMapper.updateById(user);
     }
 
-    private String generateTeacherNo(Long collegeId) {
-        if (collegeId == null) {
+    @Override
+    public String generateNextTeacherNo(String collegeCode) {
+        return generateTeacherNo(collegeCode);
+    }
+
+    public String generateTeacherNo(String collegeCode) {
+        if (!StringUtils.hasText(collegeCode)) {
             throw new BusinessException("College is required for teacher number generation");
         }
-        College college = collegeMapper.selectById(collegeId);
+        College college = collegeMapper.selectById(collegeCode);
         if (college == null || !StringUtils.hasText(college.getCollegeCode())) {
             throw new BusinessException("College not found");
         }
@@ -184,19 +184,5 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
             return "0".repeat(4 - normalized.length()) + normalized;
         }
         return normalized;
-    }
-
-    private Teacher resolveTeacher(String teacherNo) {
-        if (!StringUtils.hasText(teacherNo)) {
-            return null;
-        }
-        Teacher teacher = teacherMapper.selectByTeacherNo(teacherNo);
-        if (teacher != null) {
-            return teacher;
-        }
-        if (teacherNo.chars().allMatch(Character::isDigit)) {
-            return teacherMapper.selectByInternalId(Long.parseLong(teacherNo));
-        }
-        return null;
     }
 }

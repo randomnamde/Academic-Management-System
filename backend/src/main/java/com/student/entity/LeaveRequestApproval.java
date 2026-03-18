@@ -22,7 +22,7 @@ public class LeaveRequestApproval {
 
     private String approverUserId;
 
-    private Long approverTeacherId;
+    private String approverTeacherNo;
 
     private String decision;
 

@@ -8,12 +8,8 @@ import java.time.LocalDate;
 public class AnalyticsFilterDTO {
 
     private LocalDate startDate;
-
     private LocalDate endDate;
-
     private String semester;
-
     private String classId;
-
-    private Long teacherId;
+    private String teacherNo;
 }

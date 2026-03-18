@@ -12,6 +12,8 @@ import com.student.mapper.SysConfigMapper;
 import com.student.service.SemesterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -42,6 +44,7 @@ public class SemesterServiceImpl extends ServiceImpl<SemesterMapper, Semester> i
 
     @Override
     @Transactional
+    @CacheEvict(value = "semester", allEntries = true)
     public Semester addSemester(SemesterDTO dto) {
         validateDateRange(dto.getStartDate(), dto.getEndDate());
         String semesterCode = normalizeSemesterCode(dto.getSemesterCode());
@@ -59,6 +62,7 @@ public class SemesterServiceImpl extends ServiceImpl<SemesterMapper, Semester> i
 
     @Override
     @Transactional
+    @CacheEvict(value = "semester", allEntries = true)
     public Semester updateSemester(Long id, SemesterDTO dto) {
         Semester existing = semesterMapper.selectById(id);
         if (existing == null) {
@@ -80,6 +84,7 @@ public class SemesterServiceImpl extends ServiceImpl<SemesterMapper, Semester> i
 
     @Override
     @Transactional
+    @CacheEvict(value = "semester", allEntries = true)
     public Semester updateSemesterStatus(Long id, Semester.Status status) {
         Semester semester = semesterMapper.selectById(id);
         if (semester == null) {
@@ -104,6 +109,7 @@ public class SemesterServiceImpl extends ServiceImpl<SemesterMapper, Semester> i
     }
 
     @Override
+    @Cacheable(value = "semester", key = "'options'")
     public List<Semester> getSemesterOptions() {
         return lambdaQuery()
                 .ne(Semester::getStatus, Semester.Status.ARCHIVED)
@@ -113,6 +119,7 @@ public class SemesterServiceImpl extends ServiceImpl<SemesterMapper, Semester> i
     }
 
     @Override
+    @Cacheable(value = "semester", key = "'active'")
     public Semester getActiveSemester() {
         return lambdaQuery()
                 .eq(Semester::getStatus, Semester.Status.ACTIVE)

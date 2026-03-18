@@ -171,6 +171,37 @@
             <ArrowRight class="h-4 w-4" />
           </div>
         </button>
+
+        <button
+          type="button"
+          class="entry-card entry-card-syslog touch-target"
+          @click="goSysLog"
+        >
+          <div class="entry-card-head">
+            <div class="entry-card-badge">
+              <FileText class="h-5 w-5" />
+            </div>
+            <span class="entry-card-arrow">
+              <ArrowRight class="h-4 w-4" />
+            </span>
+          </div>
+
+          <div class="entry-card-body">
+            <p class="entry-card-kicker">{{ t('system.syslogCenter.kicker') }}</p>
+            <p class="entry-card-title">{{ t('system.syslogCenter.title') }}</p>
+            <p class="entry-card-desc">{{ t('system.syslogCenter.desc') }}</p>
+          </div>
+
+          <div class="entry-card-tags">
+            <span class="entry-card-tag">{{ t('system.syslogCenter.tagAccess') }}</span>
+            <span class="entry-card-tag">{{ t('system.syslogCenter.tagOperation') }}</span>
+          </div>
+
+          <div class="entry-card-footer">
+            <span>{{ t('system.syslogCenter.enter') }}</span>
+            <ArrowRight class="h-4 w-4" />
+          </div>
+        </button>
       </div>
     </AppCard>
 
@@ -315,7 +346,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { ElMessage } from 'element-plus'
-import { ArrowRight, CalendarRange, CheckCircle2, CircleAlert, Clock3, KeyRound, Languages, Monitor, Moon, Plus, ShieldCheck, SunMedium, Trash2 } from 'lucide-vue-next'
+import { ArrowRight, CalendarRange, CheckCircle2, CircleAlert, Clock3, FileText, KeyRound, Languages, Monitor, Moon, Plus, ShieldCheck, SunMedium, Trash2 } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
@@ -448,6 +479,10 @@ function goPermissionCenter() {
 
 function goSemesterManagement() {
   router.push('/semester')
+}
+
+function goSysLog() {
+  router.push('/syslog')
 }
 
 async function fetchSemesterSummary() {

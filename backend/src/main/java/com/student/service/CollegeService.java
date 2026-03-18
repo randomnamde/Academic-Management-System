@@ -7,13 +7,13 @@ import com.student.entity.College;
 
 public interface CollegeService extends IService<College> {
 
-    Page<College> getCollegePage(Integer page, Integer size, String keyword, Integer status, Long scopedCollegeId);
+    Page<College> getCollegePage(Integer page, Integer size, String keyword, Integer status, String scopedCollegeCode);
 
     College createCollege(CollegeDTO dto);
 
-    void updateCollege(Long id, CollegeDTO dto, Long scopedCollegeId);
+    void updateCollege(String collegeCode, CollegeDTO dto, String scopedCollegeCode);
 
-    void updateCollegeStatus(Long id, Integer status, Long scopedCollegeId);
+    void updateCollegeStatus(String collegeCode, Integer status, String scopedCollegeCode);
 
-    void bindAdmin(Long id, String adminUsername, Long scopedCollegeId);
+    void bindAdmin(String collegeCode, String adminUsername, String scopedCollegeCode);
 }

@@ -62,12 +62,12 @@ public class LeaveRequestController {
                                   @RequestParam(required = false) String remark,
                                   Authentication authentication) {
         String approverUserId = currentUserService.getCurrentUser(authentication).getUsername();
-        Long approverTeacherId = null;
+        String approverTeacherNo = null;
         if (currentUserService.isTeacher(authentication)) {
-            approverTeacherId = currentUserService.getCurrentTeacherId(authentication);
+            approverTeacherNo = currentUserService.getCurrentTeacherNo(authentication);
         }
         Set<RoleCode> roles = currentUserService.getCurrentRoleCodes(authentication);
-        leaveRequestService.approveLeaveRequest(id, approved, remark, approverUserId, approverTeacherId, roles);
+        leaveRequestService.approveLeaveRequest(id, approved, remark, approverUserId, approverTeacherNo, roles);
         return ResultVO.success();
     }
 
@@ -91,9 +91,9 @@ public class LeaveRequestController {
         if (!currentUserService.isAdmin(authentication)
                 && !currentUserService.isCollegeAdmin(authentication)
                 && currentUserService.isTeacher(authentication)) {
-            Long teacherId = currentUserService.getCurrentTeacherId(authentication);
+            String teacherNo = currentUserService.getCurrentTeacherNo(authentication);
             Page<LeaveRequest> scopedPage = leaveRequestService.getLeaveRequestPage(
-                    1, 20, leaveRequest.getStudentId(), teacherId, null);
+                    1, 20, leaveRequest.getStudentId(), teacherNo, null);
             boolean canView = scopedPage.getRecords().stream().anyMatch(item -> id.equals(item.getId()));
             if (!canView) {
                 String userId = currentUserService.getCurrentUser(authentication).getUsername();
@@ -130,12 +130,12 @@ public class LeaveRequestController {
             Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPageByStudentIds(page, size, studentIds, status);
             return ResultVO.success(result);
         }
-        Long scopedTeacherId = null;
+        String scopedTeacherNo = null;
         if (currentUserService.hasRole(authentication, RoleCode.HOMEROOM_TEACHER)
                 || currentUserService.hasRole(authentication, RoleCode.COURSE_TEACHER)) {
-            scopedTeacherId = currentUserService.getCurrentTeacherId(authentication);
+            scopedTeacherNo = currentUserService.getCurrentTeacherNo(authentication);
         }
-        Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(page, size, scopedStudentId, scopedTeacherId, status);
+        Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(page, size, scopedStudentId, scopedTeacherNo, status);
         return ResultVO.success(result);
     }
 
@@ -152,13 +152,13 @@ public class LeaveRequestController {
                 return ResultVO.error(403, "Forbidden");
             }
         }
-        Long scopedTeacherId = null;
+        String scopedTeacherNo = null;
         if (currentUserService.hasRole(authentication, RoleCode.HOMEROOM_TEACHER)
                 || currentUserService.hasRole(authentication, RoleCode.COURSE_TEACHER)) {
-            scopedTeacherId = currentUserService.getCurrentTeacherId(authentication);
+            scopedTeacherNo = currentUserService.getCurrentTeacherNo(authentication);
         }
-        if (scopedTeacherId != null) {
-            Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(1, 10000, studentId, scopedTeacherId, null);
+        if (scopedTeacherNo != null) {
+            Page<LeaveRequest> result = leaveRequestService.getLeaveRequestPage(1, 10000, studentId, scopedTeacherNo, null);
             return ResultVO.success(result.getRecords());
         }
         List<LeaveRequest> leaveRequests = leaveRequestService.getStudentLeaveRequests(studentId);
@@ -173,12 +173,12 @@ public class LeaveRequestController {
             return ResultVO.success(page.getRecords());
         }
         if (currentUserService.isCollegeAdmin(authentication)) {
-            Long collegeId = currentUserService.resolveManagedCollegeId(authentication);
-            return ResultVO.success(leaveRequestService.getPendingRequestsForCollege(collegeId));
+            String collegeCode = currentUserService.resolveManagedCollegeCode(authentication);
+            return ResultVO.success(leaveRequestService.getPendingRequestsForCollege(collegeCode));
         }
         if (currentUserService.hasRole(authentication, RoleCode.HOMEROOM_TEACHER)) {
-            Long teacherId = currentUserService.getCurrentTeacherId(authentication);
-            return ResultVO.success(leaveRequestService.getPendingRequestsForTeacher(teacherId));
+            String teacherNo = currentUserService.getCurrentTeacherNo(authentication);
+            return ResultVO.success(leaveRequestService.getPendingRequestsForTeacher(teacherNo));
         }
         return ResultVO.success(List.of());
     }
@@ -208,4 +208,6 @@ public class LeaveRequestController {
         }
     }
 }
+
+
 

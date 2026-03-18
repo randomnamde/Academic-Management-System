@@ -97,20 +97,20 @@ public class ScoreController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String studentId,
             @RequestParam(required = false) Long courseArrangementId,
-            @RequestParam(required = false) Long collegeId,
-            @RequestParam(required = false) String classId,
+            @RequestParam(required = false) String collegeCode,
+            @RequestParam(required = false) String classCode,
             @RequestParam(required = false) String semester,
             Authentication authentication) {
         assertCollegeAdminArrangementScope(authentication, courseArrangementId);
         String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
-        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        String scopedTeacherNo = dataScopeService.resolveScopedTeacherNo(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         ScoreQueryDTO queryDTO = new ScoreQueryDTO();
         queryDTO.setStudentId(scopedStudentId);
-        queryDTO.setTeacherId(scopedTeacherId);
+        queryDTO.setTeacherNo(scopedTeacherNo);
         queryDTO.setCourseArrangementId(courseArrangementId);
-        queryDTO.setCollegeId(collegeId);
-        queryDTO.setClassId(classId);
+        queryDTO.setCollegeCode(collegeCode);
+        queryDTO.setClassCode(classCode);
         queryDTO.setSemester(semester);
         Page<Score> result = scoreService.getScorePage(page, size, queryDTO);
         return ResultVO.success(result);
@@ -122,7 +122,7 @@ public class ScoreController {
         String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
         ScoreQueryDTO queryDTO = new ScoreQueryDTO();
         queryDTO.setStudentId(scopedStudentId);
-        queryDTO.setTeacherId(dataScopeService.resolveScopedTeacherId(authentication, null));
+        queryDTO.setTeacherNo(dataScopeService.resolveScopedTeacherNo(authentication, null));
         Page<Score> scorePage = scoreService.getScorePage(1, 10000, queryDTO);
         return ResultVO.success(scorePage.getRecords());
     }
@@ -144,7 +144,7 @@ public class ScoreController {
         } else if (currentUserService.isTeacher(authentication)) {
             ScoreQueryDTO queryDTO = new ScoreQueryDTO();
             queryDTO.setStudentId(studentId);
-            queryDTO.setTeacherId(dataScopeService.resolveCurrentTeacherId(authentication));
+            queryDTO.setTeacherNo(dataScopeService.resolveCurrentTeacherNo(authentication));
             Page<Score> scopedPage = scoreService.getScorePage(1, 10000, queryDTO);
             List<Score> scopedScores = scopedPage.getRecords();
             if (scopedScores.isEmpty()) {
@@ -168,9 +168,9 @@ public class ScoreController {
     @GetMapping("/rank")
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER')")
     public ResultVO<List<Map<String, Object>>> getClassRank(
-            @RequestParam String classId,
+            @RequestParam String classCode,
             @RequestParam String semester) {
-        List<Map<String, Object>> rank = scoreService.getClassRank(classId, semester);
+        List<Map<String, Object>> rank = scoreService.getClassRank(classCode, semester);
         return ResultVO.success(rank);
     }
 
@@ -188,8 +188,8 @@ public class ScoreController {
     }
 
     private void assertCollegeAdminArrangementScope(Authentication authentication, Long arrangementId) {
-        Long scopedCollegeId = dataScopeService.resolveScopedCollegeId(authentication);
-        if (scopedCollegeId == null || arrangementId == null) {
+        String scopedCollegeCode = dataScopeService.resolveScopedCollegeCode(authentication);
+        if (scopedCollegeCode == null || arrangementId == null) {
             return;
         }
         CourseArrangement arrangement = courseArrangementMapper.selectById(arrangementId);
@@ -234,4 +234,6 @@ public class ScoreController {
         return dto;
     }
 }
+
+
 

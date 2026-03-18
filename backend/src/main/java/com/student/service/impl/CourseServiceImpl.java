@@ -34,17 +34,17 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
     @Override
     @Transactional
     public void updateCourse(CourseDTO courseDTO) {
-        if (courseDTO.getId() == null) {
-            throw new BusinessException("Course id cannot be null");
+        if (courseDTO.getCourseCode() == null || courseDTO.getCourseCode().isBlank()) {
+            throw new BusinessException("Course code cannot be null");
         }
 
-        Course existCourse = courseMapper.selectById(courseDTO.getId());
+        Course existCourse = courseMapper.selectById(courseDTO.getCourseCode());
         if (existCourse == null) {
             throw new BusinessException("Course not found");
         }
 
         Course existByCode = courseMapper.selectByCourseCode(courseDTO.getCourseCode());
-        if (existByCode != null && !existByCode.getId().equals(courseDTO.getId())) {
+        if (existByCode != null && !existByCode.getCourseCode().equals(courseDTO.getCourseCode())) {
             throw new BusinessException("Course code is already used by another course");
         }
 
@@ -55,18 +55,18 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional
-    public void deleteCourse(Long id) {
-        Course course = courseMapper.selectById(id);
+    public void deleteCourse(String courseCode) {
+        Course course = courseMapper.selectById(courseCode);
         if (course == null) {
             throw new BusinessException("Course not found");
         }
 
-        courseMapper.deleteById(id);
+        courseMapper.deleteById(courseCode);
     }
 
     @Override
-    public Course getCourseById(Long id) {
-        return courseMapper.selectById(id);
+    public Course getCourseById(String courseCode) {
+        return courseMapper.selectById(courseCode);
     }
 
     @Override
@@ -77,8 +77,8 @@ public class CourseServiceImpl extends ServiceImpl<CourseMapper, Course> impleme
 
     @Override
     @Transactional
-    public void updateCourseStatus(Long id, Integer status) {
-        Course course = courseMapper.selectById(id);
+    public void updateCourseStatus(String courseCode, Integer status) {
+        Course course = courseMapper.selectById(courseCode);
         if (course == null) {
             throw new BusinessException("Course not found");
         }

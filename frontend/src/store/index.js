@@ -1,114 +1,78 @@
 import { createStore } from 'vuex'
-import Cookies from 'js-cookie'
-import { login, getUserInfo } from '@/api/user'
-import { getStoredThemeMode, syncThemeMode } from '@/composables/useTheme'
-import { getStoredLanguage, normalizeLocale, setStoredLanguage } from '@/i18n/localeManager'
-import { setI18nLocale } from '@/i18n'
-
-const initialUserInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+import user from './modules/user'
+import ui from './modules/ui'
 
 const store = createStore({
-  state: {
-    token: Cookies.get('token') || '',
-    userInfo: initialUserInfo,
-    sidebar: {
-      opened: localStorage.getItem('sidebar') !== 'false'
-    },
-    uiPreference: {
-      tableDensity: localStorage.getItem('ui:tableDensity') || 'compact',
-      sidebarCollapsed: localStorage.getItem('ui:sidebarCollapsed') === 'true',
-      themeMode: getStoredThemeMode(initialUserInfo),
-      language: getStoredLanguage(initialUserInfo)
-    }
+  modules: {
+    user,
+    ui
   },
+  // 保留旧的状态访问方式，保持向后兼容
+  // 这些状态会代理到对应的模块
+  state: () => ({}),
   mutations: {
+    // 代理 user 模块的 mutations
     SET_TOKEN(state, token) {
-      state.token = token
-      Cookies.set('token', token)
+      store.commit('user/SET_TOKEN', token)
     },
     SET_USER_INFO(state, userInfo) {
-      state.userInfo = userInfo
-      localStorage.setItem('userInfo', JSON.stringify(userInfo))
-      const nextThemeMode = getStoredThemeMode(userInfo)
-      state.uiPreference.themeMode = nextThemeMode
-      syncThemeMode(nextThemeMode, userInfo)
-      const nextLanguage = getStoredLanguage(userInfo)
-      state.uiPreference.language = nextLanguage
-      setI18nLocale(nextLanguage)
+      store.commit('user/SET_USER_INFO', userInfo)
     },
     CLEAR_USER(state) {
-      const retainedThemeMode = state.uiPreference.themeMode
-      const retainedLanguage = state.uiPreference.language
-      state.token = ''
-      state.userInfo = {}
-      Cookies.remove('token')
-      localStorage.removeItem('userInfo')
-      state.uiPreference.themeMode = retainedThemeMode
-      state.uiPreference.language = retainedLanguage
-      syncThemeMode(retainedThemeMode, {})
-      setStoredLanguage(retainedLanguage, {})
-      setI18nLocale(retainedLanguage)
+      store.commit('user/CLEAR_USER')
     },
+    // 代理 ui 模块的 mutations
     TOGGLE_SIDEBAR(state) {
-      state.sidebar.opened = !state.sidebar.opened
-      localStorage.setItem('sidebar', state.sidebar.opened)
-      state.uiPreference.sidebarCollapsed = !state.sidebar.opened
-      localStorage.setItem('ui:sidebarCollapsed', String(state.uiPreference.sidebarCollapsed))
+      store.commit('ui/TOGGLE_SIDEBAR')
     },
     SET_TABLE_DENSITY(state, density) {
-      const next = density === 'comfortable' ? 'comfortable' : 'compact'
-      state.uiPreference.tableDensity = next
-      localStorage.setItem('ui:tableDensity', next)
+      store.commit('ui/SET_TABLE_DENSITY', density)
     },
     SET_THEME_MODE(state, mode) {
-      const next = ['light', 'dark', 'system'].includes(mode) ? mode : 'system'
-      state.uiPreference.themeMode = next
-      syncThemeMode(next, state.userInfo)
+      store.commit('ui/SET_THEME_MODE', mode)
     },
     SET_LANGUAGE(state, locale) {
-      const next = normalizeLocale(locale)
-      state.uiPreference.language = next
-      setStoredLanguage(next, state.userInfo)
-      setI18nLocale(next)
+      store.commit('ui/SET_LANGUAGE', locale)
     }
   },
   actions: {
     async login({ commit }, loginData) {
-      const res = await login(loginData)
-      if (res.code === 200) {
-        commit('SET_TOKEN', res.data.token)
-        commit('SET_USER_INFO', res.data)
-        return res
-      }
-      throw new Error(res.message)
+      return store.dispatch('user/login', loginData)
     },
-
     async getUserInfo({ commit }) {
-      const res = await getUserInfo()
-      if (res.code === 200) {
-        commit('SET_USER_INFO', res.data)
-        return res
-      }
+      return store.dispatch('user/getUserInfo')
     },
-
     logout({ commit }) {
-      commit('CLEAR_USER')
+      store.dispatch('user/logout')
     }
   },
   getters: {
-    isLoggedIn: (state) => !!state.token,
-    userRole: (state) => state.userInfo?.primaryRole || state.userInfo?.role,
-    userRoles: (state) => {
-      const merged = new Set(Array.isArray(state.userInfo?.roles) ? state.userInfo.roles : [])
-      if (state.userInfo?.primaryRole) merged.add(state.userInfo.primaryRole)
-      if (state.userInfo?.role) merged.add(state.userInfo.role)
+    isLoggedIn: (state, getters, rootState) => !!rootState.user?.token,
+    userRole: (state, getters, rootState) => rootState.user?.userInfo?.primaryRole || rootState.user?.userInfo?.role,
+    userRoles: (state, getters, rootState) => {
+      const merged = new Set(Array.isArray(rootState.user?.roles) ? rootState.user.roles : [])
+      if (rootState.user?.userInfo?.primaryRole) merged.add(rootState.user.userInfo.primaryRole)
+      if (rootState.user?.userInfo?.role) merged.add(rootState.user.userInfo.role)
       return Array.from(merged)
     },
-    account: (state) => state.userInfo?.account || state.userInfo?.username,
-    username: (state) => state.userInfo?.account || state.userInfo?.username,
-    tableDensity: (state) => state.uiPreference.tableDensity,
-    themeMode: (state) => state.uiPreference.themeMode,
-    language: (state) => normalizeLocale(state.uiPreference.language)
+    account: (state, getters, rootState) => rootState.user?.userInfo?.account || rootState.user?.userInfo?.username,
+    username: (state, getters, rootState) => rootState.user?.userInfo?.account || rootState.user?.userInfo?.username,
+    tableDensity: (state, getters, rootState) => rootState.ui?.tableDensity || 'compact',
+    themeMode: (state, getters, rootState) => rootState.ui?.themeMode || 'system',
+    language: (state, getters, rootState) => rootState.ui?.language || 'zh-CN',
+    permissions: (state, getters, rootState) => rootState.user?.permissions || [],
+    sidebarOpened: (state, getters, rootState) => rootState.ui?.sidebar?.opened !== false,
+    sidebarCollapsed: (state, getters, rootState) => rootState.ui?.sidebarCollapsed || false,
+    // 兼容旧的访问方式
+    userInfo: (state, getters, rootState) => rootState.user?.userInfo || {},
+    token: (state, getters, rootState) => rootState.user?.token || '',
+    sidebar: (state, getters, rootState) => rootState.ui?.sidebar || { opened: true },
+    uiPreference: (state, getters, rootState) => ({
+      tableDensity: rootState.ui?.tableDensity || 'compact',
+      sidebarCollapsed: rootState.ui?.sidebarCollapsed || false,
+      themeMode: rootState.ui?.themeMode || 'system',
+      language: rootState.ui?.language || 'zh-CN'
+    })
   }
 })
 

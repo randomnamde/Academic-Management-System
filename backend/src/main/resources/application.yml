@@ -69,8 +69,8 @@ logging:
   file:
     name: logs/student-management.log
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n"
 
 # 跨域配置
 cors:
@@ -85,3 +85,8 @@ file:
 # 初始密码配置
 initial-password:
   value: ${INITIAL_PASSWORD:ChangeMe123!}
+
+# 接口限流配置
+rate-limit:
+  requests-per-second: ${RATE_LIMIT_RPS:10}
+  capacity: ${RATE_LIMIT_CAPACITY:20}

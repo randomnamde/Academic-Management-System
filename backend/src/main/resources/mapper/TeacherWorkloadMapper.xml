@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.student.mapper.TeacherWorkloadMapper">
+
+    <select id="selectTeachingWorkload" resultType="java.util.Map">
+        SELECT
+            #{teacherNo} as teacherNo,
+            (SELECT name FROM teacher WHERE teacher_no = #{teacherNo}) as teacherName,
+            (SELECT COUNT(*) FROM course_arrangement WHERE teacher_no = #{teacherNo}
+                <if test="semester != null and semester != ''">
+                    AND semester = #{semester}
+                </if>
+            ) as courseCount,
+            (SELECT COALESCE(SUM(weekly_hours * 16), 0) FROM course_arrangement WHERE teacher_no = #{teacherNo}
+                <if test="semester != null and semester != ''">
+                    AND semester = #{semester}
+                </if>
+            ) as totalHours,
+            (SELECT COUNT(DISTINCT student_id) FROM score s
+                JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+                WHERE ca.teacher_no = #{teacherNo}
+                <if test="semester != null and semester != ''">
+                    AND ca.semester = #{semester}
+                </if>
+            ) as studentCount,
+            (SELECT COUNT(*) FROM exam_arrangement ea
+                JOIN course_arrangement ca ON ea.course_arrangement_id = ca.id
+                WHERE ca.teacher_no = #{teacherNo}
+                <if test="semester != null and semester != ''">
+                    AND ca.semester = #{semester}
+                </if>
+            ) as examCount,
+            (SELECT COUNT(*) * 2 FROM invigilator_arrangement ia
+                JOIN exam_arrangement ea ON ia.exam_arrangement_id = ea.id
+                JOIN course_arrangement ca ON ea.course_arrangement_id = ca.id
+                WHERE ia.teacher_no = #{teacherNo}
+                <if test="semester != null and semester != ''">
+                    AND ca.semester = #{semester}
+                </if>
+            ) as invigilateHours,
+            (SELECT COUNT(*) FROM score s
+                JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+                WHERE ca.teacher_no = #{teacherNo}
+                <if test="semester != null and semester != ''">
+                    AND ca.semester = #{semester}
+                </if>
+            ) as totalScoreRecords
+    </select>
+
+    <select id="selectTeachingStatistics" resultType="java.util.Map">
+        SELECT
+            t.teacher_no as teacherNo,
+            t.name as teacherName,
+            COUNT(DISTINCT ca.id) as courseCount,
+            COALESCE(SUM(ca.weekly_hours * 16), 0) as totalHours,
+            COUNT(DISTINCT s.student_id) as studentCount
+        FROM teacher t
+        LEFT JOIN course_arrangement ca ON t.teacher_no = ca.teacher_no
+            <if test="semester != null and semester != ''">
+                AND ca.semester = #{semester}
+            </if>
+        LEFT JOIN score s ON ca.id = s.course_arrangement_id
+        <where>
+            <if test="collegeCode != null and collegeCode != ''">
+                t.college_code = #{collegeCode}
+            </if>
+        </where>
+        GROUP BY t.teacher_no, t.name
+        ORDER BY totalHours DESC
+    </select>
+
+    <select id="countCoursesByTeacher" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM course_arrangement
+        WHERE teacher_no = #{teacherNo}
+        <if test="semester != null and semester != ''">
+            AND semester = #{semester}
+        </if>
+    </select>
+
+    <select id="sumHoursByTeacher" resultType="java.lang.Integer">
+        SELECT COALESCE(SUM(weekly_hours * 16), 0) FROM course_arrangement
+        WHERE teacher_no = #{teacherNo}
+        <if test="semester != null and semester != ''">
+            AND semester = #{semester}
+        </if>
+    </select>
+
+    <select id="countStudentsByTeacher" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT student_id) FROM score s
+        JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        WHERE ca.teacher_no = #{teacherNo}
+        <if test="semester != null and semester != ''">
+            AND ca.semester = #{semester}
+        </if>
+    </select>
+
+    <select id="countExamsByTeacher" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM exam_arrangement ea
+        JOIN course_arrangement ca ON ea.course_arrangement_id = ca.id
+        WHERE ca.teacher_no = #{teacherNo}
+        <if test="semester != null and semester != ''">
+            AND ca.semester = #{semester}
+        </if>
+    </select>
+
+    <select id="countInvigilateHours" resultType="java.lang.Integer">
+        SELECT COUNT(*) * 2 FROM invigilator_arrangement ia
+        JOIN exam_arrangement ea ON ia.exam_arrangement_id = ea.id
+        JOIN course_arrangement ca ON ea.course_arrangement_id = ca.id
+        WHERE ia.teacher_no = #{teacherNo}
+        <if test="semester != null and semester != ''">
+            AND ca.semester = #{semester}
+        </if>
+    </select>
+
+    <select id="countScoreRecords" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM score s
+        JOIN course_arrangement ca ON s.course_arrangement_id = ca.id
+        WHERE ca.teacher_no = #{teacherNo}
+        <if test="semester != null and semester != ''">
+            AND ca.semester = #{semester}
+        </if>
+    </select>
+
+</mapper>

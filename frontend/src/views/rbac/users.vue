@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <CrudPageShell :title="t('rbac.users.listPageTitle')">
     <template #header-actions>
       <div class="users-header-actions">
@@ -34,7 +34,7 @@
           <el-option v-for="option in roleOptions" :key="option.value" :label="option.label" :value="option.value" />
         </el-select>
         <el-select
-          v-model="searchForm.collegeId"
+          v-model="searchForm.collegeCode"
           clearable
           :placeholder="t('rbac.users.filterCollege')"
           :disabled="isCollegeAdmin"
@@ -335,7 +335,7 @@ const classOptions = ref([])
 const searchForm = reactive({
   account: '',
   roleCode: '',
-  collegeId: null,
+  collegeCode: null,
   classId: null
 })
 
@@ -450,16 +450,16 @@ async function loadCollegeOptions() {
     label: item.collegeName
   }))
   if (isCollegeAdmin.value && collegeOptions.value.length) {
-    searchForm.collegeId = searchForm.collegeId || collegeOptions.value[0].value
+    searchForm.collegeCode = searchForm.collegeCode || collegeOptions.value[0].value
   }
 }
 
-async function loadClassOptions(collegeId) {
-  if (!collegeId) {
+async function loadClassOptions(collegeCode) {
+  if (!collegeCode) {
     classOptions.value = []
     return
   }
-  const res = await getClassList({ page: 1, size: 200, collegeId })
+  const res = await getClassList({ page: 1, size: 200, collegeCode })
   classOptions.value = (res.data?.records || []).map((item) => ({
     value: item.id,
     label: item.className
@@ -474,7 +474,7 @@ async function fetchList() {
       size: size.value,
       account: searchForm.account || undefined,
       roleCode: searchForm.roleCode || undefined,
-      collegeId: searchForm.collegeId || undefined,
+      collegeCode: searchForm.collegeCode || undefined,
       classId: searchForm.classId || undefined
     })
     tableData.value = res.data?.records || []
@@ -500,10 +500,10 @@ function handleReset() {
   searchForm.roleCode = ''
   searchForm.classId = null
   if (!isCollegeAdmin.value) {
-    searchForm.collegeId = null
+    searchForm.collegeCode = null
   }
   clearSelection()
-  loadClassOptions(searchForm.collegeId)
+  loadClassOptions(searchForm.collegeCode)
   handleSearch()
 }
 
@@ -735,7 +735,7 @@ function csvEscape(value) {
 }
 
 watch(
-  () => searchForm.collegeId,
+  () => searchForm.collegeCode,
   async (value, oldValue) => {
     if (value === oldValue) return
     searchForm.classId = null
@@ -753,7 +753,7 @@ watch(
 
 onMounted(async () => {
   await loadCollegeOptions()
-  await loadClassOptions(searchForm.collegeId)
+  await loadClassOptions(searchForm.collegeCode)
   await fetchList()
 })
 </script>
@@ -1032,3 +1032,4 @@ onMounted(async () => {
   }
 }
 </style>
+

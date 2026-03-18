@@ -53,22 +53,22 @@ public class ReportController {
     @PreAuthorize("hasAnyRole('SCHOOL_ADMIN', 'COLLEGE_ADMIN', 'HOMEROOM_TEACHER', 'COURSE_TEACHER', 'STUDENT')")
     public void exportScore(@RequestParam(required = false) String studentId,
                             @RequestParam(required = false) Long courseArrangementId,
-                            @RequestParam(required = false) Long collegeId,
+                            @RequestParam(required = false) String collegeCode,
                             @RequestParam(required = false) String classId,
                             @RequestParam(required = false) String semester,
                             @RequestParam(required = false) String format,
                             Authentication authentication,
                             HttpServletResponse response) {
         String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
-        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        String scopedTeacherNo = dataScopeService.resolveScopedTeacherNo(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         Set<Long> scopedArrangementIds = resolveCollegeArrangementScope(authentication, courseArrangementId);
 
         ScoreQueryDTO queryDTO = new ScoreQueryDTO();
         queryDTO.setStudentId(scopedStudentId);
-        queryDTO.setTeacherId(scopedTeacherId);
+        queryDTO.setTeacherNo(scopedTeacherNo);
         queryDTO.setCourseArrangementId(courseArrangementId);
-        queryDTO.setCollegeId(collegeId);
+        queryDTO.setCollegeCode(collegeCode);
         queryDTO.setClassId(classId);
         queryDTO.setSemester(semester);
 
@@ -121,11 +121,11 @@ public class ReportController {
                                  Authentication authentication,
                                  HttpServletResponse response) {
         String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
-        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        String scopedTeacherNo = dataScopeService.resolveScopedTeacherNo(authentication, null);
         dataScopeService.assertTeacherOwnsArrangement(authentication, courseArrangementId);
         Set<Long> scopedArrangementIds = resolveCollegeArrangementScope(authentication, courseArrangementId);
         Page<Attendance> result = attendanceService.getAttendancePage(
-                1, EXPORT_LIMIT, scopedStudentId, scopedTeacherId, courseArrangementId, attendanceDate, status);
+                1, EXPORT_LIMIT, scopedStudentId, scopedTeacherNo, courseArrangementId, attendanceDate, status);
         List<Attendance> records = applyArrangementScopeForAttendance(result.getRecords(), scopedArrangementIds);
 
         List<String> headers = List.of(
@@ -166,7 +166,7 @@ public class ReportController {
                                    Authentication authentication,
                                    HttpServletResponse response) {
         String scopedStudentId = dataScopeService.resolveScopedStudentNo(authentication, studentId);
-        Long scopedTeacherId = dataScopeService.resolveScopedTeacherId(authentication, null);
+        String scopedTeacherNo = dataScopeService.resolveScopedTeacherNo(authentication, null);
         Page<LeaveRequest> result;
         if (currentUserService.isCollegeAdmin(authentication)) {
             Set<String> studentIds = new HashSet<>(dataScopeService.resolveCollegeStudentNos(authentication));
@@ -175,7 +175,7 @@ public class ReportController {
             }
             result = leaveRequestService.getLeaveRequestPageByStudentIds(1, EXPORT_LIMIT, studentIds, status);
         } else {
-            result = leaveRequestService.getLeaveRequestPage(1, EXPORT_LIMIT, scopedStudentId, scopedTeacherId, status);
+            result = leaveRequestService.getLeaveRequestPage(1, EXPORT_LIMIT, scopedStudentId, scopedTeacherNo, status);
         }
 
         List<String> headers = List.of(
@@ -302,4 +302,6 @@ public class ReportController {
                 .toList();
     }
 }
+
+
 

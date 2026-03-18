@@ -1,4 +1,4 @@
-import request from './request'
+﻿import request from './request'
 
 export function getClassList(params) {
   return request({
@@ -38,9 +38,10 @@ export function deleteClass(classCode) {
   })
 }
 
-export function getClassesByTeacher(teacherId) {
+export function getClassesByTeacher(teacherNo) {
   return request({
-    url: `/class/teacher/${teacherId}`,
+    url: `/class/teacher/${teacherNo}`,
     method: 'get'
   })
 }
+

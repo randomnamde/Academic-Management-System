@@ -36,7 +36,7 @@ public class Student {
     private String className;
 
     @TableField(exist = false)
-    private Long collegeId;
+    private String collegeCode;
 
     @TableField(exist = false)
     private String collegeName;
@@ -67,3 +67,5 @@ public class Student {
         ENROLLED, GRADUATED, SUSPENDED, DROPPED
     }
 }
+
+

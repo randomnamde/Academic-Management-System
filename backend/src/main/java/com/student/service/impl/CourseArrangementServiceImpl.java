@@ -12,8 +12,8 @@ import com.student.entity.Teacher;
 import com.student.exception.BusinessException;
 import com.student.mapper.ClassMapper;
 import com.student.mapper.CollegeMapper;
-import com.student.mapper.CourseMapper;
 import com.student.mapper.CourseArrangementMapper;
+import com.student.mapper.CourseMapper;
 import com.student.mapper.TeacherMapper;
 import com.student.service.CourseArrangementService;
 import lombok.RequiredArgsConstructor;
@@ -40,11 +40,12 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
     @Override
     @Transactional
     public void addArrangement(CourseArrangementDTO dto) {
-        ValidationContext validationContext = validateAndResolveContext(dto);
+        ValidationContext context = validateAndResolveContext(dto);
         validateConflicts(dto, null);
+
         CourseArrangement arrangement = new CourseArrangement();
         BeanUtils.copyProperties(dto, arrangement);
-        arrangement.setArrangementCode(generateArrangementCode(validationContext.college(), validationContext.clazz()));
+        arrangement.setArrangementCode(generateArrangementCode(context.college(), context.clazz()));
         arrangement.setEnrolledCount(0);
         arrangement.setStatus(dto.getStatus() == null ? 1 : dto.getStatus());
         courseArrangementMapper.insert(arrangement);
@@ -54,12 +55,13 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
     @Transactional
     public void updateArrangement(CourseArrangementDTO dto) {
         if (dto.getId() == null) {
-            throw new BusinessException("排课ID不能为空");
+            throw new BusinessException("Arrangement id is required");
         }
         CourseArrangement existing = courseArrangementMapper.selectById(dto.getId());
         if (existing == null) {
-            throw new BusinessException("排课不存在");
+            throw new BusinessException("Course arrangement not found");
         }
+
         validateAndResolveContext(dto);
         validateConflicts(dto, dto.getId());
 
@@ -68,9 +70,10 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
         arrangement.setArrangementCode(existing.getArrangementCode());
         arrangement.setEnrolledCount(existing.getEnrolledCount());
         arrangement.setStatus(dto.getStatus() == null ? existing.getStatus() : dto.getStatus());
+
         if (arrangement.getCapacity() != null && arrangement.getEnrolledCount() != null
                 && arrangement.getCapacity() < arrangement.getEnrolledCount()) {
-            throw new BusinessException("容量不能小于已选人数");
+            throw new BusinessException("Capacity cannot be smaller than enrolled count");
         }
         courseArrangementMapper.updateById(arrangement);
     }
@@ -80,7 +83,7 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
     public void deleteArrangement(Long id) {
         CourseArrangement existing = courseArrangementMapper.selectById(id);
         if (existing == null) {
-            throw new BusinessException("排课不存在");
+            throw new BusinessException("Course arrangement not found");
         }
         courseArrangementMapper.deleteById(id);
     }
@@ -93,24 +96,24 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
     @Override
     public Page<CourseArrangement> getArrangementPage(Integer page,
                                                       Integer size,
-                                                      Long collegeId,
-                                                      Long courseId,
-                                                      Long teacherId,
+                                                      String collegeCode,
+                                                      String courseCode,
+                                                      String teacherNo,
                                                       String classId,
                                                       String semester,
                                                       Integer status) {
         Page<CourseArrangement> pageParam = new Page<>(page, size);
-        return courseArrangementMapper.selectPageWithDetail(pageParam, collegeId, courseId, teacherId, classId, semester, status);
+        return courseArrangementMapper.selectPageWithDetail(pageParam, collegeCode, courseCode, teacherNo, classId, semester, status);
     }
 
     @Override
-    public List<CourseArrangement> getArrangementOptions(Long teacherId, String classId, Integer status) {
-        return courseArrangementMapper.selectListWithDetail(teacherId, classId, status);
+    public List<CourseArrangement> getArrangementOptions(String teacherNo, String classId, Integer status) {
+        return courseArrangementMapper.selectListWithDetail(teacherNo, classId, status);
     }
 
     private void validateConflicts(CourseArrangementDTO dto, Long excludeId) {
         if (dto.getCapacity() != null && dto.getCapacity() <= 0) {
-            throw new BusinessException("容量必须大于0");
+            throw new BusinessException("Capacity must be greater than 0");
         }
 
         LambdaQueryWrapper<CourseArrangement> classConflict = new LambdaQueryWrapper<CourseArrangement>()
@@ -121,18 +124,18 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
             classConflict.ne(CourseArrangement::getId, excludeId);
         }
         if (courseArrangementMapper.selectCount(classConflict) > 0) {
-            throw new BusinessException("班级时间安排冲突");
+            throw new BusinessException("Class schedule conflict");
         }
 
         LambdaQueryWrapper<CourseArrangement> teacherConflict = new LambdaQueryWrapper<CourseArrangement>()
-                .eq(CourseArrangement::getTeacherId, dto.getTeacherId())
+                .eq(CourseArrangement::getTeacherNo, dto.getTeacherNo())
                 .eq(CourseArrangement::getSemester, dto.getSemester())
                 .eq(CourseArrangement::getSchedule, dto.getSchedule());
         if (excludeId != null) {
             teacherConflict.ne(CourseArrangement::getId, excludeId);
         }
         if (courseArrangementMapper.selectCount(teacherConflict) > 0) {
-            throw new BusinessException("教师时间安排冲突");
+            throw new BusinessException("Teacher schedule conflict");
         }
 
         if (StringUtils.hasText(dto.getRoom())) {
@@ -144,37 +147,37 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
                 roomConflict.ne(CourseArrangement::getId, excludeId);
             }
             if (courseArrangementMapper.selectCount(roomConflict) > 0) {
-                throw new BusinessException("教室时间安排冲突");
+                throw new BusinessException("Room schedule conflict");
             }
         }
     }
 
     private ValidationContext validateAndResolveContext(CourseArrangementDTO dto) {
-        Course course = courseMapper.selectById(dto.getCourseId());
+        Course course = courseMapper.selectById(dto.getCourseCode());
         if (course == null) {
-            throw new BusinessException(404, "课程不存在");
+            throw new BusinessException(404, "Course not found");
         }
 
-        Teacher teacher = teacherMapper.selectByInternalId(dto.getTeacherId());
+        Teacher teacher = teacherMapper.selectById(dto.getTeacherNo());
         if (teacher == null) {
-            throw new BusinessException(404, "教师不存在");
+            throw new BusinessException(404, "Teacher not found");
         }
 
         Class clazz = resolveClass(dto.getClassId());
         if (clazz == null) {
-            throw new BusinessException(404, "班级不存在");
+            throw new BusinessException(404, "Class not found");
         }
 
-        College college = collegeMapper.selectById(dto.getCollegeId());
+        College college = collegeMapper.selectById(dto.getCollegeCode());
         if (college == null) {
-            throw new BusinessException(404, "学院不存在");
+            throw new BusinessException(404, "College not found");
         }
 
-        if (!college.getId().equals(clazz.getCollegeId())) {
-            throw new BusinessException(400, "所选班级不属于当前学院");
+        if (!college.getCollegeCode().equals(clazz.getCollegeCode())) {
+            throw new BusinessException(400, "Class does not belong to the selected college");
         }
-        if (!college.getId().equals(teacher.getCollegeId())) {
-            throw new BusinessException(400, "所选教师不属于当前学院");
+        if (!college.getCollegeCode().equals(teacher.getCollegeCode())) {
+            throw new BusinessException(400, "Teacher does not belong to the selected college");
         }
         return new ValidationContext(course, teacher, clazz, college);
     }
@@ -191,7 +194,7 @@ public class CourseArrangementServiceImpl extends ServiceImpl<CourseArrangementM
                 return candidate;
             }
         }
-        throw new BusinessException(400, "当前学院/班级下本年度排课编号已用尽");
+        throw new BusinessException(400, "Unable to generate arrangement code");
     }
 
     private String normalizeSegment(String rawCode) {

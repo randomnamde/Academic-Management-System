@@ -15,14 +15,25 @@
 
     <template #filters>
       <div class="app-filter-grid attendance-filter-grid">
-        <el-input
+        <el-select
           v-if="canFilterStudent"
           v-model="searchForm.studentId"
           clearable
-          inputmode="numeric"
+          filterable
+          remote
+          reserve-keyword
+          :remote-method="handleStudentSearch"
+          :loading="studentLoading"
+          :placeholder="t('attendance.studentPlaceholder')"
           class="col-span-12 md:col-span-2 attendance-filter-grid__student"
-          :placeholder="t('attendance.studentId')"
-        />
+        >
+          <el-option
+            v-for="item in studentOptions"
+            :key="item.studentNo"
+            :label="`${item.name} (${item.studentNo})`"
+            :value="item.studentNo"
+          />
+        </el-select>
         <el-select
           v-model="searchForm.courseArrangementId"
           clearable
@@ -179,6 +190,7 @@ import {
   updateAttendance
 } from '@/api/attendance'
 import { getCourseArrangementOptions } from '@/api/courseArrangement'
+import { getStudentList } from '@/api/student'
 import { canAction } from '@/permission/ability'
 
 const store = useStore()
@@ -197,12 +209,13 @@ const size = ref(10)
 const total = ref(0)
 const tableData = ref([])
 const arrangementOptions = ref([])
+const studentOptions = ref([])
+const studentLoading = ref(false)
 
 const columns = computed(() => {
   const base = [
     { key: 'studentId', title: t('attendance.studentId'), width: 96, align: 'left' },
     { key: 'studentName', title: t('attendance.student'), width: 120, align: 'left' },
-    { key: 'courseArrangementId', title: t('attendance.arrangementId'), width: 104, align: 'left' },
     { key: 'courseName', title: t('attendance.course'), width: 150, align: 'left' },
     { key: 'attendanceDate', title: t('attendance.date'), width: 124, align: 'left' },
     { key: 'checkInTime', title: t('attendance.checkIn'), width: 108, align: 'left' },
@@ -281,6 +294,24 @@ function formatArrangementLabel(item) {
 async function fetchArrangementOptions() {
   const res = await getCourseArrangementOptions({ status: 1 })
   arrangementOptions.value = Array.isArray(res.data) ? res.data : []
+}
+
+async function handleStudentSearch(query) {
+  if (!query) {
+    studentOptions.value = []
+    return
+  }
+  studentLoading.value = true
+  try {
+    const res = await getStudentList({
+      name: query,
+      page: 1,
+      size: 20
+    })
+    studentOptions.value = res.data?.records || []
+  } finally {
+    studentLoading.value = false
+  }
 }
 
 async function handleExport(format) {

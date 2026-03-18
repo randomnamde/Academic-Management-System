@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="app-page space-y-3">
+  <div class="app-page flex flex-col gap-3">
     <section class="crud-shell app-surface-glass">
       <header class="crud-shell-header app-panel-header">
         <div>
@@ -20,12 +20,12 @@
         </div>
       </header>
 
-      <div class="space-y-3 p-4">
-        <section v-if="$slots.filters" class="crud-shell-toolbar app-toolbar">
+      <div class="crud-shell-body flex flex-col gap-3 p-4">
+        <section v-if="$slots.filters" class="crud-shell-toolbar">
           <slot name="filters" />
         </section>
 
-        <section v-if="$slots['advanced-filters']" class="crud-shell-advanced app-toolbar">
+        <section v-if="$slots['advanced-filters']" class="crud-shell-advanced">
           <slot name="advanced-filters" />
         </section>
 
@@ -40,6 +40,8 @@
     </section>
 
     <slot />
+
+    <slot name="dialogs" />
   </div>
 </template>
 
@@ -137,6 +139,10 @@ const navigateToParent = () => {
 .crud-shell-toolbar,
 .crud-shell-advanced {
   border-radius: 12px;
+}
+
+.crud-shell-empty {
+  padding-top: 4px;
 }
 </style>
 

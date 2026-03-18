@@ -19,12 +19,14 @@ public interface CourseArrangementService extends IService<CourseArrangement> {
 
     Page<CourseArrangement> getArrangementPage(Integer page,
                                                Integer size,
-                                               Long collegeId,
-                                               Long courseId,
-                                               Long teacherId,
+                                               String collegeCode,
+                                               String courseCode,
+                                               String teacherNo,
                                                String classId,
                                                String semester,
                                                Integer status);
 
-    List<CourseArrangement> getArrangementOptions(Long teacherId, String classId, Integer status);
+    List<CourseArrangement> getArrangementOptions(String teacherNo, String classId, Integer status);
 }
+
+

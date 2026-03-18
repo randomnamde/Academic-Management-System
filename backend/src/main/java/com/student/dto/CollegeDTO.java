@@ -6,14 +6,12 @@ import lombok.Data;
 @Data
 public class CollegeDTO {
 
-    private Long id;
-
     private String collegeCode;
 
-    @NotBlank(message = "请输入学院名称")
+    @NotBlank(message = "College name is required")
     private String collegeName;
 
-    @NotBlank(message = "请输入学院英文名称")
+    @NotBlank(message = "College english name is required")
     private String collegeNameEn;
 
     private String description;

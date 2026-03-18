@@ -31,36 +31,36 @@ public class MajorServiceImpl extends ServiceImpl<MajorMapper, Major> implements
     private final CollegeMapper collegeMapper;
 
     @Override
-    public Page<Major> getMajorPage(Integer page, Integer size, String keyword, Long collegeId, Integer status, Long scopedCollegeId) {
-        Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
-        return majorMapper.selectPageWithCollege(new Page<>(page, size), keyword, effectiveCollegeId, status);
+    public Page<Major> getMajorPage(Integer page, Integer size, String keyword, String collegeCode, Integer status, String scopedCollegeCode) {
+        String effectiveCollegeCode = scopedCollegeCode != null ? scopedCollegeCode : collegeCode;
+        return majorMapper.selectPageWithCollege(new Page<>(page, size), keyword, effectiveCollegeCode, status);
     }
 
     @Override
-    public List<Major> getMajorOptions(Long collegeId, Integer status, Long scopedCollegeId) {
-        Long effectiveCollegeId = scopedCollegeId != null ? scopedCollegeId : collegeId;
-        return majorMapper.selectOptions(effectiveCollegeId, status);
+    public List<Major> getMajorOptions(String collegeCode, Integer status, String scopedCollegeCode) {
+        String effectiveCollegeCode = scopedCollegeCode != null ? scopedCollegeCode : collegeCode;
+        return majorMapper.selectOptions(effectiveCollegeCode, status);
     }
 
     @Override
-    public Major getMajorDetail(String majorCode, Long scopedCollegeId) {
+    public Major getMajorDetail(String majorCode, String scopedCollegeCode) {
         Major major = majorMapper.selectByCodeWithCollege(majorCode);
         if (major == null) {
             return null;
         }
-        assertCollegeScope(major.getCollegeId(), scopedCollegeId);
+        assertCollegeScope(major.getCollegeCode(), scopedCollegeCode);
         return major;
     }
 
     @Override
     @Transactional
-    public Major createMajor(MajorDTO dto, Long scopedCollegeId) {
-        Long collegeId = resolveScopedCollegeId(dto.getCollegeId(), scopedCollegeId);
-        assertCollegeExists(collegeId);
+    public Major createMajor(MajorDTO dto, String scopedCollegeCode) {
+        String collegeCode = resolveScopedCollegeCode(dto.getCollegeCode(), scopedCollegeCode);
+        assertCollegeExists(collegeCode);
 
         Major major = new Major();
         BeanUtils.copyProperties(dto, major);
-        major.setCollegeId(collegeId);
+        major.setCollegeCode(collegeCode);
         major.setMajorAbbreviation(normalizeAbbreviation(dto.getMajorAbbreviation(), dto.getMajorName()));
         major.setMajorCode(generateMajorCode(dto.getMajorName(), major.getMajorAbbreviation()));
         if (major.getStatus() == null) {
@@ -72,21 +72,21 @@ public class MajorServiceImpl extends ServiceImpl<MajorMapper, Major> implements
 
     @Override
     @Transactional
-    public void updateMajor(String majorCode, MajorDTO dto, Long scopedCollegeId) {
+    public void updateMajor(String majorCode, MajorDTO dto, String scopedCollegeCode) {
         Major existing = majorMapper.selectByCodeWithCollege(majorCode);
         if (existing == null) {
             throw new BusinessException(404, "Major not found");
         }
-        assertCollegeScope(existing.getCollegeId(), scopedCollegeId);
+        assertCollegeScope(existing.getCollegeCode(), scopedCollegeCode);
 
-        Long collegeId = resolveScopedCollegeId(dto.getCollegeId(), scopedCollegeId);
-        assertCollegeExists(collegeId);
+        String collegeCode = resolveScopedCollegeCode(dto.getCollegeCode(), scopedCollegeCode);
+        assertCollegeExists(collegeCode);
 
         Major update = new Major();
         update.setMajorCode(majorCode);
         update.setMajorName(dto.getMajorName());
         update.setMajorAbbreviation(normalizeAbbreviation(dto.getMajorAbbreviation(), dto.getMajorName()));
-        update.setCollegeId(collegeId);
+        update.setCollegeCode(collegeCode);
         update.setDescription(dto.getDescription());
         update.setStatus(dto.getStatus() == null ? existing.getStatus() : dto.getStatus());
         updateById(update);
@@ -94,12 +94,12 @@ public class MajorServiceImpl extends ServiceImpl<MajorMapper, Major> implements
 
     @Override
     @Transactional
-    public void updateMajorStatus(String majorCode, Integer status, Long scopedCollegeId) {
+    public void updateMajorStatus(String majorCode, Integer status, String scopedCollegeCode) {
         Major existing = majorMapper.selectByCodeWithCollege(majorCode);
         if (existing == null) {
             throw new BusinessException(404, "Major not found");
         }
-        assertCollegeScope(existing.getCollegeId(), scopedCollegeId);
+        assertCollegeScope(existing.getCollegeCode(), scopedCollegeCode);
         Major update = new Major();
         update.setMajorCode(majorCode);
         update.setStatus(status);
@@ -165,25 +165,27 @@ public class MajorServiceImpl extends ServiceImpl<MajorMapper, Major> implements
         return input.replaceAll("[^A-Za-z]", "").toUpperCase(Locale.ROOT);
     }
 
-    private Long resolveScopedCollegeId(Long collegeId, Long scopedCollegeId) {
-        if (scopedCollegeId != null) {
-            return scopedCollegeId;
+    private String resolveScopedCollegeCode(String collegeCode, String scopedCollegeCode) {
+        if (scopedCollegeCode != null) {
+            return scopedCollegeCode;
         }
-        if (collegeId == null) {
+        if (collegeCode == null) {
             throw new BusinessException(400, "College is required");
         }
-        return collegeId;
+        return collegeCode;
     }
 
-    private void assertCollegeExists(Long collegeId) {
-        if (collegeId == null || collegeMapper.selectById(collegeId) == null) {
+    private void assertCollegeExists(String collegeCode) {
+        if (collegeCode == null || collegeMapper.selectById(collegeCode) == null) {
             throw new BusinessException(404, "College not found");
         }
     }
 
-    private void assertCollegeScope(Long collegeId, Long scopedCollegeId) {
-        if (scopedCollegeId != null && !scopedCollegeId.equals(collegeId)) {
+    private void assertCollegeScope(String collegeCode, String scopedCollegeCode) {
+        if (scopedCollegeCode != null && !scopedCollegeCode.equals(collegeCode)) {
             throw new BusinessException(403, "Forbidden");
         }
     }
 }
+
+
